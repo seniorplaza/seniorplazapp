@@ -1,0 +1,30 @@
+Abrir emulador:
+
+emulator -list-avds
+
+emulator -avd Pixel_9_Pro_XL
+
+1. Asegura el cambio en la rama de pruebas
+Primero, guarda el cambio a "David" en tu rama de trabajo:
+
+Bash
+
+git checkout Nuevos-cambios
+git add .
+git commit -m "(PONER NOTA)"
+git push origin Nuevos-cambios
+
+2. Pásalo a la rama principal (la que se ve en internet)
+Ahora saltamos a main y "absorbemos" ese cambio:
+
+Bash
+
+git checkout main
+git merge Nuevos-cambios
+
+3. Sube el cambio definitivo
+Este es el paso que actualiza la web de GitHub Pages:
+
+Bash
+
+git push origin main
