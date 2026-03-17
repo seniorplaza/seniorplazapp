@@ -6270,7 +6270,7 @@
             var el = document.getElementById('gym-stat-hidratacion');
             if (!el) return;
             el.dataset.litros = '0';
-            el.textContent = '0.0';
+            el.textContent = '0.00';
             el.style.color = '#22d3ee';
             gymGuardarSesionHoy();
         }
@@ -6324,14 +6324,43 @@
             if (modal && modal.style.display === 'flex' && e.target === modal) modal.style.display = 'none';
         });
         function gymAjustarAgua(delta) {
-            var el = document.getElementById('gym-stat-hidratacion');
-            if (!el) return;
-            var cur = Math.round(parseFloat(el.dataset.litros || 0) * 100);
-            var next = Math.max(0, cur + Math.round(delta * 100)) / 100;
-            el.dataset.litros = next;
-            el.textContent = next.toFixed(1);
+    try {
+        var el = document.getElementById('gym-stat-hidratacion');
+        if (!el) return;
+
+        // 1. Leemos el valor actual y lo pasamos a número entero (centilitros)
+        // Usamos Math.round para evitar errores de decimales de JavaScript
+        var actualCl = Math.round(parseFloat(el.dataset.litros || 0) * 100);
+        var proximoCl;
+
+        // 2. Lógica de saltos (0.50 -> 0.55 -> 1.00)
+        if (delta > 0) {
+            if (actualCl === 50) proximoCl = 55;
+            else if (actualCl === 55) proximoCl = 100;
+            else proximoCl = actualCl + 50;
+        } else {
+            if (actualCl === 100) proximoCl = 55;
+            else if (actualCl === 55) proximoCl = 50;
+            else proximoCl = Math.max(0, actualCl - 50);
+        }
+
+        // 3. Guardamos el dato técnico con 2 decimales
+        var resultadoFinal = proximoCl / 100;
+        el.dataset.litros = resultadoFinal.toFixed(2); 
+
+        // 4. ACTUALIZAMOS EL HTML (Lo que se ve)
+        // Usamos toFixed(2) para que siempre muestre "0.50", "0.55", "1.00", etc.
+        el.textContent = resultadoFinal.toFixed(2);
+
+        // 5. Guardamos la sesión
+        if (typeof gymGuardarSesionHoy === 'function') {
             gymGuardarSesionHoy();
         }
+        
+    } catch (error) {
+        console.error("Error en la hidratación:", error);
+    }
+
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
         function _gymReposoRunning() {
             return window._gymReposoState.running;
