@@ -6324,50 +6324,36 @@
             if (modal && modal.style.display === 'flex' && e.target === modal) modal.style.display = 'none';
         });
         function gymAjustarAgua(delta) {
-    var el = document.getElementById('gym-stat-hidratacion');
-    if (!el) return;
-    
-<<<<<<< HEAD
-    // Usamos 1000 para manejar hasta 3 decimales sin errores de redondeo
-    var cur = Math.round(parseFloat(el.dataset.litros || 0) * 1000);
-    var next = Math.max(0, cur + Math.round(delta * 1000)) / 1000;
-    
-    el.dataset.litros = next;
-    
-    // Mostramos 2 decimales para que se vea el .55, .25, etc.
-    el.textContent = next.toFixed(2);
-=======
-    // Obtenemos el valor actual con precisión
-    var actual = parseFloat(el.dataset.litros || 0);
-    var proximo;
+    try {
+        var el = document.getElementById('gym-stat-hidratacion');
+        if (!el) return;
+        
+        // Convertimos a enteros para evitar errores de coma flotante (50 en vez de 0.50)
+        var actual = Math.round(parseFloat(el.dataset.litros || 0) * 100);
+        var d = Math.round(delta * 100);
+        var proximo;
 
-    // LÓGICA DE ESCALA PERSONALIZADA
-    // Si delta es positivo (pulsas el botón +)
-    if (delta > 0) {
-        if (actual === 0.50) {
-            proximo = 0.55; // Salto especial de 0.50 a 0.55
-        } else if (actual === 0.55) {
-            proximo = 1.00; // Salto de 0.55 a 1.00
+        if (d > 0) {
+            if (actual === 50) proximo = 55;
+            else if (actual === 55) proximo = 100;
+            else proximo = actual + d;
         } else {
-            proximo = actual + delta; // Salto normal (ej. de 1.00 a 1.50)
+            if (actual === 100) proximo = 55;
+            else if (actual === 55) proximo = 50;
+            else proximo = Math.max(0, actual + d);
         }
-    } else {
-        // Lógica para restar (opcional, para que baje igual)
-        if (actual === 1.00) {
-            proximo = 0.55;
-        } else if (actual === 0.55) {
-            proximo = 0.50;
-        } else {
-            proximo = Math.max(0, actual + delta);
+
+        var resultadoFinal = proximo / 100;
+        el.dataset.litros = resultadoFinal;
+        el.textContent = resultadoFinal.toFixed(2);
+        
+        if (typeof gymGuardarSesionHoy === 'function') {
+            gymGuardarSesionHoy();
         }
+    } catch (e) {
+        console.error("Error en gymAjustarAgua:", e);
     }
-
-    // Guardamos y mostramos con 2 decimales
-    el.dataset.litros = proximo;
-    el.textContent = proximo.toFixed(2);
->>>>>>> Nuevos-cambios
-    
-    gymGuardarSesionHoy();
+}
         }
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
         function _gymReposoRunning() {
