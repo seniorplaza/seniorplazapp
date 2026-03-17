@@ -6324,36 +6324,13 @@
             if (modal && modal.style.display === 'flex' && e.target === modal) modal.style.display = 'none';
         });
         function gymAjustarAgua(delta) {
-    try {
-        var el = document.getElementById('gym-stat-hidratacion');
-        if (!el) return;
-        
-        // Convertimos a enteros para evitar errores de coma flotante (50 en vez de 0.50)
-        var actual = Math.round(parseFloat(el.dataset.litros || 0) * 100);
-        var d = Math.round(delta * 100);
-        var proximo;
-
-        if (d > 0) {
-            if (actual === 50) proximo = 55;
-            else if (actual === 55) proximo = 100;
-            else proximo = actual + d;
-        } else {
-            if (actual === 100) proximo = 55;
-            else if (actual === 55) proximo = 50;
-            else proximo = Math.max(0, actual + d);
-        }
-
-        var resultadoFinal = proximo / 100;
-        el.dataset.litros = resultadoFinal;
-        el.textContent = resultadoFinal.toFixed(2);
-        
-        if (typeof gymGuardarSesionHoy === 'function') {
+            var el = document.getElementById('gym-stat-hidratacion');
+            if (!el) return;
+            var cur = Math.round(parseFloat(el.dataset.litros || 0) * 100);
+            var next = Math.max(0, cur + Math.round(delta * 100)) / 100;
+            el.dataset.litros = next;
+            el.textContent = next.toFixed(1);
             gymGuardarSesionHoy();
-        }
-    } catch (e) {
-        console.error("Error en gymAjustarAgua:", e);
-    }
-}
         }
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
         function _gymReposoRunning() {
