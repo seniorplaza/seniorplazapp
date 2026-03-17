@@ -6171,6 +6171,7 @@
             }
             timerBtn.dataset.elapsed = '0';
             timerBtn.dataset.prevUploaded = '0';
+            timerBtn.dataset.cardPrevUploaded = '0';
             display.textContent = '00:00';
         }
         var _gymLongPressTimer = null;
@@ -6324,43 +6325,52 @@
             if (modal && modal.style.display === 'flex' && e.target === modal) modal.style.display = 'none';
         });
         function gymAjustarAgua(delta) {
-    try {
-        var el = document.getElementById('gym-stat-hidratacion');
-        if (!el) return;
+    var el = document.getElementById('gym-stat-hidratacion');
+    if (!el) return;
 
-        // 1. Leemos el valor actual y lo pasamos a número entero (centilitros)
-        // Usamos Math.round para evitar errores de decimales de JavaScript
-        var actualCl = Math.round(parseFloat(el.dataset.litros || 0) * 100);
-        var proximoCl;
+    // Obtener valor actual (en litros, convertir a enteros para evitar errores decimales)
+    var cur = Math.round(parseFloat(el.dataset.litros || 0) * 100);
+    var next;
 
-        // 2. Lógica de saltos (0.50 -> 0.55 -> 1.00)
-        if (delta > 0) {
-            if (actualCl === 50) proximoCl = 55;
-            else if (actualCl === 55) proximoCl = 100;
-            else proximoCl = actualCl + 50;
+    // Convertir delta a centilitros (multiplicar por 100)
+    var deltaCentilitros = Math.round(delta * 100);
+
+    // Lógica de saltos especiales
+    if (deltaCentilitros > 0) {
+        // SUMA
+        if (cur === 50) {
+            next = 55;  // 0.50 + suma -> 0.55
+        } else if (cur === 55) {
+            next = 100; // 0.55 + suma -> 1.00
         } else {
-            if (actualCl === 100) proximoCl = 55;
-            else if (actualCl === 55) proximoCl = 50;
-            else proximoCl = Math.max(0, actualCl - 50);
+            next = cur + deltaCentilitros; // Caso normal
         }
-
-        // 3. Guardamos el dato técnico con 2 decimales
-        var resultadoFinal = proximoCl / 100;
-        el.dataset.litros = resultadoFinal.toFixed(2); 
-
-        // 4. ACTUALIZAMOS EL HTML (Lo que se ve)
-        // Usamos toFixed(2) para que siempre muestre "0.50", "0.55", "1.00", etc.
-        el.textContent = resultadoFinal.toFixed(2);
-
-        // 5. Guardamos la sesión
-        if (typeof gymGuardarSesionHoy === 'function') {
-            gymGuardarSesionHoy();
+    } else {
+        // RESTA
+        if (cur === 100) {
+            next = 55;  // 1.00 - resta -> 0.55
+        } else if (cur === 55) {
+            next = 50;  // 0.55 - resta -> 0.50
+        } else {
+            next = cur + deltaCentilitros; // Caso normal (deltaCentilitros es negativo)
         }
-        
-    } catch (error) {
-        console.error("Error en la hidratación:", error);
     }
 
+    // Asegurar que nunca sea menor a 0
+    if (next < 0) next = 0;
+
+    // Convertir de vuelta a litros
+    var valorFinal = next / 100;
+
+    // Actualizar data-litros y texto visual con 2 decimales
+    el.dataset.litros = valorFinal.toFixed(2);
+    el.textContent = valorFinal.toFixed(2);
+
+    // Guardar la sesión si la función existe
+    if (typeof gymGuardarSesionHoy === 'function') {
+        gymGuardarSesionHoy();
+    }
+}
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
         function _gymReposoRunning() {
             return window._gymReposoState.running;
@@ -6759,10 +6769,11 @@
             if (statEl) {
                 var prevUploaded = parseInt(timerBtn.dataset.prevUploaded || 0);
                 var curSecs = parseInt(statEl.dataset.totalSecs || 0);
-                var newSecs = curSecs - prevUploaded + secs;
+                var newAmount = secs - prevUploaded; // Lo nuevo a sumar
+                var newSecs = curSecs + newAmount;   // Total = anterior + nuevo
                 if (newSecs < 0) newSecs = 0;
                 statEl.dataset.totalSecs = newSecs;
-                timerBtn.dataset.prevUploaded = secs; // guardar lo que subimos
+                timerBtn.dataset.prevUploaded = secs; // guardar el cronómetro actual
                 var h = Math.floor(newSecs / 3600);
                 var m = Math.floor((newSecs % 3600) / 60);
                 var s = newSecs % 60;
@@ -6777,7 +6788,8 @@
             if (cardBadge && cardLabel) {
                 var cardPrevUploaded = parseInt(timerBtn.dataset.cardPrevUploaded || 0);
                 var cardCurSecs = parseInt(cardBadge.dataset.totalSecs || 0);
-                var cardNewSecs = cardCurSecs - cardPrevUploaded + secs;
+                var cardNewAmount = secs - cardPrevUploaded; // Lo nuevo a sumar
+                var cardNewSecs = cardCurSecs + cardNewAmount; // Total = anterior + nuevo
                 if (cardNewSecs < 0) cardNewSecs = 0;
                 cardBadge.dataset.totalSecs = cardNewSecs;
                 timerBtn.dataset.cardPrevUploaded = secs;
@@ -6821,6 +6833,123 @@
         }
         window._gymArchivados = window._gymArchivados || [];
 
+        function moverGymCard(btn) {
+            var card = btn.closest('.gym-card');
+            btn.closest('.gym-card-menu').style.display = 'none';
+            var vistaActual = window._vistaGymActiva || 'pecho';
+            var vistas = ['pecho','espalda','brazo','pierna','cardio'];
+            var nombres = {pecho:'Pecho',espalda:'Espalda',brazo:'Brazo',pierna:'Pierna',cardio:'Cardio'};
+
+            // Crear overlay de selección
+            var overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+            var opciones = vistas.filter(function(v) { return v !== vistaActual; }).map(function(v) {
+                return '<button onclick="window._gymMoverDestino(\'' + v + '\')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid rgba(71,85,105,0.3);background:rgba(15,23,42,0.8);color:#f1f5f9;font-size:13px;font-weight:700;cursor:pointer;border-radius:10px;text-align:left;transition:background 0.15s;" onmouseover="this.style.background=\'rgba(234,179,8,0.12)\';this.style.borderColor=\'rgba(234,179,8,0.4)\'" onmouseout="this.style.background=\'rgba(15,23,42,0.8)\';this.style.borderColor=\'rgba(71,85,105,0.3)\'">'
+                    + '<span class="material-symbols-rounded" style="font-size:18px;color:#64748b;">move_item</span>'
+                    + nombres[v]
+                    + '</button>';
+            }).join('');
+
+            overlay.innerHTML = '<div style="background:#0f172a;border:1px solid rgba(71,85,105,0.35);border-radius:20px;width:100%;max-width:320px;display:flex;flex-direction:column;overflow:hidden;">'
+                + '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.05);">'
+                + '<div style="display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded" style="font-size:18px;color:#64748b;">move_item</span><span style="color:#f1f5f9;font-size:14px;font-weight:800;">Mover</span></div>'
+                + '<button onclick="this.closest(\'[style*=fixed]\').remove()" style="background:none;border:none;color:#64748b;cursor:pointer;padding:4px;"><span class="material-symbols-rounded" style="font-size:20px;">close</span></button>'
+                + '</div>'
+                + '<div style="padding:12px;display:flex;flex-direction:column;gap:6px;">' + opciones + '</div>'
+                + '</div>';
+
+            window._gymMoverDestino = function(destino) {
+                overlay.remove();
+                delete window._gymMoverDestino;
+
+                // Capturar todo el estado de la card
+                var nombre    = card.querySelector('.gym-card-nombre')?.textContent?.trim() || '';
+                var desc      = card.querySelector('.gym-card-desc')?.textContent?.trim() || '';
+                var badge     = card.querySelector('.gym-card-badge-cat')?.textContent?.trim() || '';
+                var badgeMaq  = card.querySelector('.gym-card-badge-maq')?.textContent?.trim() || '';
+                var series    = card.querySelector('input.gym-card-series')?.value || '0';
+                var reps      = card.querySelector('input.gym-card-reps')?.value || '0';
+                var kg        = card.querySelector('input.gym-card-kg')?.value || '0';
+                var rir       = card.querySelector('input.gym-card-rir')?.value || '';
+                var rpe       = card.querySelector('input.gym-card-rpe')?.value || '';
+                var imgHTML   = card.querySelector('.gym-card-img')?.innerHTML || '';
+                var checkBtn  = card.querySelector('.gym-check-btn');
+                var completado = checkBtn ? (checkBtn.dataset.completado === '1') : false;
+                var timerDisplay = card.querySelector('.gym-timer-display')?.textContent || '00:00';
+                var badgeEl    = card.querySelector('.gym-card-time-badge');
+                var badgeSecs  = badgeEl ? (badgeEl.dataset.totalSecs || '0') : '0';
+                var badgeLabel = badgeEl ? (badgeEl.querySelector('.gym-card-time-label')?.textContent || '00:00') : '00:00';
+                var badgeHidden = badgeEl ? badgeEl.hasAttribute('data-hidden') : true;
+
+                // Descontar ejercicio completado del origen
+                if (completado) {
+                    var ejEl = document.getElementById('gym-stat-ejercicios');
+                    if (ejEl) ejEl.textContent = Math.max(0, parseInt(ejEl.textContent||0) - 1);
+                }
+
+                // Eliminar card del panel origen con animación
+                var panelOrigen = document.getElementById('gym-panel-' + vistaActual);
+                card.style.transition = 'opacity 0.25s, transform 0.25s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(function() {
+                    card.remove();
+                    if (typeof _gymEmptyState === 'function' && panelOrigen) _gymEmptyState(panelOrigen);
+                    if (typeof _gymUpdateBolts === 'function' && panelOrigen) _gymUpdateBolts(panelOrigen.querySelector('.gym-panel-grid'));
+
+                    // Insertar en el panel destino
+                    var panelDestino = document.getElementById('gym-panel-' + destino);
+                    if (!panelDestino) return;
+                    var grid = panelDestino.querySelector('.gym-panel-grid');
+                    if (!grid) {
+                        grid = document.createElement('div');
+                        grid.className = 'gym-panel-grid';
+                        panelDestino.appendChild(grid);
+                    }
+                    var newCard = document.createElement('div');
+                    newCard.className = 'gym-card';
+                    newCard.style.cssText = 'background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:scale(0.95);transition:opacity 0.3s,transform 0.3s;';
+                    newCard.innerHTML = _gymCardInnerHTML(nombre, desc, badge, series, reps, imgHTML, kg, badgeMaq, rir, rpe, completado, '00:00');
+
+                    // Restaurar badge de tiempo
+                    var newBadgeEl = newCard.querySelector('.gym-card-time-badge');
+                    if (newBadgeEl) {
+                        newBadgeEl.dataset.totalSecs = badgeSecs;
+                        if (badgeHidden) { newBadgeEl.setAttribute('data-hidden','1'); newBadgeEl.style.display='none'; }
+                        else { newBadgeEl.removeAttribute('data-hidden'); newBadgeEl.style.display='flex'; }
+                        var newLabel = newBadgeEl.querySelector('.gym-card-time-label');
+                        if (newLabel) newLabel.textContent = badgeLabel;
+                    }
+                    var newTimerDisplay = newCard.querySelector('.gym-timer-display');
+                    if (newTimerDisplay) newTimerDisplay.textContent = timerDisplay;
+
+                    if (window.innerWidth < 768) {
+                        newCard.querySelectorAll('.gym-stat-inp').forEach(function(inp) {
+                            inp.setAttribute('readonly',''); inp.setAttribute('inputmode','none'); inp.setAttribute('tabindex','-1');
+                        });
+                    }
+                    grid.appendChild(newCard);
+                    requestAnimationFrame(function() { newCard.style.opacity='1'; newCard.style.transform='scale(1)'; });
+                    if (typeof _initGymCardDrag === 'function') _initGymCardDrag(newCard);
+                    if (typeof _gymUpdateBolts === 'function') _gymUpdateBolts(grid);
+                    if (typeof initTooltips === 'function') initTooltips();
+                    if (typeof _gymEmptyState === 'function') _gymEmptyState(panelDestino);
+
+                    // Recontar ejercicio completado en destino si es el panel visible
+                    if (completado && destino === (window._vistaGymActiva || 'pecho')) {
+                        var ejEl2 = document.getElementById('gym-stat-ejercicios');
+                        if (ejEl2) ejEl2.textContent = parseInt(ejEl2.textContent||0) + 1;
+                    }
+
+                    if (typeof guardarDatos === 'function') guardarDatos();
+                }, 250);
+            };
+
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); delete window._gymMoverDestino; } });
+            document.body.appendChild(overlay);
+        }
+
         function archivarGymCard(btn) {
             var card = btn.closest('.gym-card');
             btn.closest('.gym-card-menu').style.display = 'none';
@@ -6828,8 +6957,8 @@
             var desc    = card.querySelector('.gym-card-desc')?.textContent?.trim() || '';
             var badge   = card.querySelector('.gym-card-badge-cat')?.textContent?.trim() || '';
             var badgeMaquina = card.querySelector('.gym-card-badge-maq')?.textContent?.trim() || '';
-            var series  = card.querySelector('input.gym-card-series')?.value || '3';
-            var reps    = card.querySelector('input.gym-card-reps')?.value || '12';
+            var series  = card.querySelector('input.gym-card-series')?.value || '0';
+            var reps    = card.querySelector('input.gym-card-reps')?.value || '0';
             var kg      = card.querySelector('input.gym-card-kg')?.value || '0';
             var rir     = card.querySelector('input.gym-card-rir')?.value || '';
             var rpe     = card.querySelector('input.gym-card-rpe')?.value || '';
@@ -7038,8 +7167,8 @@
             var desc    = document.getElementById('_nuevo_desc')?.value.trim() || '';
             var badge   = document.getElementById('_nuevo_badge')?.value.trim() || '';
             var badgeMaquina = document.getElementById('_nuevo_badge_maquina')?.value.trim() || '';
-            var series  = document.getElementById('_nuevo_series')?.value || '3';
-            var reps    = document.getElementById('_nuevo_reps')?.value || '12';
+            var series  = document.getElementById('_nuevo_series')?.value || '0';
+            var reps    = document.getElementById('_nuevo_reps')?.value || '0';
             var kg      = document.getElementById('_nuevo_kg')?.value || '0';
             var km      = parseFloat(document.getElementById('_nuevo_km')?.value || 0) || 0;
             var _elIntC = document.getElementById('gym-intervalo-label');
@@ -7127,8 +7256,8 @@
                 e.nombre || '',
                 e.desc || '',
                 e.badge || '',
-                e.series || '3',
-                e.reps || '12',
+                e.series || '0',
+                e.reps || '0',
                 imgHTML,
                 e.kg || '0',
                 e.badgeMaquina || '',
@@ -7137,92 +7266,63 @@
                 e.completado || false
             );
         }
-        function _gymCardInnerHTML(nombre, desc, badge, series, reps, imgHTML, kg, badgeMaquina, rir, rpe, completado) {
-            series = (series !== undefined && series !== null && series !== '') ? series : '0';
-            reps   = (reps   !== undefined && reps   !== null && reps   !== '') ? reps   : '0';
-            kg     = (kg     !== undefined && kg     !== null && kg     !== '') ? kg     : '0';
-            rir    = (rir    !== undefined && rir    !== null && rir    !== '') ? rir    : '0';
-            rpe    = (rpe    !== undefined && rpe    !== null && rpe    !== '') ? rpe    : '0';
-            var dd = '<div class="gym-drag-handle" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;color:#334155;padding:0 2px;touch-action:none;user-select:none;">'                   + '<span class="material-symbols-rounded" style="font-size:26px;pointer-events:none;">drag_indicator</span>'                   + '</div>';
-            var badgeMaqHTML = badgeMaquina ? '<div style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.25);border-radius:7px;padding:2px 8px;margin-left:6px;flex-shrink:0;"><span class="gym-card-badge-maq" style="color:#e2e8f0;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">' + badgeMaquina + '</span></div>' : '';
-            var badgeCatHTML = badge ? '<div style="display:inline-flex;align-items:center;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:7px;padding:2px 8px;flex-shrink:0;"><span class="gym-card-badge-cat" style="color:#eab308;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">' + badge + '</span></div>' : '';
-            var men = '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">'
-                    + '<div style="position:relative;">'
-                    + '<button onclick="toggleGymCardMenu(this)" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(71,85,105,0.3);background:rgba(71,85,105,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button>'
-                    + '<div class="gym-card-menu" style="display:none;position:absolute;right:0;top:34px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);">'
-                    + '<button onclick="editarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;" onmouseover="this.style.background=\'rgba(59,130,246,0.15)\'" onmouseout="this.style.background=\'transparent\'"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">edit</span>Editar</button>'
-                    + '<button onclick="duplicarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;" onmouseover="this.style.background=\'rgba(71,85,105,0.15)\'" onmouseout="this.style.background=\'transparent\'"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">content_copy</span>Duplicar</button>'
-                    + '<button onclick="archivarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;" onmouseover="this.style.background=\'rgba(71,85,105,0.15)\'" onmouseout="this.style.background=\'transparent\'"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">archive</span>Archivar</button>'
-                    + '<button onclick="_gymResetCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;" onmouseover="this.style.background=\'rgba(71,85,105,0.15)\'" onmouseout="this.style.background=\'transparent\'"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">restart_alt</span>Resetear</button>'
-                    + '<div style="height:1px;background:rgba(255,255,255,0.06);margin:3px 6px;"></div>'
-                    + '<button onclick="eliminarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;" onmouseover="this.style.background=\'rgba(239,68,68,0.15)\'" onmouseout="this.style.background=\'transparent\'"><span class="material-symbols-rounded" style="font-size:15px;color:#f87171;">delete</span>Eliminar</button>'
-                    + '</div></div></div>';
-            var cellS = 'position:relative;background:rgba(15,23,42,0.5);border-radius:16px;padding:6px 46px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;';
-            var cellKG = 'background:rgba(15,23,42,0.5);border-radius:9px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;';
-            var lblS  = 'font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;display:block;margin-bottom:2px;';
-            var inpS  = 'width:100%;background:transparent;border:none;font-size:18px;font-weight:900;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;';
-            var isMobileGym = window.innerWidth < 768;
-            var focusBlur = isMobileGym
-                ? 'tabindex="-1" inputmode="none" readonly'
-                : 'onfocus="this.select()" onblur="if(this.value===\'\' || this.value===\'.\'|| isNaN(this.value))this.value=\'0\'"';
-            var lblRIR = '<div style="display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:2px;">'
-                       + '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;line-height:1;">RIR</span>'
-                       + '<div class="tooltip-container" style="display:inline-flex;align-items:center;line-height:1;">'
-                       + '<span class="material-symbols-rounded tooltip-icon" style="font-size:13px;color:#64748b;line-height:1;">info</span>'
-                       + '<span class="tooltip-text"><strong>RIR – Reps in Reserve</strong><br>Cuántas reps sentiste que podías hacer más antes del fallo técnico.<br><br><em>Ej: hiciste 10 reps pero podías 2 más → RIR = 2</em></span>'
-                       + '</div></div>';
-            var lblRPE = '<div style="display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:2px;">'
-                       + '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;line-height:1;">RPE</span>'
-                       + '<div class="tooltip-container" style="display:inline-flex;align-items:center;line-height:1;">'
-                       + '<span class="material-symbols-rounded tooltip-icon" style="font-size:13px;color:#64748b;line-height:1;">info</span>'
-                       + '<span class="tooltip-text"><strong>RPE – Rate of Perceived Exertion</strong><br>Escala 1–10 de qué tan difícil fue la serie. 10 = máximo esfuerzo.<br><br><em>Ej: serie muy dura con algo de reserva → RPE = 8</em></span>'
-                       + '</div></div>';
-            return '<div>'
-                 + '<div style="padding:18px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.05);">'
-                 + '<div style="display:flex;align-items:center;gap:14px;">'
-                 + dd
-                 + '<div style="flex:1;min-width:0;overflow:hidden;">'
-                 + '<div style="display:flex;align-items:center;flex-wrap:nowrap;overflow:hidden;gap:4px;">'
-                 + '<span class="gym-card-nombre" style="color:#f1f5f9;font-size:15px;font-weight:800;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">' + nombre + '</span>'
-                 + badgeMaqHTML
-                 + badgeCatHTML
-                 + '</div>'
-                 + '<div class="gym-card-desc" style="color:#64748b;font-size:11px;font-weight:500;line-height:1.4;margin-top:3px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + desc + '</div>'
-                 + '</div>'
-                 + men
-                 + '</div>'
-                 + '</div>'
-                 + '<div class="gym-card-body" style="padding:14px 12px 12px;display:flex;gap:8px;align-items:stretch;overflow:hidden;flex:1;">'
-                 + '<div class="gym-card-img" onclick="var i=this.querySelector(\'img\');if(i&&typeof gymAbrirVisorImagen===\'function\')gymAbrirVisorImagen(i.src);" style="flex-shrink:0;width:150px;height:150px;border-radius:14px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;">' + imgHTML + '</div>'
-                 + '<div class="gym-col-series" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;">'
-                 + '<div class="gym-stat-cell" onmousedown="_gymStatCellDown(this)" onmouseup="_gymStatCellUp()" onmouseleave="_gymStatCellUp()" ontouchstart="_gymStatCellDown(this)" ontouchend="_gymStatCellUp()" ontouchcancel="_gymStatCellUp()" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '"><span class="gym-stat-lbl" style="' + lblS + '">Series</span><button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only"  style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="99" value="' + series + '" class="gym-card-series gym-stat-inp" ' + focusBlur + ' oninput="if(typeof guardarDatos===\'function\')guardarDatos()" style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
-                 + '<div class="gym-stat-cell" onmousedown="_gymStatCellDown(this)" onmouseup="_gymStatCellUp()" onmouseleave="_gymStatCellUp()" ontouchstart="_gymStatCellDown(this)" ontouchend="_gymStatCellUp()" ontouchcancel="_gymStatCellUp()" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '">' + lblRIR + '<button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only"  style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="0" max="10" value="' + rir + '" class="gym-card-rir gym-stat-inp" ' + focusBlur + ' oninput="if(typeof guardarDatos===\'function\')guardarDatos()" style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
-                 + '</div>'
-                 + '<div class="gym-col-reps" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;">'
-                 + '<div class="gym-stat-cell" onmousedown="_gymStatCellDown(this)" onmouseup="_gymStatCellUp()" onmouseleave="_gymStatCellUp()" ontouchstart="_gymStatCellDown(this)" ontouchend="_gymStatCellUp()" ontouchcancel="_gymStatCellUp()" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '"><span class="gym-stat-lbl" style="' + lblS + '">Reps</span><button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only"  style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="999" value="' + reps + '" class="gym-card-reps gym-stat-inp" ' + focusBlur + ' oninput="if(typeof guardarDatos===\'function\')guardarDatos()" style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
-                 + '<div class="gym-stat-cell" onmousedown="_gymStatCellDown(this)" onmouseup="_gymStatCellUp()" onmouseleave="_gymStatCellUp()" ontouchstart="_gymStatCellDown(this)" ontouchend="_gymStatCellUp()" ontouchcancel="_gymStatCellUp()" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '">' + lblRPE + '<button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only"  style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="10" value="' + rpe + '" class="gym-card-rpe gym-stat-inp" ' + focusBlur + ' oninput="if(typeof guardarDatos===\'function\')guardarDatos()" style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:background 0.15s,color 0.15s;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
-                 + '</div>'
-                 + '<div class="gym-col-kg" style="flex-shrink:0;width:150px;height:150px;display:flex;flex-direction:column;gap:6px;">'
-                 + '<div onmousedown="_gymStatCellDown(this)" onmouseup="_gymStatCellUp()" onmouseleave="_gymStatCellUp()" ontouchstart="_gymStatCellDown(this)" ontouchend="_gymStatCellUp()" ontouchcancel="_gymStatCellUp()" style="flex:1;border:1px solid rgba(234,179,8,0.4);' + cellKG + '"><span class="gym-stat-lbl" style="' + lblS + '">KG</span><input type="number" min="0" max="999" value="' + kg + '" step="0.5" class="gym-card-kg gym-stat-inp gym-stat-kg" ' + focusBlur + ' oninput="if(typeof guardarDatos===\'function\')guardarDatos()" style="color:#eab308;font-size:25px;font-weight:900;width:auto;background:transparent;border:none;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;"></div>'
-                 + '<div class="gym-card-time-badge" onmousedown="gymLongPressStart(this,\'gymResetCardTimeFromBadge\',\'rgba(59,130,246,0.8)\')" onmouseup="gymLongPressEnd(this,\'rgba(59,130,246,0.35)\')" onmouseleave="gymLongPressEnd(this,\'rgba(59,130,246,0.35)\')" title="Mantén pulsado para resetear" style="display:none;align-items:center;justify-content:center;gap:4px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);border-radius:9px;padding:8px 6px;flex-shrink:0;cursor:pointer;transition:background 0.2s;touch-action:none;user-select:none;" data-hidden="1">'
-                 + '<span class="material-symbols-rounded" style="font-size:14px;color:#60a5fa;line-height:1;display:flex;align-items:center;">schedule</span>'
-                 + '<span class="gym-card-time-label" style="color:#93c5fd;font-size:11px;font-weight:800;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;line-height:1;display:flex;align-items:center;">00:00</span>'
-                 + '</div>'
-                 + '</div>'
-                 + '</div>'
-                 + '<div style="border-top:1px solid rgba(255,255,255,0.05);padding:12px 18px 14px;display:flex;gap:6px;align-items:center;">'
-                 + '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.2);border-radius:14px;padding:6px 10px;flex-shrink:0;">'
-                 + '<button onclick="toggleCronometroGym(this)" class="gym-timer-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;color:#eab308;">timer</span></button>'
-                 + '<span class="gym-timer-display" style="color:#eab308;font-size:14px;font-weight:800;font-family:Manrope,sans-serif;width:52px;min-width:52px;text-align:center;line-height:32px;letter-spacing:0.03em;">00:00</span>'
-                 + '<button onclick="toggleReposoGym(this)" class="gym-reposo-btn" title="Activar cronómetro de reposo" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#c084fc;">pause</span></button>'
-                 + '<button onclick="reiniciarCronometroGym(this)" title="Nueva ronda" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;margin-left:6px;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">laps</span></button>'
-                 + '<button onclick="enviarTiempoGym(this)" title="Actualizar tiempo de sesión" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">more_time</span></button>'
-                 + '</div>'
-                 + '<div style="flex:1;"></div>'
-                 + '<span class="gym-bolt-icon material-symbols-rounded" style="font-size:22px;color:#eab308;line-height:1;flex-shrink:0;transition:color 0.3s;font-variation-settings:\'FILL\' 1;">bolt</span>'
-                 + '<button onclick="toggleEjercicioGym(this)" class="gym-check-btn" data-completado="' + (completado ? '1' : '0') + '" title="Marcar completado" style="width:34px;height:34px;border-radius:50%;border:2px solid ' + (completado ? '#10b981' : '#334155') + ';background:' + (completado ? '#10b981' : 'transparent') + ';cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:20px;color:' + (completado ? 'white' : '#475569') + ';line-height:1;' + (completado ? 'font-weight:700;' : '') + '">check</span></button>'
-                 + '</div>';
-        }
+        function _gymCardInnerHTML(nombre, desc, badge, series, reps, imgHTML, kg, badgeMaquina, rir, rpe, completado, tiempo) {
+    // Si no se pasa tiempo (por ejemplo al crear uno nuevo), ponemos 00:00
+    var tiempoDisplay = (tiempo && tiempo !== '') ? tiempo : '00:00';
+
+    series = (series !== undefined && series !== null && series !== '') ? series : '0';
+    reps   = (reps   !== undefined && reps   !== null && reps   !== '') ? reps   : '0';
+    kg     = (kg     !== undefined && kg     !== null && kg     !== '') ? kg     : '0';
+    rir    = (rir    !== undefined && rir    !== null && rir    !== '') ? rir    : '0';
+    rpe    = (rpe    !== undefined && rpe    !== null && rpe    !== '') ? rpe    : '0';
+    var dd = '<div class="gym-drag-handle" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;color:#334155;padding:0 2px;touch-action:none;user-select:none;">' + '<span class="material-symbols-rounded" style="font-size:26px;pointer-events:none;">drag_indicator</span>' + '</div>';
+    var badgeMaqHTML = badgeMaquina ? '<div style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.25);border-radius:7px;padding:2px 8px;margin-left:6px;flex-shrink:0;"><span class="gym-card-badge-maq" style="color:#e2e8f0;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">' + badgeMaquina + '</span></div>' : '';
+    var badgeCatHTML = badge ? '<div style="display:inline-flex;align-items:center;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:7px;padding:2px 8px;flex-shrink:0;"><span class="gym-card-badge-cat" style="color:#eab308;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">' + badge + '</span></div>' : '';
+    var men = '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><div style="position:relative;"><button onclick="toggleGymCardMenu(this)" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(71,85,105,0.3);background:rgba(71,85,105,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button><div class="gym-card-menu" style="display:none;position:absolute;right:0;top:34px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);"><button onclick="editarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">edit</span>Editar</button><button onclick="duplicarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">content_copy</span>Duplicar</button><button onclick="archivarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">archive</span>Archivar</button><button onclick="moverGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">move_item</span>Mover</button><button onclick="_gymResetCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">restart_alt</span>Resetear</button><div style="height:1px;background:rgba(255,255,255,0.06);margin:3px 6px;"></div><button onclick="eliminarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#f87171;">delete</span>Eliminar</button></div></div></div>';
+    var cellS = 'position:relative;background:rgba(15,23,42,0.5);border-radius:16px;padding:6px 46px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;';
+    var cellKG = 'background:rgba(15,23,42,0.5);border-radius:9px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;';
+    var lblS  = 'font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;display:block;margin-bottom:2px;';
+    var inpS  = 'width:100%;background:transparent;border:none;font-size:18px;font-weight:900;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;';
+    var isMobileGym = window.innerWidth < 768;
+    var focusBlur = isMobileGym ? 'tabindex="-1" inputmode="none" readonly' : 'onfocus="this.select()" onblur="if(this.value===\'\' || this.value===\'.\'|| isNaN(this.value))this.value=\'0\'"';
+    var lblRIR = '<div style="display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:2px;"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;line-height:1;">RIR</span><div class="tooltip-container" style="display:inline-flex;align-items:center;line-height:1;"><span class="material-symbols-rounded tooltip-icon" style="font-size:13px;color:#64748b;line-height:1;">info</span><span class="tooltip-text"><strong>RIR – Reps in Reserve</strong><br>Cuántas reps sentiste que podías hacer más antes del fallo técnico.<br><br><em>Ej: hiciste 10 reps pero podías 2 más → RIR = 2</em></span></div></div>';
+    var lblRPE = '<div style="display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:2px;"><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;line-height:1;">RPE</span><div class="tooltip-container" style="display:inline-flex;align-items:center;line-height:1;"><span class="material-symbols-rounded tooltip-icon" style="font-size:13px;color:#64748b;line-height:1;">info</span><span class="tooltip-text"><strong>RPE – Rate of Perceived Exertion</strong><br>Escala 1–10 de qué tan difícil fue la serie. 10 = máximo esfuerzo.<br><br><em>Ej: serie muy dura con algo de reserva → RPE = 8</em></span></div></div>';
+    
+    return '<div>'
+         + '<div style="padding:18px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.05);"><div style="display:flex;align-items:center;gap:14px;">' + dd + '<div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;flex-wrap:nowrap;overflow:hidden;gap:4px;"><span class="gym-card-nombre" style="color:#f1f5f9;font-size:15px;font-weight:800;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">' + nombre + '</span>' + badgeMaqHTML + badgeCatHTML + '</div><div class="gym-card-desc" style="color:#64748b;font-size:11px;font-weight:500;line-height:1.4;margin-top:3px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + desc + '</div></div>' + men + '</div></div>'
+         + '<div class="gym-card-body" style="padding:14px 12px 12px;display:flex;gap:8px;align-items:stretch;overflow:hidden;flex:1;">'
+         + '<div class="gym-card-img" onclick="var i=this.querySelector(\'img\');if(i&&typeof gymAbrirVisorImagen===\'function\')gymAbrirVisorImagen(i.src);" style="flex-shrink:0;width:150px;height:150px;border-radius:14px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;">' + imgHTML + '</div>'
+         + '<div class="gym-col-series" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;">'
+         + '<div class="gym-stat-cell" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '"><span class="gym-stat-lbl" style="' + lblS + '">Series</span><button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only" style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="99" value="' + series + '" class="gym-card-series gym-stat-inp" ' + focusBlur + ' style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
+         + '<div class="gym-stat-cell" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '">' + lblRIR + '<button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only" style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="0" max="10" value="' + rir + '" class="gym-card-rir gym-stat-inp" ' + focusBlur + ' style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
+         + '</div>'
+         + '<div class="gym-col-reps" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;">'
+         + '<div class="gym-stat-cell" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '"><span class="gym-stat-lbl" style="' + lblS + '">Reps</span><button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only" style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="999" value="' + reps + '" class="gym-card-reps gym-stat-inp" ' + focusBlur + ' style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
+         + '<div class="gym-stat-cell" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '">' + lblRPE + '<button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only" style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="10" value="' + rpe + '" class="gym-card-rpe gym-stat-inp" ' + focusBlur + ' style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
+         + '</div>'
+         + '<div class="gym-col-kg" style="flex-shrink:0;width:150px;height:150px;display:flex;flex-direction:column;gap:6px;">'
+         + '<div style="flex:1;border:1px solid rgba(234,179,8,0.4);' + cellKG + '"><span class="gym-stat-lbl" style="' + lblS + '">KG</span><input type="number" value="' + kg + '" class="gym-card-kg gym-stat-inp gym-stat-kg" ' + focusBlur + ' style="color:#eab308;font-size:25px;font-weight:900;width:auto;background:transparent;border:none;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;"></div>'
+         + '<div class="gym-card-time-badge" style="display:none;align-items:center;justify-content:center;gap:4px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);border-radius:9px;padding:8px 6px;flex-shrink:0;transition:background 0.2s;touch-action:none;user-select:none;" data-hidden="1">'
+         + '<span class="material-symbols-rounded" style="font-size:14px;color:#60a5fa;line-height:1;display:flex;align-items:center;">schedule</span>'
+         // --- CAMBIO AQUÍ ---
+         + '<span class="gym-card-time-label" style="color:#93c5fd;font-size:11px;font-weight:800;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;line-height:1;display:flex;align-items:center;">' + tiempoDisplay + '</span>'
+         + '</div>'
+         + '</div>'
+         + '</div>'
+         + '<div style="border-top:1px solid rgba(255,255,255,0.05);padding:12px 18px 14px;display:flex;gap:6px;align-items:center;">'
+         + '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.2);border-radius:14px;padding:6px 10px;flex-shrink:0;">'
+         + '<button onclick="toggleCronometroGym(this)" class="gym-timer-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;color:#eab308;">timer</span></button>'
+         // --- CAMBIO AQUÍ ---
+         + '<span class="gym-timer-display" style="color:#eab308;font-size:14px;font-weight:800;font-family:Manrope,sans-serif;width:52px;min-width:52px;text-align:center;line-height:32px;letter-spacing:0.03em;">' + tiempoDisplay + '</span>'
+         + '<button onclick="toggleReposoGym(this)" class="gym-reposo-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#c084fc;">pause</span></button>'
+         + '<button onclick="reiniciarCronometroGym(this)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;margin-left:6px;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">laps</span></button>'
+         + '<button onclick="enviarTiempoGym(this)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">more_time</span></button>'
+         + '</div>'
+         + '<div style="flex:1;"></div>'
+         + '<span class="gym-bolt-icon material-symbols-rounded" style="font-size:22px;color:#eab308;line-height:1;flex-shrink:0;transition:color 0.3s;font-variation-settings:\'FILL\' 1;">bolt</span>'
+         + '<button onclick="toggleEjercicioGym(this)" class="gym-check-btn" data-completado="' + (completado ? '1' : '0') + '" style="width:34px;height:34px;border-radius:50%;border:2px solid ' + (completado ? '#10b981' : '#334155') + ';background:' + (completado ? '#10b981' : 'transparent') + ';cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:20px;color:' + (completado ? 'white' : '#475569') + ';line-height:1;' + (completado ? 'font-weight:700;' : '') + '">check</span></button>'
+         + '</div>';
+}
 
                         function _gymResetCard(btn) {
             var card = btn.closest('.gym-card');
@@ -7682,23 +7782,60 @@
                 inp.click();
             });
             overlay.querySelector('#_edit_save_btn').onclick = function() {
-                var newNombre = overlay.querySelector('#_edit_nombre').value.trim();
-                var newDesc   = overlay.querySelector('#_edit_desc').value.trim();
-                var newBadge  = overlay.querySelector('#_edit_badge').value.trim();
-                var newMaq    = overlay.querySelector('#_edit_maq').value.trim();
-                var newSeries = overlay.querySelector('#_edit_series').value;
-                var newReps   = overlay.querySelector('#_edit_reps').value;
-                var newKg     = overlay.querySelector('#_edit_kg').value;
-                var newRir    = overlay.querySelector('#_edit_rir').value;
-                var newRpe    = overlay.querySelector('#_edit_rpe').value;
-                var finalImgHTML = pendingImgHTML || (imgBox ? imgBox.innerHTML : '');
-                card.innerHTML = _gymCardInnerHTML(newNombre, newDesc, newBadge, newSeries, newReps, finalImgHTML, newKg, newMaq, newRir, newRpe);
-                if (typeof _initGymCardDrag === 'function') _initGymCardDrag(card);
-                if (typeof initTooltips === 'function') initTooltips();
-                overlay.remove();
-                if (typeof guardarDatos === 'function') guardarDatos();
-            };
-            setTimeout(function(){ overlay.querySelector('#_edit_nombre')?.focus(); }, 50);
+    // Capturar estado del badge, timer y completado ANTES de reconstruir
+    var oldCheckBtn     = card.querySelector('.gym-check-btn');
+    var savedCompletado = oldCheckBtn ? (oldCheckBtn.dataset.completado === '1') : false;
+    var oldTimerBtn    = card.querySelector('.gym-timer-btn');
+    var oldBadge       = card.querySelector('.gym-card-time-badge');
+    var oldTimerDisplay = card.querySelector('.gym-timer-display');
+    var savedBadgeTotalSecs     = oldBadge ? (oldBadge.dataset.totalSecs || '0') : '0';
+    var savedBadgeHidden        = oldBadge ? oldBadge.hasAttribute('data-hidden') : true;
+    var savedBadgeDisplay       = oldBadge ? oldBadge.style.display : 'none';
+    var savedBadgeLabel         = oldBadge ? (oldBadge.querySelector('.gym-card-time-label')?.textContent || '00:00') : '00:00';
+    var savedElapsed            = oldTimerBtn ? (oldTimerBtn.dataset.elapsed || '0') : '0';
+    var savedPrevUploaded       = oldTimerBtn ? (oldTimerBtn.dataset.prevUploaded || '0') : '0';
+    var savedCardPrevUploaded   = oldTimerBtn ? (oldTimerBtn.dataset.cardPrevUploaded || '0') : '0';
+    var savedTimerRunning       = oldTimerBtn ? (oldTimerBtn.dataset.running || '0') : '0';
+    var savedTimerDisplay       = oldTimerDisplay ? (oldTimerDisplay.textContent || '00:00') : '00:00';
+
+    var newNombre = overlay.querySelector('#_edit_nombre').value.trim();
+    var newDesc   = overlay.querySelector('#_edit_desc').value.trim();
+    var newBadge  = overlay.querySelector('#_edit_badge').value.trim();
+    var newMaq    = overlay.querySelector('#_edit_maq').value.trim();
+    var newSeries = overlay.querySelector('#_edit_series').value;
+    var newReps   = overlay.querySelector('#_edit_reps').value;
+    var newKg     = overlay.querySelector('#_edit_kg').value;
+    var newRir    = overlay.querySelector('#_edit_rir').value;
+    var newRpe    = overlay.querySelector('#_edit_rpe').value;
+    var finalImgHTML = pendingImgHTML || (imgBox ? imgBox.innerHTML : '');
+
+    card.innerHTML = _gymCardInnerHTML(newNombre, newDesc, newBadge, newSeries, newReps, finalImgHTML, newKg, newMaq, newRir, newRpe, savedCompletado, '00:00');
+
+    // Restaurar estado del badge exactamente como estaba
+    var newBadgeEl = card.querySelector('.gym-card-time-badge');
+    var newLabelEl = newBadgeEl ? newBadgeEl.querySelector('.gym-card-time-label') : null;
+    if (newBadgeEl) {
+        newBadgeEl.dataset.totalSecs = savedBadgeTotalSecs;
+        if (savedBadgeHidden) { newBadgeEl.setAttribute('data-hidden', '1'); newBadgeEl.style.display = 'none'; }
+        else { newBadgeEl.removeAttribute('data-hidden'); newBadgeEl.style.display = savedBadgeDisplay || 'flex'; }
+        if (newLabelEl) newLabelEl.textContent = savedBadgeLabel;
+    }
+    // Restaurar estado del cronómetro
+    var newTimerBtn = card.querySelector('.gym-timer-btn');
+    var newTimerDisplay = card.querySelector('.gym-timer-display');
+    if (newTimerBtn) {
+        newTimerBtn.dataset.elapsed          = savedElapsed;
+        newTimerBtn.dataset.prevUploaded     = savedPrevUploaded;
+        newTimerBtn.dataset.cardPrevUploaded = savedCardPrevUploaded;
+        newTimerBtn.dataset.running          = savedTimerRunning;
+    }
+    if (newTimerDisplay) newTimerDisplay.textContent = savedTimerDisplay;
+
+    if (typeof _initGymCardDrag === 'function') _initGymCardDrag(card);
+    if (typeof initTooltips === 'function') initTooltips();
+    overlay.remove();
+    if (typeof guardarDatos === 'function') guardarDatos();
+};
         }
 
         function _initGymCardDrag(card) { /* no-op */ }
@@ -7710,6 +7847,22 @@
             var _gridRect = null, _itemW = 0, _itemH = 0, _rafId = null;
             var _grabOffsetX = 0, _grabOffsetY = 0;
             var _cursorX = 0, _cursorY = 0;
+            var _lpHandle = null;
+
+            function _lpStart(handle) {
+                _lpHandle = handle;
+                handle.style.color = '#eab308';
+                handle.style.transform = 'scale(1.25)';
+                handle.style.transition = 'color 0.3s, transform 0.3s';
+            }
+            function _lpEnd() {
+                if (_lpHandle) {
+                    _lpHandle.style.color = '';
+                    _lpHandle.style.transform = '';
+                    _lpHandle.style.transition = '';
+                    _lpHandle = null;
+                }
+            }
 
             function _clampFallback() {
                 var fb = document.querySelector('.gym-sortable-fallback');
@@ -7733,7 +7886,10 @@
                 var r = card.getBoundingClientRect();
                 _grabOffsetX = e.clientX - r.left;
                 _grabOffsetY = e.clientY - r.top;
+                _lpStart(handle);
             });
+            grid.addEventListener('mouseup',    function() { _lpEnd(); });
+            grid.addEventListener('mouseleave', function() { _lpEnd(); });
             grid.addEventListener('touchstart', function(e) {
                 var handle = e.target.closest('.gym-drag-handle');
                 if (!handle) return;
@@ -7743,7 +7899,10 @@
                 var t = e.touches[0];
                 _grabOffsetX = t.clientX - r.left;
                 _grabOffsetY = t.clientY - r.top;
+                _lpStart(handle);
             }, { passive: true });
+            grid.addEventListener('touchend',    function() { _lpEnd(); });
+            grid.addEventListener('touchcancel', function() { _lpEnd(); });
 
             grid._sortable = new Sortable(grid, {
                 animation: 180,
@@ -7757,10 +7916,21 @@
                 forceFallback: true,
                 fallbackOnBody: true,
                 fallbackTolerance: 3,
-                delay: 0,
-                delayOnTouchOnly: true,
+                delay: 400,
+                delayOnTouchOnly: false,
                 touchStartThreshold: 4,
+                onChoose: function(evt) {
+                    // feedback visual al activarse el long press
+                    var handle = evt.item.querySelector('.gym-drag-handle');
+                    if (handle) {
+                        handle.style.color = '#eab308';
+                        handle.style.transform = 'scale(1.25)';
+                    }
+                    if (navigator.vibrate) navigator.vibrate(40);
+                },
                 onStart: function(evt) {
+                    _lpEnd();
+                    if (navigator.vibrate) navigator.vibrate([20, 15, 50]);
                     _gridRect = grid.getBoundingClientRect();
                     var r = evt.item.getBoundingClientRect();
                     _itemW = r.width; _itemH = r.height;
@@ -7772,6 +7942,9 @@
                         }
                         _rafId = requestAnimationFrame(_clampFallback);
                     });
+                },
+                onUnchoose: function(evt) {
+                    _lpEnd();
                 },
                 onEnd: function(evt) {
                     if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }

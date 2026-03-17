@@ -4,6 +4,8 @@ emulator -list-avds
 
 emulator -avd Pixel_9_Pro_XL
 
+adb emu kill
+
 1. Asegura el cambio en la rama de pruebas
 Primero, guarda el cambio a "David" en tu rama de trabajo:
 
