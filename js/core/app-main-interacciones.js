@@ -6382,20 +6382,34 @@
             btn.dataset.running = '1';
             btn.style.background = 'rgba(168,85,247,0.3)';
             btn.style.borderColor = 'rgba(168,85,247,0.8)';
-            if (icon) { icon.style.color = '#e9d5ff'; icon.textContent = 'stop_circle'; }
+            if (icon) { icon.style.color = '#e9d5ff'; icon.textContent = 'pause'; }
+        }
+
+        function _gymReposoSetAllIcons(running) {
+            document.querySelectorAll('.gym-reposo-btn').forEach(function(b) {
+                var ic = b.querySelector('.material-symbols-rounded');
+                if (running) {
+                    b.style.background = 'rgba(168,85,247,0.3)';
+                    b.style.borderColor = 'rgba(168,85,247,0.8)';
+                    if (ic) { ic.style.color = '#e9d5ff'; ic.textContent = 'pause'; }
+                } else {
+                    b.dataset.running = '0';
+                    b.style.background = 'rgba(168,85,247,0.08)';
+                    b.style.borderColor = 'rgba(168,85,247,0.4)';
+                    if (ic) { ic.style.color = '#c084fc'; ic.textContent = 'stop_circle'; }
+                }
+            });
         }
 
         function toggleReposoGym(btn) {
             var icon = btn.querySelector('.material-symbols-rounded');
             if (window._gymReposoState.running) {
+                // Pararlo todo (ya sea la misma card u otra)
                 clearInterval(window._gymReposoState.intervalId);
                 window._gymReposoState.running = false;
                 window._gymReposoState.intervalId = null;
-                btn.dataset.running = '0';
-                btn.style.background = 'rgba(168,85,247,0.08)';
-                btn.style.borderColor = 'rgba(168,85,247,0.4)';
-                icon.style.color = '#c084fc';
-                icon.textContent = 'pause';
+                window._gymReposoState.activeBtn = null;
+                _gymReposoSetAllIcons(false);
                 gymGuardarSesionHoy();
             } else {
                 var reposoEl = document.getElementById('gym-stat-reposo');
@@ -6403,11 +6417,9 @@
                 var startAt = Date.now() - base * 1000;
                 window._gymReposoState.running = true;
                 window._gymReposoState.startAt = startAt;
+                window._gymReposoState.activeBtn = btn;
                 btn.dataset.running = '1';
-                btn.style.background = 'rgba(168,85,247,0.3)';
-                btn.style.borderColor = 'rgba(168,85,247,0.8)';
-                icon.style.color = '#e9d5ff';
-                icon.textContent = 'stop_circle';
+                _gymReposoSetAllIcons(true);
                 window._gymReposoState.intervalId = setInterval(function() {
                     var elapsed = Math.floor((Date.now() - window._gymReposoState.startAt) / 1000);
                     var rEl = document.getElementById('gym-stat-reposo');
@@ -7314,7 +7326,7 @@
          + '<button onclick="toggleCronometroGym(this)" class="gym-timer-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;color:#eab308;">timer</span></button>'
          // --- CAMBIO AQUÍ ---
          + '<span class="gym-timer-display" style="color:#eab308;font-size:14px;font-weight:800;font-family:Manrope,sans-serif;width:52px;min-width:52px;text-align:center;line-height:32px;letter-spacing:0.03em;">' + tiempoDisplay + '</span>'
-         + '<button onclick="toggleReposoGym(this)" class="gym-reposo-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#c084fc;">pause</span></button>'
+         + '<button onclick="toggleReposoGym(this)" class="gym-reposo-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#c084fc;">stop_circle</span></button>'
          + '<button onclick="reiniciarCronometroGym(this)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;margin-left:6px;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">laps</span></button>'
          + '<button onclick="enviarTiempoGym(this)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">more_time</span></button>'
          + '</div>'
