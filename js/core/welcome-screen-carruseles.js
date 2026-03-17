@@ -7,7 +7,7 @@
             const saludo = document.getElementById('welcomeSaludo');
             const fecha  = document.getElementById('welcomeFecha');
             if (saludo) saludo.textContent =
-                hora < 12 ? '¡Buenos días, David!' : hora < 21 ? '¡Buenas tardes, David!' : '¡Buenas noches, David!';
+                hora < 12 ? '¡Buenos días, Jorge!' : hora < 21 ? '¡Buenas tardes, Jorge!' : '¡Buenas noches, Jorge!';
             if (fecha) fecha.textContent =
                 new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).toUpperCase();
             welcome.style.display  = 'flex';
