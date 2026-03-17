@@ -1093,7 +1093,7 @@ self.addEventListener('fetch', function(event) {
 });
 `;
             const blob = new Blob([swCode], { type: 'application/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob)).then(r => { window._swReg = r; });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).then(r => { window._swReg = r; }).catch(() => {});
         } catch(e) {}
     });
 })();
