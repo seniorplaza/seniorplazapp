@@ -1,0 +1,287 @@
+﻿
+                .spinner360 {
+                    width: 40px; 
+                    height: 40px; 
+                    border: 3px solid rgba(59, 130, 246, 0.2);
+                    border-top-color: #3b82f6; 
+                    border-radius: 50%;
+                    animation: spin360 1s linear infinite;
+                }
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes spin360 { 
+                    to { transform: rotate(360deg); } 
+                }
+                
+                @keyframes pulse-hint {
+                    0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+                    50% { transform: translateX(-50%) scale(1.05); opacity: 0.9; }
+                }
+                
+                #canvas-container-360:active { 
+                    cursor: grabbing; 
+                }
+                
+                /* Optimización móvil para el canvas 360 */
+                #canvas-container-360 {
+                    touch-action: none !important;
+                    -webkit-touch-callout: none !important;
+                    -webkit-user-select: none !important;
+                    user-select: none !important;
+                    -webkit-tap-highlight-color: transparent !important;
+                }
+                
+                #canvas-container-360 canvas {
+                    touch-action: none !important;
+                    -webkit-touch-callout: none !important;
+                    pointer-events: auto !important;
+                }
+                
+                /* En móvil, hacer que el visor ocupe toda la pantalla menos header y navbar */
+                @media (max-width: 768px) {
+                    #visor-main-container {
+                        height: calc(100vh - 80px - 94px) !important; /* 80px header + 94px navbar (70px + 24px margin) */
+                        border-radius: 0 !important;
+                        border: none !important;
+                        margin: 0 !important;
+                        width: 100vw !important;
+                        position: fixed !important;
+                        top: 80px !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                    }
+                    
+                    #vivienda {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+                    
+                    /* Quitar border-radius del canvas en móvil */
+                    #canvas-container-360 canvas {
+                        border-radius: 0 !important;
+                    }
+                }
+
+                .ui-overlay360 {
+                    position: absolute; 
+                    top: 20px; 
+                    left: 20px; 
+                    right: 20px;
+                    pointer-events: none; 
+                    display: flex; 
+                    justify-content: space-between; 
+                    align-items: flex-start;
+                    z-index: 10;
+                }
+                
+                .info-panel360 {
+                    background: rgba(15, 23, 42, 0.85); 
+                    backdrop-filter: blur(10px);
+                    padding: 12px 18px; 
+                    border-radius: 12px;
+                    border: 1px solid rgba(59, 130, 246, 0.2); 
+                    pointer-events: auto;
+                }
+                
+                .btn360 {
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                    border: 1px solid #334155;
+                    color: #94a3b8;
+                    padding: 0;
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 10px;
+                    font-weight: 700; 
+                    font-size: 12px;
+                    cursor: pointer; 
+                    pointer-events: auto;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0;
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    letter-spacing: -0.01em;
+                }
+                
+                .btn360:hover { 
+                    border-color: #64748b;
+                    color: white;
+                }
+                
+                .btn360:active { 
+                    transform: scale(0.95);
+                }
+                
+                /* Botón de papelera con color rojo */
+                #deleteBtn360 {
+                    background: linear-gradient(135deg, #2d1516 0%, #1a0d0e 100%);
+                    border: 1px solid #4a1f20;
+                    color: #f87171;
+                }
+                
+                #deleteBtn360:hover {
+                    border-color: #7c2d2e;
+                    color: #fca5a5;
+                }
+                
+                .nav-btn-360 {
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                    border: 1px solid #334155;
+                    color: #94a3b8;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .nav-btn-360:hover {
+                    border-color: #64748b;
+                    color: white;
+                }
+                
+                .nav-btn-360:active {
+                    transform: translateY(-50%) scale(0.95) !important;
+                }
+                
+                /* Centrar iconos en botones 360 */
+                .btn360 .material-symbols-rounded,
+                .btn360 .material-symbols-rounded,
+                .nav-btn-360 .material-symbols-rounded,
+                .nav-btn-360 .material-symbols-rounded {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1;
+                }
+
+                #drop-zone-360 {
+                    position: absolute; 
+                    inset: 0; 
+                    display: flex; 
+                    align-items: center;
+                    justify-content: center; 
+                    z-index: 5; 
+                    pointer-events: none;
+                    text-align: center;
+                    background: transparent;
+                    height: 100%;
+                    max-height: 100%;
+                    overflow: hidden;
+                }
+
+        /* ══════════════════════════════════════════════════════
+           ESTILOS PARA FINANZAS - CATEGORÍAS Y OPERACIONES
+           ══════════════════════════════════════════════════════ */
+        
+        .categoria-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 2px solid rgba(71, 85, 105, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+        }
+        
+        .categoria-card:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(100, 116, 139, 0.5);
+            transform: translateY(-4px);
+        }
+        
+        .categoria-card-selected {
+            border-color: #3b82f6 !important;
+            background: rgba(59, 130, 246, 0.15) !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+        }
+        
+        .categoria-icon-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+        }
+        
+        .categoria-nombre {
+            color: #cbd5e1;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .numpad-btn {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .numpad-btn:hover {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            border-color: #64748b;
+            transform: scale(1.05);
+        }
+        
+        .numpad-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .filtro-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+            color: #94a3b8;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filtro-btn:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(100, 116, 139, 0.5);
+            color: white;
+        }
+        
+        .filtro-btn-active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .operacion-item-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(71, 85, 105, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .operacion-item-card:hover {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(100, 116, 139, 0.4);
+        }
+
+    
