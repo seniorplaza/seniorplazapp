@@ -6325,52 +6325,15 @@
             if (modal && modal.style.display === 'flex' && e.target === modal) modal.style.display = 'none';
         });
         function gymAjustarAgua(delta) {
-    var el = document.getElementById('gym-stat-hidratacion');
-    if (!el) return;
-
-    // Obtener valor actual (en litros, convertir a enteros para evitar errores decimales)
-    var cur = Math.round(parseFloat(el.dataset.litros || 0) * 100);
-    var next;
-
-    // Convertir delta a centilitros (multiplicar por 100)
-    var deltaCentilitros = Math.round(delta * 100);
-
-    // Lógica de saltos especiales
-    if (deltaCentilitros > 0) {
-        // SUMA
-        if (cur === 50) {
-            next = 55;  // 0.50 + suma -> 0.55
-        } else if (cur === 55) {
-            next = 100; // 0.55 + suma -> 1.00
-        } else {
-            next = cur + deltaCentilitros; // Caso normal
+            var el = document.getElementById('gym-stat-hidratacion');
+            if (!el) return;
+            var cur = Math.round(parseFloat(el.dataset.litros || 0) * 100);
+            var next = Math.max(0, cur + Math.round(delta * 100));
+            var valorFinal = next / 100;
+            el.dataset.litros = valorFinal.toFixed(2);
+            el.textContent = valorFinal.toFixed(2);
+            if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
         }
-    } else {
-        // RESTA
-        if (cur === 100) {
-            next = 55;  // 1.00 - resta -> 0.55
-        } else if (cur === 55) {
-            next = 50;  // 0.55 - resta -> 0.50
-        } else {
-            next = cur + deltaCentilitros; // Caso normal (deltaCentilitros es negativo)
-        }
-    }
-
-    // Asegurar que nunca sea menor a 0
-    if (next < 0) next = 0;
-
-    // Convertir de vuelta a litros
-    var valorFinal = next / 100;
-
-    // Actualizar data-litros y texto visual con 2 decimales
-    el.dataset.litros = valorFinal.toFixed(2);
-    el.textContent = valorFinal.toFixed(2);
-
-    // Guardar la sesión si la función existe
-    if (typeof gymGuardarSesionHoy === 'function') {
-        gymGuardarSesionHoy();
-    }
-}
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
         function _gymReposoRunning() {
             return window._gymReposoState.running;

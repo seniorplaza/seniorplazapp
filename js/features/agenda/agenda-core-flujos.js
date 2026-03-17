@@ -833,6 +833,8 @@ function _renderHabitoCard(habito) {
     const racha = _calcRachaHabito(habito);
     const pct = _calcPorcentajeHabito(habito);
     const frecLabel = _getFrecuenciaLabel(habito);
+    const _habitoRecs = (habito.recordatorios && habito.recordatorios.length) ? habito.recordatorios : (habito.hora ? [habito.hora] : []);
+    const recsBadges = _habitoRecs.map(r => `<span style="display:inline-flex;align-items:center;gap:2px;color:white;font-size:10px;font-weight:700;background:#1e3a5f;border:1.5px solid rgba(96,165,250,0.4);border-radius:6px;padding:2px 6px;white-space:nowrap;flex-shrink:0;margin-right:4px;">${r}</span>`).join('');
     const catIcono = habito.categoria?.icono || 'repeat';
     const catColor = habito.categoria?.color || '#10b981';
     const _allCats = (window.finanzasData?.categorias||[]);
@@ -898,7 +900,7 @@ function _renderHabitoCard(habito) {
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:2px;">
-                <span style="flex-shrink:0;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);margin-right:4px;">${frecLabel}</span>
+                ${recsBadges}<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);margin-right:4px;">${frecLabel}</span>
                 <button onclick="abrirCalendarioHistorico('${habito.id}')" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;padding:3px;display:flex;align-items:center;" title="Histórico">
                     <span class="material-symbols-rounded" style="font-size:16px;">calendar_month</span>
                 </button>
@@ -1495,13 +1497,12 @@ function renderTareasSection() {
         const grupos = {};
         ordenadas.forEach(t => { const f = t.fecha || hoyIso; if (!grupos[f]) grupos[f] = []; grupos[f].push(t); });
         const fechasOrden = Object.keys(grupos).sort((a,b) => b.localeCompare(a));
-        const totalGlobal = tareas.length;
-        let idxGlobal = 0;
         fechasOrden.forEach((fecha, fi) => {
             const headerLabel = _formatFechaTareaHeader(fecha);
             const isPast = fecha < hoyIso;
+            const grupoTotal = grupos[fecha].length;
             html += `<div class="op-date-header" style="margin:${fi>0?'20px':'0'} 0 12px;color:${isPast?'#475569':'#f1f5f9'}">${headerLabel}</div>`;
-            html += grupos[fecha].map(t => _renderDiarioItem(t, 'tarea', null, idxGlobal++, totalGlobal)).join('');
+            html += grupos[fecha].map((t, idxGrupo) => _renderDiarioItem(t, 'tarea', null, idxGrupo, grupoTotal)).join('');
         });
         tareasListFlat = tareas;
     }
