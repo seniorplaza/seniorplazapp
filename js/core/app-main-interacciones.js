@@ -6324,13 +6324,19 @@
             if (modal && modal.style.display === 'flex' && e.target === modal) modal.style.display = 'none';
         });
         function gymAjustarAgua(delta) {
-            var el = document.getElementById('gym-stat-hidratacion');
-            if (!el) return;
-            var cur = Math.round(parseFloat(el.dataset.litros || 0) * 100);
-            var next = Math.max(0, cur + Math.round(delta * 100)) / 100;
-            el.dataset.litros = next;
-            el.textContent = next.toFixed(1);
-            gymGuardarSesionHoy();
+    var el = document.getElementById('gym-stat-hidratacion');
+    if (!el) return;
+    
+    // Usamos 1000 para manejar hasta 3 decimales sin errores de redondeo
+    var cur = Math.round(parseFloat(el.dataset.litros || 0) * 1000);
+    var next = Math.max(0, cur + Math.round(delta * 1000)) / 1000;
+    
+    el.dataset.litros = next;
+    
+    // Mostramos 2 decimales para que se vea el .55, .25, etc.
+    el.textContent = next.toFixed(2);
+    
+    gymGuardarSesionHoy();
         }
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
         function _gymReposoRunning() {
