@@ -1,3 +1,8 @@
+Abrir Terminal
+
+CTRL + Ñ
+______________________________________
+
 Abrir emulador:
 
 emulator -list-avds
@@ -6,10 +11,12 @@ emulator -avd Pixel_9_Pro_XL
 
 adb emu kill
 
+______________________________________
+
 1. Asegura el cambio en la rama de pruebas
 Primero, guarda el cambio a "David" en tu rama de trabajo:
 
-Bash
+Bash _____________________
 
 git checkout Nuevos-cambios
 git add .
@@ -19,7 +26,7 @@ git push origin Nuevos-cambios
 2. Pásalo a la rama principal (la que se ve en internet)
 Ahora saltamos a main y "absorbemos" ese cambio:
 
-Bash
+Bash _____________________
 
 git checkout main
 git merge Nuevos-cambios
@@ -27,6 +34,6 @@ git merge Nuevos-cambios
 3. Sube el cambio definitivo
 Este es el paso que actualiza la web de GitHub Pages:
 
-Bash
+Bash _____________________
 
 git push origin main

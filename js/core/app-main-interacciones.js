@@ -4941,6 +4941,7 @@
                         out[p] = Array.from(panel.querySelectorAll('.gym-card')).map(function(card) {
                             var imgEl = card.querySelector('.gym-card-img img');
                             var timeBadge = card.querySelector('.gym-card-time-badge');
+                            var metricasCardio = _gymSerializarMetricasCardioCard(card);
                             return {
                                 nombre:  card.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
                                 desc:    card.querySelector('.gym-card-desc')?.textContent?.trim() || '',
@@ -4951,6 +4952,10 @@
                                 kg:      card.querySelector('input.gym-card-kg')?.value || '0',
                                 rir:     card.querySelector('input.gym-card-rir')?.value || '',
                                 rpe:     card.querySelector('input.gym-card-rpe')?.value || '',
+                                cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '',
+                                cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
+                                cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
+                                cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                                 imgSrc:  imgEl ? imgEl.src : '',
                                 cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
@@ -4979,6 +4984,7 @@
                             cardsDOM[p] = Array.from(panel.querySelectorAll('.gym-card')).map(function(card) {
                                 var imgEl = card.querySelector('.gym-card-img img');
                                 var timeBadge = card.querySelector('.gym-card-time-badge');
+                                var metricasCardio = _gymSerializarMetricasCardioCard(card);
                                 return {
                                     nombre:  card.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
                                     desc:    card.querySelector('.gym-card-desc')?.textContent?.trim() || '',
@@ -4989,6 +4995,10 @@
                                     kg:      card.querySelector('input.gym-card-kg')?.value || '0',
                                     rir:     card.querySelector('input.gym-card-rir')?.value || '',
                                     rpe:     card.querySelector('input.gym-card-rpe')?.value || '',
+                                    cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '',
+                                    cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
+                                    cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
+                                    cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                                     imgSrc:  imgEl ? imgEl.src : '',
                                     cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                                             completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
@@ -5043,7 +5053,7 @@
                 return el ? parseFloat(el.value || 0) : 0;
             })(),
             gymSesionesHistorial: window._gymSesionesHistorial || {},
-            gymArchivados: window._gymArchivados || []
+            gymArchivados: (window._gymArchivados && !Array.isArray(window._gymArchivados)) ? window._gymArchivados : {}
         };
         console.log('Guardando icono principal:', {
             icono: datos.iconoPrincipal,
@@ -5731,8 +5741,10 @@
                             if (typeof _crearGymCardHTML === 'function') {
                                 var cardHTML = '<div class="gym-card" style="background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;">' + _crearGymCardHTML(e) + '</div>';
                                 grid.insertAdjacentHTML('beforeend', cardHTML);
+                                var newCard = grid.lastElementChild;
+                                if (newCard && (_gymObjetoTieneMetricasCardio(e) || p === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, e);
+                                if (newCard && typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
                                 if (e.cardTimeSecs && e.cardTimeSecs > 0) {
-                                    var newCard = grid.lastElementChild;
                                     var badge = newCard.querySelector('.gym-card-time-badge');
                                     var label = newCard.querySelector('.gym-card-time-label');
                                     if (badge && label) {
@@ -5827,7 +5839,7 @@
                 } else if (typeof gymRecalcularCalorias === 'function') {
                     gymRecalcularCalorias();
                 }
-                if (Array.isArray(datos.gymArchivados)) {
+                if (datos.gymArchivados && typeof datos.gymArchivados === 'object' && !Array.isArray(datos.gymArchivados)) {
                     window._gymArchivados = datos.gymArchivados;
                     if (typeof _actualizarBadgeGym === 'function') _actualizarBadgeGym();
                 }
@@ -5897,6 +5909,7 @@
 
         function cambiarVistaGym(vista) {
             window._vistaGymActiva = vista;
+            if (typeof _actualizarBadgeGym === 'function') _actualizarBadgeGym();
             var _hidraLock = (function() {
                 var el = document.getElementById('gym-stat-hidratacion');
                 if (!el) return null;
@@ -6643,6 +6656,7 @@
                 cards[p] = Array.from(panel.querySelectorAll('.gym-card')).map(function(card) {
                     var imgEl = card.querySelector('.gym-card-img img');
                     var timeBadge = card.querySelector('.gym-card-time-badge');
+                    var metricasCardio = _gymSerializarMetricasCardioCard(card);
                     return {
                         nombre: card.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
                         desc:   card.querySelector('.gym-card-desc')?.textContent?.trim() || '',
@@ -6653,6 +6667,10 @@
                         kg:     card.querySelector('input.gym-card-kg')?.value || '0',
                         rir:    card.querySelector('input.gym-card-rir')?.value || '',
                         rpe:    card.querySelector('input.gym-card-rpe')?.value || '',
+                        cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '',
+                        cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
+                        cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
+                        cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                         imgSrc: imgEl ? imgEl.src : '',
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
@@ -6695,6 +6713,7 @@
                 cards[p] = Array.from(panel.querySelectorAll('.gym-card')).map(function(card) {
                     var imgEl = card.querySelector('.gym-card-img img');
                     var timeBadge = card.querySelector('.gym-card-time-badge');
+                    var metricasCardio = _gymSerializarMetricasCardioCard(card);
                     return {
                         nombre: card.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
                         desc:   card.querySelector('.gym-card-desc')?.textContent?.trim() || '',
@@ -6705,6 +6724,10 @@
                         kg:     card.querySelector('input.gym-card-kg')?.value || '0',
                         rir:    card.querySelector('input.gym-card-rir')?.value || '',
                         rpe:    card.querySelector('input.gym-card-rpe')?.value || '',
+                        cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '',
+                        cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
+                        cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
+                        cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                         imgSrc: imgEl ? imgEl.src : '',
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
@@ -6741,8 +6764,10 @@
                 if (typeof _crearGymCardHTML !== 'function') return;
                 var cardHTML = '<div class="gym-card" data-panel="' + panelCategory + '" data-card-index="' + index + '" style="background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;">' + _crearGymCardHTML(e) + '</div>';
                 grid.insertAdjacentHTML('beforeend', cardHTML);
+                var newCard = grid.lastElementChild;
+                if (newCard && (_gymObjetoTieneMetricasCardio(e) || panelCategory === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, e);
+                if (newCard && typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
                 if (e.cardTimeSecs && e.cardTimeSecs > 0) {
-                    var newCard = grid.lastElementChild;
                     var badge = newCard.querySelector('.gym-card-time-badge');
                     var label = newCard.querySelector('.gym-card-time-label');
                     if (badge && label) {
@@ -7032,7 +7057,13 @@
                 }, 10);
             }
         }
-        window._gymArchivados = window._gymArchivados || [];
+        window._gymArchivados = (window._gymArchivados && !Array.isArray(window._gymArchivados)) ? window._gymArchivados : {};
+
+        function _gymArchivadosEnCategoria(cat) {
+            var c = cat || window._vistaGymActiva || 'pecho';
+            if (!window._gymArchivados[c]) window._gymArchivados[c] = [];
+            return window._gymArchivados[c];
+        }
 
         function moverGymCard(btn) {
             var card = btn.closest('.gym-card');
@@ -7082,6 +7113,7 @@
                 var badgeSecs  = badgeEl ? (badgeEl.dataset.totalSecs || '0') : '0';
                 var badgeLabel = badgeEl ? (badgeEl.querySelector('.gym-card-time-label')?.textContent || '00:00') : '00:00';
                 var badgeHidden = badgeEl ? badgeEl.hasAttribute('data-hidden') : true;
+                var metricasCardio = _gymSerializarMetricasCardioCard(card);
 
                 // Al mover entre categorías no cambia el total de ejercicios completados del día.
 
@@ -7108,6 +7140,8 @@
                     newCard.className = 'gym-card';
                     newCard.style.cssText = 'background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:scale(0.95);transition:opacity 0.3s,transform 0.3s;';
                     newCard.innerHTML = _gymCardInnerHTML(nombre, desc, badge, series, reps, imgHTML, kg, badgeMaq, rir, rpe, completado, '00:00');
+                    if ((metricasCardio || destino === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, metricasCardio || {});
+                    if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
 
                     // Restaurar badge de tiempo
                     var newBadgeEl = newCard.querySelector('.gym-card-time-badge');
@@ -7156,15 +7190,20 @@
             var kg      = card.querySelector('input.gym-card-kg')?.value || '0';
             var rir     = card.querySelector('input.gym-card-rir')?.value || '';
             var rpe     = card.querySelector('input.gym-card-rpe')?.value || '';
+            var metricasCardio = _gymSerializarMetricasCardioCard(card);
             var imgEl   = card.querySelector('.gym-card-img img');
             var imgSrc  = imgEl ? imgEl.src : '';
             var imgHTML = card.querySelector('.gym-card-img')?.innerHTML || '';
+            var timeBadge = card.querySelector('.gym-card-time-badge');
+            var cardTimeSecs = timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0;
+            var cardTimeLabel = card.querySelector('.gym-card-time-label')?.textContent?.trim() || '00:00';
             var checkBtn = card.querySelector('.gym-check-btn');
             if (checkBtn && checkBtn.dataset.completado === '1') {
                 var el = document.getElementById('gym-stat-ejercicios');
                 if (el) el.textContent = Math.max(0, parseInt(el.textContent||0) - 1);
             }
-            window._gymArchivados.push({ nombre, desc, badge, badgeMaquina, series, reps, kg, rir, rpe, imgSrc, imgHTML, id: Date.now() });
+            var _vistaCat = window._vistaGymActiva || 'pecho';
+            _gymArchivadosEnCategoria(_vistaCat).push({ nombre, desc, badge, badgeMaquina, series, reps, kg, rir, rpe, cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '', cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '', cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '', cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '', cardTimeSecs: cardTimeSecs, cardTimeLabel: cardTimeLabel, imgSrc, imgHTML, id: Date.now() });
             _actualizarBadgeGym();
             card.style.transition = 'opacity 0.3s, transform 0.3s';
             card.style.opacity = '0';
@@ -7173,7 +7212,7 @@
         }
 
         function _actualizarBadgeGym() {
-            var total = (window._gymArchivados || []).length;
+            var total = _gymArchivadosEnCategoria(window._vistaGymActiva || 'pecho').length;
             var badge = document.getElementById('gym-archive-badge');
             if (!badge) return;
             if (total > 0) {
@@ -7187,7 +7226,7 @@
         function abrirArchivadosGym() {
             var prev = document.getElementById('_modalArchivadosGym');
             if (prev) prev.remove();
-            var archivados = window._gymArchivados || [];
+            var archivados = _gymArchivadosEnCategoria(window._vistaGymActiva || 'pecho').slice();
             var overlay = document.createElement('div');
             overlay.id = '_modalArchivadosGym';
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -7224,9 +7263,11 @@
         }
 
         function _restaurarGymCard(id) {
-            var idx = window._gymArchivados.findIndex(function(e) { return e.id === id; });
+            var cat = window._vistaGymActiva || 'pecho';
+            var lista = _gymArchivadosEnCategoria(cat);
+            var idx = lista.findIndex(function(e) { return e.id === id; });
             if (idx === -1) return;
-            var e = window._gymArchivados.splice(idx, 1)[0];
+            var e = lista.splice(idx, 1)[0];
             var vistaActiva = window._vistaGymActiva || 'pecho';
             var panelBase = document.getElementById('gym-panel-' + vistaActiva) || document.getElementById('gym-panel-pecho');
             var grid = panelBase.querySelector('.gym-panel-grid');
@@ -7241,6 +7282,16 @@
             cardDiv.className = 'gym-card';
             cardDiv.style.cssText = 'background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:scale(0.95);transition:opacity 0.3s,transform 0.3s;';
             cardDiv.innerHTML = _crearGymCardHTML(e);
+            if (e.cardTimeSecs > 0) {
+                var _arqTimeBadge = cardDiv.querySelector('.gym-card-time-badge');
+                if (_arqTimeBadge) {
+                    _arqTimeBadge.dataset.totalSecs = e.cardTimeSecs;
+                    _arqTimeBadge.style.display = 'flex';
+                    _arqTimeBadge.removeAttribute('data-hidden');
+                }
+            }
+            if ((_gymObjetoTieneMetricasCardio(e) || vistaActiva === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(cardDiv, e);
+            if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(cardDiv);
             if (typeof _initGymCardDrag === 'function') _initGymCardDrag(cardDiv);
             if (typeof _initGymSwipeCells === 'function') _initGymSwipeCells(cardDiv);
             if (typeof initTooltips === 'function') setTimeout(initTooltips, 50);
@@ -7254,7 +7305,7 @@
             if (item) item.remove();
             _actualizarBadgeGym();
             if (typeof guardarDatos === 'function') setTimeout(guardarDatos, 100);
-            if (window._gymArchivados.length === 0) {
+            if (lista.length === 0) {
                 var modal = document.getElementById('_modalArchivadosGym');
                 if (modal) modal.remove();
             }
@@ -7281,6 +7332,160 @@
                 btnA.style.color = '#94a3b8';
             }
         }
+        var _GYM_CARDIO_TOP_OPTIONS = ['VEL MED','VEL MAX','POT MED','CAD MED','ASCEN','DESCEN'];
+        var _GYM_CARDIO_BOTTOM_OPTIONS = ['FC MEDIA','FC MAX'];
+        var _GYM_CARDIO_DEFAULT_LABELS = { series: 'POT MED', reps: 'CAD MED', rir: 'FC MEDIA', rpe: 'FC MAX' };
+
+        function _gymNormalizarTextoMetricaCardio(valor) {
+            return String(valor || '').trim().toUpperCase().replace(/\s+/g, ' ');
+        }
+
+        function _gymNormalizarGrupoMetricasCardio(valores, permitidas, porDefecto) {
+            var lista = Array.isArray(valores) ? valores.slice() : [valores];
+            var out = [];
+            lista.forEach(function(valor) {
+                valor = _gymNormalizarTextoMetricaCardio(valor);
+                if (!valor || permitidas.indexOf(valor) === -1 || out.indexOf(valor) !== -1) return;
+                out.push(valor);
+            });
+            porDefecto.forEach(function(valor) {
+                valor = _gymNormalizarTextoMetricaCardio(valor);
+                if (!valor || permitidas.indexOf(valor) === -1 || out.indexOf(valor) !== -1 || out.length >= 2) return;
+                out.push(valor);
+            });
+            permitidas.forEach(function(valor) {
+                if (out.indexOf(valor) !== -1 || out.length >= 2) return;
+                out.push(valor);
+            });
+            return out.slice(0, 2);
+        }
+
+        function _gymNormalizarMetricasCardio(metricas) {
+            metricas = metricas || {};
+            var top = metricas.top || [metricas.series || metricas.cardioSeriesLabel, metricas.reps || metricas.cardioRepsLabel];
+            var bottom = metricas.bottom || [metricas.rir || metricas.cardioRirLabel, metricas.rpe || metricas.cardioRpeLabel];
+            var topNorm = _gymNormalizarGrupoMetricasCardio(top, _GYM_CARDIO_TOP_OPTIONS, [_GYM_CARDIO_DEFAULT_LABELS.series, _GYM_CARDIO_DEFAULT_LABELS.reps]);
+            var bottomNorm = _gymNormalizarGrupoMetricasCardio(bottom, _GYM_CARDIO_BOTTOM_OPTIONS, [_GYM_CARDIO_DEFAULT_LABELS.rir, _GYM_CARDIO_DEFAULT_LABELS.rpe]);
+            return {
+                series: topNorm[0],
+                reps: topNorm[1],
+                rir: bottomNorm[0],
+                rpe: bottomNorm[1],
+                top: topNorm,
+                bottom: bottomNorm
+            };
+        }
+
+        function _gymCardTieneConfigCardio(card) {
+            if (!card) return false;
+            return _gymEsCardioCard(card)
+                || !!card.dataset.cardioSeriesLabel
+                || !!card.dataset.cardioRepsLabel
+                || !!card.dataset.cardioRirLabel
+                || !!card.dataset.cardioRpeLabel;
+        }
+
+        function _gymObjetoTieneMetricasCardio(obj) {
+            return !!(obj && (obj.cardioSeriesLabel || obj.cardioRepsLabel || obj.cardioRirLabel || obj.cardioRpeLabel));
+        }
+
+        function _gymMetricasCardioDesdeCard(card) {
+            return _gymNormalizarMetricasCardio({
+                cardioSeriesLabel: card && card.dataset ? card.dataset.cardioSeriesLabel : '',
+                cardioRepsLabel: card && card.dataset ? card.dataset.cardioRepsLabel : '',
+                cardioRirLabel: card && card.dataset ? card.dataset.cardioRirLabel : '',
+                cardioRpeLabel: card && card.dataset ? card.dataset.cardioRpeLabel : ''
+            });
+        }
+
+        function _gymAsignarMetricasCardioEnCard(card, metricas) {
+            if (!card) return;
+            var normalizadas = _gymNormalizarMetricasCardio(metricas);
+            card.dataset.cardioSeriesLabel = normalizadas.series;
+            card.dataset.cardioRepsLabel = normalizadas.reps;
+            card.dataset.cardioRirLabel = normalizadas.rir;
+            card.dataset.cardioRpeLabel = normalizadas.rpe;
+        }
+
+        function _gymSerializarMetricasCardioCard(card) {
+            if (!_gymCardTieneConfigCardio(card)) return null;
+            var metricas = _gymMetricasCardioDesdeCard(card);
+            return {
+                cardioSeriesLabel: metricas.series,
+                cardioRepsLabel: metricas.reps,
+                cardioRirLabel: metricas.rir,
+                cardioRpeLabel: metricas.rpe
+            };
+        }
+
+        function _gymAplicarEstadoBadgeMetricaCardio(btn, activo) {
+            if (!btn) return;
+            btn.dataset.selected = activo ? '1' : '0';
+            btn.style.background = activo ? 'rgba(249,115,22,0.16)' : 'rgba(255,255,255,0.04)';
+            btn.style.borderColor = activo ? 'rgba(249,115,22,0.45)' : 'rgba(71,85,105,0.35)';
+            btn.style.color = activo ? '#fb923c' : '#94a3b8';
+            btn.style.boxShadow = activo ? '0 0 0 1px rgba(249,115,22,0.15) inset' : 'none';
+        }
+
+        function _gymMontarSelectorMetricasCardio(container, metricas) {
+            if (!container) return;
+            var normalizadas = _gymNormalizarMetricasCardio(metricas);
+            container.style.display = 'block';
+            container.innerHTML = '<div data-cardio-picker="1" style="display:flex;flex-direction:column;gap:10px;padding:10px 12px;background:rgba(249,115,22,0.05);border:1px solid rgba(249,115,22,0.18);border-radius:12px;">'
+                + '<div style="color:#fb923c;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Métricas cardio</div>'
+                + '<div>'
+                + '<div style="color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Primera fila · elige 2</div>'
+                + '<div style="display:flex;flex-wrap:wrap;gap:6px;">'
+                + _GYM_CARDIO_TOP_OPTIONS.map(function(op) {
+                    return '<button type="button" data-cardio-group="top" data-cardio-value="' + op + '" style="padding:7px 10px;border-radius:999px;border:1px solid rgba(71,85,105,0.35);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:11px;font-weight:800;letter-spacing:0.03em;cursor:pointer;transition:all 0.15s;">' + op + '</button>';
+                }).join('')
+                + '</div>'
+                + '</div>'
+                + '<div>'
+                + '<div style="color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Segunda fila · elige 2</div>'
+                + '<div style="display:flex;flex-wrap:wrap;gap:6px;">'
+                + _GYM_CARDIO_BOTTOM_OPTIONS.map(function(op) {
+                    return '<button type="button" data-cardio-group="bottom" data-cardio-value="' + op + '" style="padding:7px 10px;border-radius:999px;border:1px solid rgba(71,85,105,0.35);background:rgba(255,255,255,0.04);color:#94a3b8;font-size:11px;font-weight:800;letter-spacing:0.03em;cursor:pointer;transition:all 0.15s;">' + op + '</button>';
+                }).join('')
+                + '</div>'
+                + '</div>'
+                + '</div>';
+            var root = container.querySelector('[data-cardio-picker="1"]');
+            if (!root) return;
+            root.querySelectorAll('button[data-cardio-value]').forEach(function(btn) {
+                var group = btn.dataset.cardioGroup;
+                var value = _gymNormalizarTextoMetricaCardio(btn.dataset.cardioValue);
+                var activo = group === 'top' ? normalizadas.top.indexOf(value) !== -1 : normalizadas.bottom.indexOf(value) !== -1;
+                _gymAplicarEstadoBadgeMetricaCardio(btn, activo);
+                btn.addEventListener('click', function() {
+                    var groupBtns = Array.from(root.querySelectorAll('button[data-cardio-group="' + group + '"]'));
+                    var seleccionados = groupBtns.filter(function(el) { return el.dataset.selected === '1'; });
+                    if (btn.dataset.selected === '1') {
+                        _gymAplicarEstadoBadgeMetricaCardio(btn, false);
+                        return;
+                    }
+                    if (seleccionados.length >= 2) {
+                        if (navigator.vibrate) navigator.vibrate(10);
+                        return;
+                    }
+                    _gymAplicarEstadoBadgeMetricaCardio(btn, true);
+                });
+            });
+        }
+
+        function _gymLeerSelectorMetricasCardio(container) {
+            if (!container) return _gymNormalizarMetricasCardio();
+            var root = container.matches && container.matches('[data-cardio-picker="1"]') ? container : container.querySelector('[data-cardio-picker="1"]');
+            if (!root) return _gymNormalizarMetricasCardio();
+            var top = Array.from(root.querySelectorAll('button[data-cardio-group="top"][data-selected="1"]')).map(function(btn) {
+                return _gymNormalizarTextoMetricaCardio(btn.dataset.cardioValue);
+            });
+            var bottom = Array.from(root.querySelectorAll('button[data-cardio-group="bottom"][data-selected="1"]')).map(function(btn) {
+                return _gymNormalizarTextoMetricaCardio(btn.dataset.cardioValue);
+            });
+            return _gymNormalizarMetricasCardio({ top: top, bottom: bottom });
+        }
+
         var _GYM_ALLOW_ADD_HISTORIAL = false;
 
         var _overlayNuevoEjercicio = null;
@@ -7337,6 +7542,7 @@
                             <label style="color:#fb923c;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:6px;">KM objetivo</label>
                             <input id="_nuevo_km" type="number" placeholder="Ej: 5" min="0" max="999" step="0.1" onfocus="this.select()" style="width:100%;box-sizing:border-box;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.4);border-radius:10px;padding:10px 12px;color:#fb923c;font-size:13px;font-weight:700;outline:none;font-family:Manrope,sans-serif;text-align:center;">
                         </div>
+                        <div id="_nuevo_metricas_cardio_wrap" style="display:none;"></div>
                         <div style="height:6px;"></div>
                         <button onclick="_confirmarNuevoEjercicio()" style="width:100%;height:42px;border-radius:12px;border:1px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);color:#eab308;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;">Añadir</button>
                     </div>
@@ -7350,8 +7556,10 @@
             if (panelCardioActivo) {
                 var filaKm = document.getElementById('_nuevo_fila_km');
                 var filaRest = document.getElementById('_nuevo_fila_series_reps_kg');
+                var metricasWrap = document.getElementById('_nuevo_metricas_cardio_wrap');
                 if (filaKm) filaKm.style.display = 'block';
                 if (filaRest) filaRest.style.display = 'none';
+                if (metricasWrap && typeof _gymMontarSelectorMetricasCardio === 'function') _gymMontarSelectorMetricasCardio(metricasWrap);
             }
             setTimeout(function(){ document.getElementById('_nuevo_nombre')?.focus(); }, 50);
         }
@@ -7365,6 +7573,10 @@
             var reps    = document.getElementById('_nuevo_reps')?.value || '0';
             var kg      = document.getElementById('_nuevo_kg')?.value || '0';
             var km      = parseFloat(document.getElementById('_nuevo_km')?.value || 0) || 0;
+            var _vistaGymNueva = window._vistaGymActiva || 'pecho';
+            var metricasCardioNuevo = _vistaGymNueva === 'cardio' && typeof _gymLeerSelectorMetricasCardio === 'function'
+                ? _gymLeerSelectorMetricasCardio(document.getElementById('_nuevo_metricas_cardio_wrap'))
+                : null;
             var _elIntC = document.getElementById('gym-intervalo-label');
             var _offsetC = _elIntC ? parseInt(_elIntC.dataset.offset || 0) : 0;
             var _filtroC = _elIntC ? (_elIntC.dataset.filtro || 'dia') : 'dia';
@@ -7379,6 +7591,12 @@
                 if (!_sesC[_fechaC].cards[_panelNomC]) _sesC[_fechaC].cards[_panelNomC] = [];
                 var _kgHist = (_panelNomC === 'cardio') ? ((km > 0 ? km : (parseFloat(kg || 0) || 0))) : kg;
                 var _nuevoEjC = { nombre:nombre, desc:desc, badge:badge, badgeMaquina:badgeMaquina, series:series, reps:reps, kg:_kgHist, rir:'', rpe:'', imgSrc:'', cardTimeSecs:0, completado:false };
+                if (_panelNomC === 'cardio' && metricasCardioNuevo) {
+                    _nuevoEjC.cardioSeriesLabel = metricasCardioNuevo.series;
+                    _nuevoEjC.cardioRepsLabel = metricasCardioNuevo.reps;
+                    _nuevoEjC.cardioRirLabel = metricasCardioNuevo.rir;
+                    _nuevoEjC.cardioRpeLabel = metricasCardioNuevo.rpe;
+                }
                 _sesC[_fechaC].cards[_panelNomC].push(_nuevoEjC);
                 window._gymSesionesHistorial = _sesC;
                 if (_overlayNuevoEjercicio) { _overlayNuevoEjercicio.remove(); _overlayNuevoEjercicio = null; }
@@ -7407,6 +7625,9 @@
             card.innerHTML = _gymCardInnerHTML(nombre, desc, badge, series, reps,
                 '<span class="material-symbols-rounded" style="font-size:38px;color:#334155;">exercise</span>', kg, badgeMaquina);
             if (panelActivo && panelActivo.id) card.dataset.panel = panelActivo.id.replace('gym-panel-', '');
+            if (esCardio && metricasCardioNuevo && typeof _gymAsignarMetricasCardioEnCard === 'function') {
+                _gymAsignarMetricasCardioEnCard(card, metricasCardioNuevo);
+            }
             if (esCardio && km > 0) {
                 var kmInpAdd = card.querySelector('.gym-card-kg');
                 if (kmInpAdd) kmInpAdd.value = String(parseFloat(km.toFixed(1)));
@@ -7452,7 +7673,8 @@
                 e.badgeMaquina || '',
                 e.rir || '',
                 e.rpe || '',
-                e.completado || false
+                e.completado || false,
+                (e.cardTimeSecs > 0) ? (e.cardTimeLabel || '') : ''
             );
         }
         function _gymCardInnerHTML(nombre, desc, badge, series, reps, imgHTML, kg, badgeMaquina, rir, rpe, completado, tiempo) {
@@ -7549,6 +7771,7 @@
 
             function _extraerDatosCard(c) {
                 var imgEl = c.querySelector('.gym-card-img img');
+                var metricasCardio = _gymSerializarMetricasCardioCard(c);
                 return {
                     nombre:       c.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
                     desc:         c.querySelector('.gym-card-desc')?.textContent?.trim() || '',
@@ -7559,6 +7782,10 @@
                     kg:           c.querySelector('.gym-card-kg')?.value || '0',
                     rir:          c.querySelector('.gym-card-rir')?.value || '',
                     rpe:          c.querySelector('.gym-card-rpe')?.value || '',
+                    cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '',
+                    cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
+                    cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
+                    cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                     imgHTML:      imgEl ? '<img src="' + imgEl.src + '" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">' : (c.querySelector('.gym-card-img')?.innerHTML || '')
                 };
             }
@@ -7570,6 +7797,8 @@
                 newCard.innerHTML = _gymCardInnerHTML(e.nombre, e.desc, e.badge, e.series, e.reps, e.imgHTML, e.kg, e.badgeMaquina, e.rir, e.rpe);
                 if (insertAfter) refCard.after(newCard);
                 else refCard.appendChild(newCard);
+                if ((_gymObjetoTieneMetricasCardio(e) || _gymEsCardioCard(newCard)) && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, e);
+                if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
                 if (typeof _initGymCardDrag === 'function') _initGymCardDrag(newCard);
                 if (typeof _initGymSwipeCells === 'function') _initGymSwipeCells(newCard);
                 var _parentGrid = insertAfter ? refCard.parentNode : refCard;
@@ -7673,6 +7902,8 @@
                     nombre: e.nombre, desc: e.desc, badge: e.badge,
                     badgeMaquina: e.badgeMaquina, series: e.series,
                     reps: e.reps, kg: e.kg, rir: e.rir, rpe: e.rpe,
+                    cardioSeriesLabel: e.cardioSeriesLabel || '', cardioRepsLabel: e.cardioRepsLabel || '',
+                    cardioRirLabel: e.cardioRirLabel || '', cardioRpeLabel: e.cardioRpeLabel || '',
                     imgHTML: e.imgHTML, completado: false, cardTimeSecs: 0
                 });
                 var labelEl = document.getElementById('gym-intervalo-label');
@@ -7905,6 +8136,10 @@
             var curKg     = card.querySelector('.gym-card-kg')?.value || '';
             var curRir    = card.querySelector('.gym-card-rir')?.value || '';
             var curRpe    = card.querySelector('.gym-card-rpe')?.value || '';
+            var esCardioEdit = typeof _gymEsCardioCard === 'function' && _gymEsCardioCard(card);
+            var curMetricasCardio = esCardioEdit && typeof _gymMetricasCardioDesdeCard === 'function'
+                ? _gymMetricasCardioDesdeCard(card)
+                : _gymNormalizarMetricasCardio();
             var pendingImgHTML = null;
             var overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -7932,17 +8167,21 @@
                             <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">Cód. máquina</label><input id="_edit_maq" type="text" value="${curMaq}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.18);border-radius:9px;padding:8px 10px;color:#f1f5f9;font-size:12px;font-weight:700;outline:none;font-family:Manrope,sans-serif;"></div>
                         </div>
                         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
-                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">Series</label><input id="_edit_series" type="number" value="${curSeries}" min="1" max="99" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
-                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">Reps</label><input id="_edit_reps" type="number" value="${curReps}" min="1" max="999" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
-                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">RIR</label><input id="_edit_rir" type="number" value="${curRir}" min="0" max="10" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
-                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">RPE</label><input id="_edit_rpe" type="number" value="${curRpe}" min="1" max="10" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
-                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">KG</label><input id="_edit_kg" type="number" value="${curKg}" min="0" step="0.5" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.3);border-radius:9px;padding:8px 6px;color:#eab308;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
+                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.series : 'Series'}</label><input id="_edit_series" type="number" value="${curSeries}" min="${esCardioEdit ? '0' : '1'}" max="${esCardioEdit ? '3000' : '99'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
+                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.reps : 'Reps'}</label><input id="_edit_reps" type="number" value="${curReps}" min="${esCardioEdit ? '0' : '1'}" max="${esCardioEdit ? '250' : '999'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
+                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.rir : 'RIR'}</label><input id="_edit_rir" type="number" value="${curRir}" min="0" max="${esCardioEdit ? '250' : '10'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
+                            <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.rpe : 'RPE'}</label><input id="_edit_rpe" type="number" value="${curRpe}" min="${esCardioEdit ? '0' : '1'}" max="${esCardioEdit ? '250' : '10'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
+                            <div><label style="color:${esCardioEdit ? '#fb923c' : '#94a3b8'};font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? 'KM' : 'KG'}</label><input id="_edit_kg" type="number" value="${curKg}" min="0" step="${esCardioEdit ? '0.1' : '0.5'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid ${esCardioEdit ? 'rgba(249,115,22,0.35)' : 'rgba(234,179,8,0.3)'};border-radius:9px;padding:8px 6px;color:${esCardioEdit ? '#fb923c' : '#eab308'};font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
                         </div>
+                        <div id="_edit_metricas_cardio_wrap" style="display:${esCardioEdit ? 'block' : 'none'};"></div>
                         <button id="_edit_save_btn" style="width:100%;height:40px;border-radius:12px;border:1px solid rgba(59,130,246,0.5);background:rgba(59,130,246,0.15);color:#60a5fa;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;margin-top:4px;">Guardar cambios</button>
                     </div>
                 </div>`;
             document.body.appendChild(overlay);
             const _ed = overlay.querySelector('#_edit_desc'); if(_ed){ setTimeout(()=>{ _ed.style.height='auto'; _ed.style.height=_ed.scrollHeight+'px'; },0); }
+            if (esCardioEdit && typeof _gymMontarSelectorMetricasCardio === 'function') {
+                _gymMontarSelectorMetricasCardio(overlay.querySelector('#_edit_metricas_cardio_wrap'), curMetricasCardio);
+            }
             overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
             var preview = overlay.querySelector('#_edit_img_preview');
             preview.addEventListener('click', function() {
@@ -7996,9 +8235,13 @@
     var newKg     = overlay.querySelector('#_edit_kg').value;
     var newRir    = overlay.querySelector('#_edit_rir').value;
     var newRpe    = overlay.querySelector('#_edit_rpe').value;
+    var newMetricasCardio = esCardioEdit && typeof _gymLeerSelectorMetricasCardio === 'function'
+        ? _gymLeerSelectorMetricasCardio(overlay.querySelector('#_edit_metricas_cardio_wrap'))
+        : null;
     var finalImgHTML = pendingImgHTML || (imgBox ? imgBox.innerHTML : '');
 
     card.innerHTML = _gymCardInnerHTML(newNombre, newDesc, newBadge, newSeries, newReps, finalImgHTML, newKg, newMaq, newRir, newRpe, savedCompletado, '00:00');
+    if (esCardioEdit && newMetricasCardio && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(card, newMetricasCardio);
 
     // Restaurar estado del badge exactamente como estaba
     var newBadgeEl = card.querySelector('.gym-card-time-badge');
@@ -8047,6 +8290,7 @@
         function _gymAplicarModoCardioEnCard(card) {
             if (!card) return;
             var isCardio = _gymEsCardioCard(card);
+            var metricasCardio = _gymMetricasCardioDesdeCard(card);
 
             var inpSeries = card.querySelector('.gym-card-series');
             var inpReps = card.querySelector('.gym-card-reps');
@@ -8064,10 +8308,10 @@
             var tipRpe = cellRpe ? cellRpe.querySelector('.tooltip-container') : null;
             var lblKg = inpKg ? inpKg.closest('div')?.querySelector('.gym-stat-lbl') : null;
 
-            if (lblSeries) lblSeries.textContent = isCardio ? 'POT MED' : 'Series';
-            if (lblReps) lblReps.textContent = isCardio ? 'CAD MED' : 'Reps';
-            if (lblRir) lblRir.textContent = isCardio ? 'FC MED' : 'RIR';
-            if (lblRpe) lblRpe.textContent = isCardio ? 'FC MAX' : 'RPE';
+            if (lblSeries) lblSeries.textContent = isCardio ? metricasCardio.series : 'Series';
+            if (lblReps) lblReps.textContent = isCardio ? metricasCardio.reps : 'Reps';
+            if (lblRir) lblRir.textContent = isCardio ? metricasCardio.rir : 'RIR';
+            if (lblRpe) lblRpe.textContent = isCardio ? metricasCardio.rpe : 'RPE';
             if (lblKg) lblKg.textContent = isCardio ? 'KM' : 'KG';
 
             [lblSeries, lblReps, lblRir, lblRpe].forEach(function(lbl) {
