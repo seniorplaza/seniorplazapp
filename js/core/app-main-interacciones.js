@@ -5897,6 +5897,14 @@
 
         function cambiarVistaGym(vista) {
             window._vistaGymActiva = vista;
+            var _hidraLock = (function() {
+                var el = document.getElementById('gym-stat-hidratacion');
+                if (!el) return null;
+                return {
+                    litros: (el.dataset.litros || '0'),
+                    text: (el.textContent || '0.0')
+                };
+            })();
             var paneles = ['pecho','espalda','brazo','pierna','cardio'];
             paneles.forEach(function(p) {
                 var panel = document.getElementById('gym-panel-' + p);
@@ -5949,39 +5957,14 @@
                     }
                 }
                 if(typeof initTooltips==='function') initTooltips();
-                // UPDATE COUNTER FOR CURRENT ACTIVE CATEGORY ONLY
-                var activeCategoryPanel = document.getElementById('gym-panel-' + vista);
-                if (activeCategoryPanel) {
-                    var countInCategory = activeCategoryPanel.querySelectorAll('.gym-check-btn[data-completado="1"]').length;
-                    var statEl = document.getElementById('gym-stat-ejercicios');
-                    if (statEl) statEl.textContent = countInCategory;
-                }
-                var elInt = document.getElementById('gym-intervalo-label');
-                var filtro = elInt ? elInt.dataset.filtro : 'dia';
-                var offset2 = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
-                // PRESERVE GLOBAL STATS WHEN SWITCHING CATEGORIES
-                // Global stats like hidratacion, tiempo, reposo should not change between categories
-                if (filtro === 'dia') {
-                    var fechaDiaActual = _gymFechaKey(offset2);
-                    var sesDiaActual = window._gymSesionesHistorial && window._gymSesionesHistorial[fechaDiaActual];
-                    if (sesDiaActual) {
-                        var hEl = document.getElementById('gym-stat-hidratacion');
-                        if (hEl) { 
-                            hEl.dataset.litros = parseFloat(sesDiaActual.hidratacion||0).toFixed(2); 
-                            hEl.textContent = parseFloat(sesDiaActual.hidratacion||0).toFixed(1).replace(',','.'); 
-                        }
-                        var tEl = document.getElementById('gym-stat-tiempo');
-                        if (tEl) { 
-                            tEl.dataset.totalSecs = sesDiaActual.tiempo||0; 
-                            tEl.textContent = _gymSecsToLabel(sesDiaActual.tiempo||0); 
-                        }
-                        var rEl = document.getElementById('gym-stat-reposo');
-                        if (rEl && !_gymReposoRunning()) { 
-                            rEl.dataset.totalSecs = sesDiaActual.reposo||0; 
-                            rEl.textContent = _gymSecsToLabel(sesDiaActual.reposo||0); 
-                        }
-                        var cEl = document.getElementById('gym-stat-calorias');
-                        if (cEl) cEl.textContent = sesDiaActual.calorias || '—';
+                // UPDATE COUNTER FOR CURRENT DAY (all categories combined)
+                _gymActualizarStatEjercicios(fechaKey);
+                // Keep hydration stable when only switching category tabs.
+                if (_hidraLock) {
+                    var hElLock = document.getElementById('gym-stat-hidratacion');
+                    if (hElLock) {
+                        hElLock.dataset.litros = _hidraLock.litros;
+                        hElLock.textContent = _hidraLock.text;
                     }
                 }
                 // NOTE: We do NOT call gymCargarStatsParaIntervalo() here when category changes
@@ -6201,6 +6184,9 @@
             completado = !completado;
             btn.dataset.completado = completado ? '1' : '0';
             var icon = btn.querySelector('.material-symbols-rounded');
+            var elIntervalo = document.getElementById('gym-intervalo-label');
+            var offset = elIntervalo ? parseInt(elIntervalo.dataset.offset || 0) : 0;
+            var fechaKey = _gymFechaKey(offset);
             if (completado) {
                 btn.style.background = '#10b981';
                 btn.style.border = '2px solid #10b981';
@@ -6210,8 +6196,6 @@
                 btn.style.transform = 'scale(1.18)';
                 if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
                 if (typeof _playPopSound === 'function') _playPopSound();
-                var el = document.getElementById('gym-stat-ejercicios');
-                if (el) el.textContent = parseInt(el.textContent||0) + 1;
                 btn.dataset.completado = '1';
                 setTimeout(function(){ btn.style.transform = 'scale(1)'; }, 200);
             } else {
@@ -6220,27 +6204,23 @@
                 icon.textContent = 'check';
                 icon.style.color = '#475569';
                 icon.style.fontWeight = '';
-                var el = document.getElementById('gym-stat-ejercicios');
-                if (el) el.textContent = Math.max(0, parseInt(el.textContent||0) - 1);
                 btn.dataset.completado = '0';
             }
             // UPDATE sessionStorage with the new completado state
             var card = btn.closest('.gym-card');
-            if (card && card.dataset.panel) {
+            if (card && card.dataset.panel && window._gymSesionesHistorial && window._gymSesionesHistorial[fechaKey]) {
                 var panelCategory = card.dataset.panel;
-                var cardIndex = parseInt(card.dataset.cardIndex);
-                var el_intervalo = document.getElementById('gym-intervalo-label');
-                var filtro = el_intervalo ? (el_intervalo.dataset.filtro || 'dia') : 'dia';
-                var offset = el_intervalo ? parseInt(el_intervalo.dataset.offset || 0) : 0;
-                var fechaKey = _gymFechaKey(offset);
-                if (window._gymSesionesHistorial && window._gymSesionesHistorial[fechaKey] && 
-                    window._gymSesionesHistorial[fechaKey].cards && 
+                var cardIndex = parseInt(card.dataset.cardIndex || '-1', 10);
+                if (window._gymSesionesHistorial[fechaKey].cards &&
                     window._gymSesionesHistorial[fechaKey].cards[panelCategory] &&
+                    cardIndex >= 0 &&
                     window._gymSesionesHistorial[fechaKey].cards[panelCategory][cardIndex]) {
                     window._gymSesionesHistorial[fechaKey].cards[panelCategory][cardIndex].completado = completado;
-                    if (typeof guardarDatos === 'function') guardarDatos();
+                    window._gymSesionesHistorial[fechaKey].ejercicios = _gymContarCompletadosDesdeCards(window._gymSesionesHistorial[fechaKey].cards);
                 }
             }
+            _gymActualizarStatEjercicios(fechaKey);
+            if (typeof guardarDatos === 'function') guardarDatos();
         }
         function toggleCronometroGym(btn) {
             var card = btn.closest('.gym-card');
@@ -6553,6 +6533,31 @@
             var h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
             return h > 0 ? h+'h '+String(m).padStart(2,'0')+'m' : String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
         }
+        function _gymContarCompletadosDesdeCards(cardsPorPanel) {
+            var total = 0;
+            ['pecho','espalda','brazo','pierna','cardio'].forEach(function(p) {
+                var lista = cardsPorPanel && cardsPorPanel[p];
+                if (!Array.isArray(lista)) return;
+                lista.forEach(function(card) {
+                    if (!card) return;
+                    var c = card.completado;
+                    if (c === true || c === 1 || c === '1') total++;
+                });
+            });
+            return total;
+        }
+        function _gymActualizarStatEjercicios(fechaKey) {
+            var el = document.getElementById('gym-stat-ejercicios');
+            if (!el) return 0;
+            var sesiones = window._gymSesionesHistorial || {};
+            var key = fechaKey || _gymFechaKey(0);
+            var ses = sesiones[key];
+            var total = (ses && ses.cards)
+                ? _gymContarCompletadosDesdeCards(ses.cards)
+                : document.querySelectorAll('.gym-check-btn[data-completado="1"]').length;
+            el.textContent = total;
+            return total;
+        }
         function gymGuardarSesionDia(fechaKey) {
             if (!fechaKey) fechaKey = _gymFechaKey(0);
             var sesiones = window._gymSesionesHistorial || {};
@@ -6580,12 +6585,13 @@
                 });
             });
             var prev = sesiones[fechaKey] || {};
+            var ejerciciosTotalesDia = _gymContarCompletadosDesdeCards(cards);
             sesiones[fechaKey] = {
                 tiempo:      parseInt(document.getElementById('gym-stat-tiempo')?.dataset.totalSecs || prev.tiempo || 0),
                 reposo:      parseInt(document.getElementById('gym-stat-reposo')?.dataset.totalSecs || prev.reposo || 0),
                 hidratacion: parseFloat(document.getElementById('gym-stat-hidratacion')?.dataset.litros || prev.hidratacion || 0),
                 calorias:    document.getElementById('gym-stat-calorias')?.textContent || prev.calorias || '—',
-                ejercicios:  parseInt(document.getElementById('gym-stat-ejercicios')?.textContent || prev.ejercicios || 0),
+                ejercicios:  ejerciciosTotalesDia,
                 peso:        parseFloat(document.getElementById('gym-peso-usuario')?.value || prev.peso || 0),
                 cards:       cards
             };
@@ -6618,12 +6624,13 @@
                     };
                 });
             });
+            var ejerciciosTotalesHoy = _gymContarCompletadosDesdeCards(cards);
             sesiones[fecha] = {
                 tiempo:     parseInt(document.getElementById('gym-stat-tiempo')?.dataset.totalSecs || 0),
                 reposo:     parseInt(document.getElementById('gym-stat-reposo')?.dataset.totalSecs || 0),
                 hidratacion:parseFloat(document.getElementById('gym-stat-hidratacion')?.dataset.litros || 0),
                 calorias:   document.getElementById('gym-stat-calorias')?.textContent || '—',
-                ejercicios: parseInt(document.getElementById('gym-stat-ejercicios')?.textContent || 0),
+                ejercicios: ejerciciosTotalesHoy,
                 peso:       parseFloat(document.getElementById('gym-peso-usuario')?.value || 0),
                 cards:      cards
             };
@@ -6725,7 +6732,7 @@
                         var cEl2 = document.getElementById('gym-stat-calorias');
                         if (cEl2) cEl2.textContent = sHoy.calorias || '—';
                         var eEl2 = document.getElementById('gym-stat-ejercicios');
-                        if (eEl2) eEl2.textContent = document.querySelectorAll('.gym-check-btn[data-completado="1"]').length;
+                        if (eEl2) eEl2.textContent = _gymContarCompletadosDesdeCards((sHoy && sHoy.cards) || {});
                     }
                     return;
                 } else {
@@ -6739,7 +6746,7 @@
                     var cEl3 = document.getElementById('gym-stat-calorias');
                     if (cEl3) cEl3.textContent = sDia.calorias || '—';
                     var eEl3 = document.getElementById('gym-stat-ejercicios');
-                    if (eEl3) eEl3.textContent = document.querySelectorAll('.gym-check-btn[data-completado="1"]').length;
+                    if (eEl3) eEl3.textContent = _gymContarCompletadosDesdeCards((sDia && sDia.cards) || {});
                     return;
                 }
             }
@@ -6775,7 +6782,8 @@
                 totHid     += parseFloat(s.hidratacion || 0);
                 totCardio  += parseFloat(s.cardio      || 0);
                 if (s.calorias && s.calorias !== '—') totKcal += parseInt(s.calorias) || 0;
-                totEj      += (s.ejercicios  || 0);
+                var ejDia = s.cards ? _gymContarCompletadosDesdeCards(s.cards) : (s.ejercicios || 0);
+                totEj      += ejDia;
             });
             var tEl = document.getElementById('gym-stat-tiempo');
             if (tEl) { tEl.dataset.totalSecs = totTiempo; tEl.textContent = _gymSecsToLabel(totTiempo); }
@@ -6979,11 +6987,7 @@
                 var badgeLabel = badgeEl ? (badgeEl.querySelector('.gym-card-time-label')?.textContent || '00:00') : '00:00';
                 var badgeHidden = badgeEl ? badgeEl.hasAttribute('data-hidden') : true;
 
-                // Descontar ejercicio completado del origen
-                if (completado) {
-                    var ejEl = document.getElementById('gym-stat-ejercicios');
-                    if (ejEl) ejEl.textContent = Math.max(0, parseInt(ejEl.textContent||0) - 1);
-                }
+                // Al mover entre categorías no cambia el total de ejercicios completados del día.
 
                 // Eliminar card del panel origen con animación
                 var panelOrigen = document.getElementById('gym-panel-' + vistaActual);
@@ -7033,12 +7037,9 @@
                     if (typeof initTooltips === 'function') initTooltips();
                     if (typeof _gymEmptyState === 'function') _gymEmptyState(panelDestino);
 
-                    // Recontar ejercicio completado en destino si es el panel visible
-                    if (completado && destino === (window._vistaGymActiva || 'pecho')) {
-                        var ejEl2 = document.getElementById('gym-stat-ejercicios');
-                        if (ejEl2) ejEl2.textContent = parseInt(ejEl2.textContent||0) + 1;
-                    }
-
+                    var elInt2 = document.getElementById('gym-intervalo-label');
+                    var offset2 = elInt2 ? parseInt(elInt2.dataset.offset || 0) : 0;
+                    _gymActualizarStatEjercicios(_gymFechaKey(offset2));
                     if (typeof guardarDatos === 'function') guardarDatos();
                 }, 250);
             };
