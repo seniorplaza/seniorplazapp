@@ -4924,7 +4924,7 @@
                 tareas: window.agendaData.tareas || []
             } : null,
             gymCards: (function() {
-                var hoy = new Date().toISOString().slice(0,10);
+                var hoy = _gymFechaKey(0);
                 var hist = window._gymSesionesHistorial || {};
                 var elInt = document.getElementById('gym-intervalo-label');
                 var offsetActual = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
@@ -4960,39 +4960,44 @@
                     });
                     var histHoyCards = hist[hoy] && hist[hoy].cards;
                     var histTotalCards = histHoyCards ? Object.values(histHoyCards).reduce(function(s,a){ return s + (Array.isArray(a) ? a.length : 0); }, 0) : 0;
-                    if (totalCardsDOM > 0 || histTotalCards === 0) {
+                    var domHistorico = !!document.querySelector('.gym-panel-grid[data-historico="1"]');
+                    if (domHistorico) {
+                        out = histHoyCards || {};
+                    } else if (totalCardsDOM > 0 || histTotalCards === 0) {
                         if (!hist[hoy]) hist[hoy] = {};
                         hist[hoy].cards = out;
                     } else {
                         out = histHoyCards;
                     }
                 } else {
-                    var fechaDia = _gymFechaKey(offsetActual);
-                    var cardsDOM = {};
-                    ['pecho','espalda','brazo','pierna','cardio'].forEach(function(p) {
-                        var panel = document.getElementById('gym-panel-' + p);
-                        if (!panel) { cardsDOM[p] = []; return; }
-                        cardsDOM[p] = Array.from(panel.querySelectorAll('.gym-card')).map(function(card) {
-                            var imgEl = card.querySelector('.gym-card-img img');
-                            var timeBadge = card.querySelector('.gym-card-time-badge');
-                            return {
-                                nombre:  card.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
-                                desc:    card.querySelector('.gym-card-desc')?.textContent?.trim() || '',
-                                badge:   card.querySelector('.gym-card-badge-cat')?.textContent?.trim() || '',
-                                badgeMaquina: card.querySelector('.gym-card-badge-maq')?.textContent?.trim() || '',
-                                series:  card.querySelector('input.gym-card-series')?.value || '3',
-                                reps:    card.querySelector('input.gym-card-reps')?.value || '12',
-                                kg:      card.querySelector('input.gym-card-kg')?.value || '0',
-                                rir:     card.querySelector('input.gym-card-rir')?.value || '',
-                                rpe:     card.querySelector('input.gym-card-rpe')?.value || '',
-                                imgSrc:  imgEl ? imgEl.src : '',
-                                cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
-                                        completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
-                            };
+                    if (filtroActual === 'dia') {
+                        var fechaDia = _gymFechaKey(offsetActual);
+                        var cardsDOM = {};
+                        ['pecho','espalda','brazo','pierna','cardio'].forEach(function(p) {
+                            var panel = document.getElementById('gym-panel-' + p);
+                            if (!panel) { cardsDOM[p] = []; return; }
+                            cardsDOM[p] = Array.from(panel.querySelectorAll('.gym-card')).map(function(card) {
+                                var imgEl = card.querySelector('.gym-card-img img');
+                                var timeBadge = card.querySelector('.gym-card-time-badge');
+                                return {
+                                    nombre:  card.querySelector('.gym-card-nombre')?.textContent?.trim() || '',
+                                    desc:    card.querySelector('.gym-card-desc')?.textContent?.trim() || '',
+                                    badge:   card.querySelector('.gym-card-badge-cat')?.textContent?.trim() || '',
+                                    badgeMaquina: card.querySelector('.gym-card-badge-maq')?.textContent?.trim() || '',
+                                    series:  card.querySelector('input.gym-card-series')?.value || '3',
+                                    reps:    card.querySelector('input.gym-card-reps')?.value || '12',
+                                    kg:      card.querySelector('input.gym-card-kg')?.value || '0',
+                                    rir:     card.querySelector('input.gym-card-rir')?.value || '',
+                                    rpe:     card.querySelector('input.gym-card-rpe')?.value || '',
+                                    imgSrc:  imgEl ? imgEl.src : '',
+                                    cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
+                                            completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
+                                };
+                            });
                         });
-                    });
-                    if (!hist[fechaDia]) hist[fechaDia] = {};
-                    hist[fechaDia].cards = cardsDOM;
+                        if (!hist[fechaDia]) hist[fechaDia] = {};
+                        hist[fechaDia].cards = cardsDOM;
+                    }
                     out = (hist[hoy] && hist[hoy].cards) ? hist[hoy].cards : {};
                 }
                 return out; // guardamos plano para compatibilidad
@@ -5001,9 +5006,9 @@
                 var _elInt2 = document.getElementById('gym-intervalo-label');
                 var _off2 = _elInt2 ? parseInt(_elInt2.dataset.offset||0) : 0;
                 var _fil2 = _elInt2 ? (_elInt2.dataset.filtro||'dia') : 'dia';
-                var _hoy2 = new Date().toISOString().slice(0,10);
+                var _hoy2 = _gymFechaKey(0);
                 var _hist2 = window._gymSesionesHistorial || {};
-                if (_fil2 === 'dia' && _off2 !== 0) {
+                if (_fil2 !== 'dia' || _off2 !== 0) {
                     return (_hist2[_hoy2] && _hist2[_hoy2].tiempo) ? _hist2[_hoy2].tiempo : 0;
                 }
                 var el = document.getElementById('gym-stat-tiempo');
@@ -5013,9 +5018,9 @@
                 var _elInt3 = document.getElementById('gym-intervalo-label');
                 var _off3 = _elInt3 ? parseInt(_elInt3.dataset.offset||0) : 0;
                 var _fil3 = _elInt3 ? (_elInt3.dataset.filtro||'dia') : 'dia';
-                var _hoy3 = new Date().toISOString().slice(0,10);
+                var _hoy3 = _gymFechaKey(0);
                 var _hist3 = window._gymSesionesHistorial || {};
-                if (_fil3 === 'dia' && _off3 !== 0) {
+                if (_fil3 !== 'dia' || _off3 !== 0) {
                     return (_hist3[_hoy3] && _hist3[_hoy3].hidratacion) ? _hist3[_hoy3].hidratacion : 0;
                 }
                 var el = document.getElementById('gym-stat-hidratacion');
@@ -5025,9 +5030,9 @@
                 var _elInt4 = document.getElementById('gym-intervalo-label');
                 var _off4 = _elInt4 ? parseInt(_elInt4.dataset.offset||0) : 0;
                 var _fil4 = _elInt4 ? (_elInt4.dataset.filtro||'dia') : 'dia';
-                var _hoy4 = new Date().toISOString().slice(0,10);
+                var _hoy4 = _gymFechaKey(0);
                 var _hist4 = window._gymSesionesHistorial || {};
-                if (_fil4 === 'dia' && _off4 !== 0) {
+                if (_fil4 !== 'dia' || _off4 !== 0) {
                     return (_hist4[_hoy4] && _hist4[_hoy4].reposo) ? _hist4[_hoy4].reposo : 0;
                 }
                 var el = document.getElementById('gym-stat-reposo');
@@ -5702,7 +5707,7 @@
                     window._gymSesionesHistorialRestaurado = true;
                 }
                 if (datos.gymCards || datos.gymSesionesHistorial) {
-                    var hoy = new Date().toISOString().slice(0,10);
+                    var hoy = _gymFechaKey(0);
                     if (!window._gymSesionesHistorial) window._gymSesionesHistorial = {};
                     if (!datos.gymSesionesHistorial && datos.gymCards) {
                         if (!window._gymSesionesHistorial[hoy]) window._gymSesionesHistorial[hoy] = {};
@@ -6421,10 +6426,16 @@
             gymGuardarSesionHoy();
             if (typeof _nutriRenderWidgets === 'function') _nutriRenderWidgets();
         }
+        function _gymISODateLocal(dateObj) {
+            var d = dateObj instanceof Date ? new Date(dateObj.getTime()) : new Date();
+            var off = d.getTimezoneOffset();
+            var local = new Date(d.getTime() - off * 60000);
+            return local.toISOString().slice(0,10);
+        }
         function _gymFechaKey(offsetDias) {
             var d = new Date();
             d.setDate(d.getDate() + (offsetDias || 0));
-            return d.toISOString().slice(0,10);
+            return _gymISODateLocal(d);
         }
         function _gymSecsToLabel(secs) {
             if (!secs || secs < 1) return '00:00';
@@ -6564,8 +6575,7 @@
                 }
             });
             if (filtro === 'dia') {
-                var d = new Date(); d.setDate(d.getDate() + offset);
-                var fechaKey = d.toISOString().slice(0,10);
+                var fechaKey = _gymFechaKey(offset);
                 var cardsFecha = esHoy ? null : (sesiones[fechaKey] && sesiones[fechaKey].cards);
                 ['pecho','espalda','brazo','pierna','cardio'].forEach(function(p) {
                     var panel = document.getElementById('gym-panel-' + p);
@@ -6573,7 +6583,7 @@
                     if (esHoy) {
                         var grid = panel.querySelector('.gym-panel-grid');
                         if (!grid || grid.dataset.historico === '1') {
-                            var hoy = new Date().toISOString().slice(0,10);
+                            var hoy = _gymFechaKey(0);
                             var cardsHoy = sesiones[hoy] && sesiones[hoy].cards && sesiones[hoy].cards[p];
                             panel.querySelectorAll('.gym-panel-grid, ._gymHistoricoMsg, .gym-empty-state').forEach(function(el){ el.remove(); });
                             _gymRenderCards(panel, cardsHoy);
@@ -6592,7 +6602,7 @@
                 if (esHoy) {
                     _initAllGymCards();
                     if (_gymReposoRunning()) { _gymReposoRestoreBtn(); }
-                    var sHoy = sesiones[new Date().toISOString().slice(0,10)];
+                    var sHoy = sesiones[_gymFechaKey(0)];
                     if (sHoy) {
                         var tEl2 = document.getElementById('gym-stat-tiempo');
                         if (tEl2) { tEl2.dataset.totalSecs = sHoy.tiempo||0; tEl2.textContent = _gymSecsToLabel(sHoy.tiempo||0); }
@@ -6625,11 +6635,11 @@
             var hoy = new Date();
             if (filtro === 'dia') {
                 var d = new Date(hoy); d.setDate(d.getDate() + offset);
-                fechas = [d.toISOString().slice(0,10)];
+                fechas = [_gymISODateLocal(d)];
             } else if (filtro === 'semana') {
                 var lun = new Date(hoy);
                 lun.setDate(hoy.getDate() - ((hoy.getDay()+6)%7) + offset*7);
-                for (var i = 0; i < 7; i++) { var dd = new Date(lun); dd.setDate(lun.getDate()+i); fechas.push(dd.toISOString().slice(0,10)); }
+                for (var i = 0; i < 7; i++) { var dd = new Date(lun); dd.setDate(lun.getDate()+i); fechas.push(_gymISODateLocal(dd)); }
             } else if (filtro === 'mes') {
                 var year = hoy.getFullYear(), month = hoy.getMonth() + offset;
                 while (month < 0) { month += 12; year--; }
@@ -6687,7 +6697,7 @@
                         var diaSem  = _DIAS_ES[d.getDay()];
                         var diaMes  = d.getDate();
                         var mes     = _MESES_FULL[d.getMonth()];
-                        var hoyKey  = new Date().toISOString().slice(0,10);
+                        var hoyKey  = _gymFechaKey(0);
                         var esHoyBadge = fechaKey === hoyKey
                             ? '<span style="background:rgba(234,179,8,0.15);color:#eab308;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;padding:2px 7px;border-radius:6px;border:1px solid rgba(234,179,8,0.3);">HOY</span>'
                             : '';
@@ -7449,7 +7459,7 @@
                     var parentPanel = panelGrid ? panelGrid.closest('[id^="gym-panel-"]') : null;
                     panelName = parentPanel ? parentPanel.id.replace('gym-panel-','') : 'pecho';
                 }
-                var hoy = new Date().toISOString().slice(0,10);
+                var hoy = _gymFechaKey(0);
                 var hist = window._gymSesionesHistorial;
                 if (!hist) hist = window._gymSesionesHistorial = {};
                 if (!hist[hoy]) hist[hoy] = {};
@@ -7816,8 +7826,10 @@
         function _initGymCardDrag(card) { /* no-op */ }
 
         function _initGymSortable(grid) {
-            if (!window.Sortable) return;
+            if (!grid) return;
             if (grid._sortable) { grid._sortable.destroy(); grid._sortable = null; }
+            if (grid.dataset && grid.dataset.historico === '1') return;
+            if (!window.Sortable) return;
 
             var _gridRect = null, _itemW = 0, _itemH = 0, _rafId = null;
             var _grabOffsetX = 0, _grabOffsetY = 0;
@@ -7840,7 +7852,7 @@
             }
 
             function _clampFallback() {
-                var fb = document.querySelector('.gym-sortable-fallback');
+                var fb = document.querySelector('.gym-sortable-fallback, .sortable-fallback');
                 if (!fb) return;
                 var targetLeft = _cursorX - _grabOffsetX;
                 var targetTop  = _cursorY - _grabOffsetY;
@@ -7882,18 +7894,19 @@
             grid._sortable = new Sortable(grid, {
                 animation: 180,
                 easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-                ghostClass: 'gym-sortable-ghost',
-                chosenClass: 'gym-sortable-chosen',
-                fallbackClass: 'gym-sortable-fallback',
+                draggable: '.gym-card',
+                ghostClass: 'sortable-ghost gym-sortable-ghost',
+                chosenClass: 'sortable-chosen gym-sortable-chosen',
+                fallbackClass: 'sortable-fallback gym-sortable-fallback',
                 handle: '.gym-drag-handle',
                 filter: '.gym-card-menu, .toggleGymCardMenu',
                 preventOnFilter: true,
                 forceFallback: true,
                 fallbackOnBody: true,
-                fallbackTolerance: 3,
-                delay: 400,
-                delayOnTouchOnly: false,
-                touchStartThreshold: 4,
+                fallbackTolerance: 0,
+                delay: (window.innerWidth <= 768 ? 220 : 0),
+                delayOnTouchOnly: true,
+                touchStartThreshold: 5,
                 onChoose: function(evt) {
                     // feedback visual al activarse el long press
                     var handle = evt.item.querySelector('.gym-drag-handle');
@@ -7910,7 +7923,7 @@
                     var r = evt.item.getBoundingClientRect();
                     _itemW = r.width; _itemH = r.height;
                     requestAnimationFrame(function() {
-                        var fb = document.querySelector('.gym-sortable-fallback');
+                        var fb = document.querySelector('.gym-sortable-fallback, .sortable-fallback');
                         if (fb) {
                             fb.style.width = _itemW + 'px';
                             fb.style.height = _itemH + 'px';
