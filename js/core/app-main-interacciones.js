@@ -6528,6 +6528,22 @@
             d.setDate(d.getDate() + (offsetDias || 0));
             return _gymISODateLocal(d);
         }
+        function _gymContextoActivo() {
+            var el = document.getElementById('gym-intervalo-label');
+            var filtro = el ? (el.dataset.filtro || 'dia') : 'dia';
+            var offset = el ? parseInt(el.dataset.offset || 0) : 0;
+            if (isNaN(offset)) offset = 0;
+            var fechaKey = _gymFechaKey(offset);
+            var domHistorico = !!document.querySelector('.gym-panel-grid[data-historico="1"]');
+            return {
+                filtro: filtro,
+                offset: offset,
+                fechaKey: fechaKey,
+                esDia: filtro === 'dia',
+                esHoy: filtro === 'dia' && offset === 0,
+                domHistorico: domHistorico
+            };
+        }
         function _gymSecsToLabel(secs) {
             if (!secs || secs < 1) return '00:00';
             var h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
@@ -6599,6 +6615,15 @@
             if (typeof guardarDatos === 'function') guardarDatos();
         }
         function gymGuardarSesionHoy() {
+            var ctx = _gymContextoActivo();
+            if (!ctx.esDia) return;
+            if (!ctx.esHoy) {
+                gymGuardarSesionDia(ctx.fechaKey);
+                return;
+            }
+            // Defensive guard: never let a historical DOM snapshot overwrite today's key.
+            if (ctx.domHistorico) return;
+
             var fecha = _gymFechaKey(0);
             var sesiones = window._gymSesionesHistorial || {};
             var cards = {};
@@ -7955,61 +7980,93 @@
 
             _syncGymGridCardMeta(grid);
             if (!window.Sortable) return;
-            var _isMobileSort = window.innerWidth <= 768;
-
-            var _lpHandle = null;
-            function _lpStart(handle) {
-                _lpHandle = handle;
-                handle.style.color = '#eab308';
-                handle.style.transform = 'scale(1.25)';
-                handle.style.transition = 'color 0.3s, transform 0.3s';
-            }
-            function _lpEnd() {
-                if (_lpHandle) {
-                    _lpHandle.style.color = '';
-                    _lpHandle.style.transform = '';
-                    _lpHandle.style.transition = '';
-                    _lpHandle = null;
-                }
-            }
 
             grid._sortable = new Sortable(grid, {
-                animation: 180,
+                animation: 150,
                 easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
                 draggable: '.gym-card',
-                ghostClass: 'gym-sortable-ghost',
-                chosenClass: 'gym-sortable-chosen',
-                dragClass: 'gym-sortable-drag',
-                fallbackClass: 'gym-sortable-fallback',
-                handle: '.gym-drag-handle',
-                forceFallback: true,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                chosenClass: 'sortable-chosen',
+                fallbackClass: 'sortable-fallback',
                 fallbackOnBody: true,
-                fallbackTolerance: _isMobileSort ? 0 : 2,
-                delay: (_isMobileSort ? 180 : 0),
-                delayOnTouchOnly: true,
-                touchStartThreshold: 5,
-                onChoose: function(evt) {
-                    var handle = evt.item.querySelector('.gym-drag-handle');
-                    if (handle) _lpStart(handle);
-                    if (navigator.vibrate) navigator.vibrate(40);
+                swapThreshold: 0.65,
+                handle: '.gym-drag-handle',
+                preventOnFilter: true,
+                delay: 0,
+                delayOnTouchOnly: false,
+                touchStartThreshold: 3,
+                forceFallback: true,
+                fallbackTolerance: 0,
+                onChoose: function() {
+                    if (navigator.vibrate) navigator.vibrate(30);
                 },
-                onUnchoose: function() {
-                    _lpEnd();
+                onStart: function(evt) {
+                    if (navigator.vibrate) navigator.vibrate(30);
+                    var rect = evt.item.getBoundingClientRect();
+                    var realWidth = rect.width;
+                    var realHeight = rect.height;
+
+                    evt.item.style.width = realWidth + 'px';
+                    evt.item.style.height = realHeight + 'px';
+                    setTimeout(function() {
+                        var fallback = document.querySelector('.sortable-fallback');
+                        if (fallback) {
+                            fallback.style.width = realWidth + 'px';
+                            fallback.style.height = realHeight + 'px';
+                            fallback.style.opacity = '1';
+                            fallback.style.visibility = 'visible';
+                            fallback.style.background = 'rgba(15, 23, 42, 0.95)';
+                            fallback.style.backdropFilter = 'blur(8px)';
+                            fallback.style.webkitBackdropFilter = 'blur(8px)';
+                            fallback.style.border = '2px solid rgba(99, 102, 241, 0.5)';
+                            fallback.style.borderRadius = '12px';
+                            fallback.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
+                            fallback.style.transform = 'scale(1.05)';
+                            fallback.style.transition = 'none';
+                            fallback.style.cursor = 'grabbing';
+                            fallback.style.zIndex = '100000';
+                        }
+                    }, 0);
                 },
-                onStart: function() {
-                    _lpEnd();
-                    if (navigator.vibrate) navigator.vibrate([20, 15, 50]);
+                onMove: function() {
+                    var fallback = document.querySelector('.sortable-fallback');
+                    if (fallback && fallback.style.opacity !== '1') {
+                        fallback.style.opacity = '1';
+                        fallback.style.visibility = 'visible';
+                    }
                 },
                 onEnd: function(evt) {
-                    _lpEnd();
+                    var mainEl = document.querySelector('main');
+                    var containerEl = document.querySelector('.container');
+                    document.body.classList.add('drag-ending');
+                    document.documentElement.classList.add('drag-ending');
+                    if (mainEl) mainEl.classList.add('drag-ending');
+                    if (containerEl) containerEl.classList.add('drag-ending');
+
+                    evt.item.style.width = '';
+                    evt.item.style.height = '';
+
                     _syncGymGridCardMeta(grid);
+                    if (evt && evt.from && evt.from !== grid) _syncGymGridCardMeta(evt.from);
                     if (evt && evt.to && evt.to !== grid) _syncGymGridCardMeta(evt.to);
+
+                    setTimeout(function() {
+                        document.body.classList.remove('drag-ending');
+                        document.documentElement.classList.remove('drag-ending');
+                        if (mainEl) mainEl.classList.remove('drag-ending');
+                        if (containerEl) containerEl.classList.remove('drag-ending');
+                    }, 100);
+
                     var elInt = document.getElementById('gym-intervalo-label');
                     var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
                     var fechaKey = _gymFechaKey(offset);
                     if (typeof _gymActualizarStatEjercicios === 'function') _gymActualizarStatEjercicios(fechaKey);
                     if (typeof guardarDatos === 'function') guardarDatos();
-                    if (typeof _gymUpdateBolts === 'function') _gymUpdateBolts(evt && evt.to ? evt.to : grid);
+                    if (typeof _gymUpdateBolts === 'function') {
+                        if (evt && evt.from && evt.from !== evt.to) _gymUpdateBolts(evt.from);
+                        _gymUpdateBolts(evt && evt.to ? evt.to : grid);
+                    }
                 }
             });
         }
