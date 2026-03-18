@@ -5713,15 +5713,16 @@
                         if (!window._gymSesionesHistorial[hoy]) window._gymSesionesHistorial[hoy] = {};
                         window._gymSesionesHistorial[hoy].cards = datos.gymCards;
                     }
+                    // Only load cards for today if they actually exist in the historial for today
                     var cardsHoy = (window._gymSesionesHistorial[hoy] && window._gymSesionesHistorial[hoy].cards)
                         ? window._gymSesionesHistorial[hoy].cards
-                        : (datos.gymCards || {});
+                        : null; // Don't use fallback to avoid loading wrong day's exercises
 
                     ['pecho','espalda','brazo','pierna','cardio'].forEach(function(p) {
                         var panel = document.getElementById('gym-panel-' + p);
                         if (!panel) return;
                         panel.innerHTML = '';
-                        var cards = cardsHoy[p] || [];
+                        var cards = cardsHoy ? (cardsHoy[p] || []) : [];
                         if (cards.length === 0) return;
                         var grid = document.createElement('div');
                         grid.className = 'gym-panel-grid';
@@ -5749,7 +5750,39 @@
                     });
                     if (typeof _initAllGymCards === 'function') _initAllGymCards();
                 }
-                if (datos.gymTiempoSesion && datos.gymTiempoSesion > 0) {
+                // LOAD STATS ONLY FOR TODAY FROM HISTORIAL (not from datos fallback which could be stale)
+                var hoyStats = window._gymSesionesHistorial && window._gymSesionesHistorial[_gymFechaKey(0)];
+                if (hoyStats) {
+                    if (hoyStats.tiempo && hoyStats.tiempo > 0) {
+                        var statEl = document.getElementById('gym-stat-tiempo');
+                        if (statEl) {
+                            var ts = hoyStats.tiempo;
+                            statEl.dataset.totalSecs = ts;
+                            var h = Math.floor(ts / 3600);
+                            var m = Math.floor((ts % 3600) / 60);
+                            var s = ts % 60;
+                            statEl.textContent = h > 0 ? h + 'h ' + String(m).padStart(2,'0') + 'm' : String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+                        }
+                    }
+                    if (hoyStats.hidratacion) {
+                        var hidEl = document.getElementById('gym-stat-hidratacion');
+                        if (hidEl) { hidEl.dataset.litros = hoyStats.hidratacion; hidEl.textContent = parseFloat(hoyStats.hidratacion).toFixed(1).replace(',','.'); }
+                    }
+                    if (hoyStats.reposo && hoyStats.reposo > 0) {
+                        var repEl = document.getElementById('gym-stat-reposo');
+                        if (repEl) {
+                            var rs = hoyStats.reposo;
+                            repEl.dataset.totalSecs = rs;
+                            var rh = Math.floor(rs / 3600), rm = Math.floor((rs % 3600) / 60), rsec = rs % 60;
+                            repEl.textContent = rh > 0 ? rh + 'h ' + String(rm).padStart(2,'0') + 'm' : String(rm).padStart(2,'0') + ':' + String(rsec).padStart(2,'0');
+                        }
+                    }
+                    if (hoyStats.calorias && hoyStats.calorias !== '—') {
+                        var calEl = document.getElementById('gym-stat-calorias');
+                        if (calEl) calEl.textContent = hoyStats.calorias;
+                    }
+                } else if (datos.gymTiempoSesion && datos.gymTiempoSesion > 0) {
+                    // Fallback to datos only if no historial exists for today
                     var statEl = document.getElementById('gym-stat-tiempo');
                     if (statEl) {
                         var ts = datos.gymTiempoSesion;
@@ -5760,11 +5793,11 @@
                         statEl.textContent = h > 0 ? h + 'h ' + String(m).padStart(2,'0') + 'm' : String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
                     }
                 }
-                if (datos.gymHidratacion) {
+                if (!hoyStats && datos.gymHidratacion) {
                     var hidEl = document.getElementById('gym-stat-hidratacion');
                     if (hidEl) { hidEl.dataset.litros = datos.gymHidratacion; hidEl.textContent = parseFloat(datos.gymHidratacion).toFixed(1).replace(',','.'); }
                 }
-                if (datos.gymReposo && datos.gymReposo > 0) {
+                if (!hoyStats && datos.gymReposo && datos.gymReposo > 0) {
                     var repEl = document.getElementById('gym-stat-reposo');
                     if (repEl) {
                         var rs = datos.gymReposo;
@@ -5886,13 +5919,74 @@
             });
             setTimeout(function(){
                 _initAllGymCards();
+                // SYNC VISUAL STATE WITH STORED DATA
+                var el_intervalo = document.getElementById('gym-intervalo-label');
+                var offset = el_intervalo ? parseInt(el_intervalo.dataset.offset || 0) : 0;
+                var fechaKey = _gymFechaKey(offset);
+                if (window._gymSesionesHistorial && window._gymSesionesHistorial[fechaKey] && 
+                    window._gymSesionesHistorial[fechaKey].cards && 
+                    window._gymSesionesHistorial[fechaKey].cards[vista]) {
+                    // Update all visible cards with stored completado state
+                    var cardsInVista = window._gymSesionesHistorial[fechaKey].cards[vista];
+                    var vistaPanel = document.getElementById('gym-panel-' + vista);
+                    if (vistaPanel) {
+                        vistaPanel.querySelectorAll('.gym-check-btn').forEach(function(btn, idx) {
+                            if (cardsInVista[idx]) {
+                                var shouldBeCompleted = cardsInVista[idx].completado === true || cardsInVista[idx].completado === '1';
+                                btn.dataset.completado = shouldBeCompleted ? '1' : '0';
+                                var icon = btn.querySelector('.material-symbols-rounded');
+                                if (shouldBeCompleted) {
+                                    btn.style.background = '#10b981';
+                                    btn.style.border = '2px solid #10b981';
+                                    if (icon) { icon.textContent = 'check'; icon.style.color = 'white'; icon.style.fontWeight = '700'; }
+                                } else {
+                                    btn.style.background = 'transparent';
+                                    btn.style.border = '2px solid #334155';
+                                    if (icon) { icon.textContent = 'check'; icon.style.color = '#475569'; icon.style.fontWeight = ''; }
+                                }
+                            }
+                        });
+                    }
+                }
                 if(typeof initTooltips==='function') initTooltips();
+                // UPDATE COUNTER FOR CURRENT ACTIVE CATEGORY ONLY
+                var activeCategoryPanel = document.getElementById('gym-panel-' + vista);
+                if (activeCategoryPanel) {
+                    var countInCategory = activeCategoryPanel.querySelectorAll('.gym-check-btn[data-completado="1"]').length;
+                    var statEl = document.getElementById('gym-stat-ejercicios');
+                    if (statEl) statEl.textContent = countInCategory;
+                }
                 var elInt = document.getElementById('gym-intervalo-label');
                 var filtro = elInt ? elInt.dataset.filtro : 'dia';
-                var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
-                if (filtro !== 'dia' || offset !== 0) {
-                    if(typeof gymCargarStatsParaIntervalo==='function') gymCargarStatsParaIntervalo();
+                var offset2 = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
+                // PRESERVE GLOBAL STATS WHEN SWITCHING CATEGORIES
+                // Global stats like hidratacion, tiempo, reposo should not change between categories
+                if (filtro === 'dia') {
+                    var fechaDiaActual = _gymFechaKey(offset2);
+                    var sesDiaActual = window._gymSesionesHistorial && window._gymSesionesHistorial[fechaDiaActual];
+                    if (sesDiaActual) {
+                        var hEl = document.getElementById('gym-stat-hidratacion');
+                        if (hEl) { 
+                            hEl.dataset.litros = parseFloat(sesDiaActual.hidratacion||0).toFixed(2); 
+                            hEl.textContent = parseFloat(sesDiaActual.hidratacion||0).toFixed(1).replace(',','.'); 
+                        }
+                        var tEl = document.getElementById('gym-stat-tiempo');
+                        if (tEl) { 
+                            tEl.dataset.totalSecs = sesDiaActual.tiempo||0; 
+                            tEl.textContent = _gymSecsToLabel(sesDiaActual.tiempo||0); 
+                        }
+                        var rEl = document.getElementById('gym-stat-reposo');
+                        if (rEl && !_gymReposoRunning()) { 
+                            rEl.dataset.totalSecs = sesDiaActual.reposo||0; 
+                            rEl.textContent = _gymSecsToLabel(sesDiaActual.reposo||0); 
+                        }
+                        var cEl = document.getElementById('gym-stat-calorias');
+                        if (cEl) cEl.textContent = sesDiaActual.calorias || '—';
+                    }
                 }
+                // NOTE: We do NOT call gymCargarStatsParaIntervalo() here when category changes
+                // Changing category should only show/hide panels and sync visual state
+                // Re-rendering only happens when the interval (filtro/offset) changes
             }, 50);
         }
         function _initGymSwipeCells(card) {
@@ -6129,6 +6223,23 @@
                 var el = document.getElementById('gym-stat-ejercicios');
                 if (el) el.textContent = Math.max(0, parseInt(el.textContent||0) - 1);
                 btn.dataset.completado = '0';
+            }
+            // UPDATE sessionStorage with the new completado state
+            var card = btn.closest('.gym-card');
+            if (card && card.dataset.panel) {
+                var panelCategory = card.dataset.panel;
+                var cardIndex = parseInt(card.dataset.cardIndex);
+                var el_intervalo = document.getElementById('gym-intervalo-label');
+                var filtro = el_intervalo ? (el_intervalo.dataset.filtro || 'dia') : 'dia';
+                var offset = el_intervalo ? parseInt(el_intervalo.dataset.offset || 0) : 0;
+                var fechaKey = _gymFechaKey(offset);
+                if (window._gymSesionesHistorial && window._gymSesionesHistorial[fechaKey] && 
+                    window._gymSesionesHistorial[fechaKey].cards && 
+                    window._gymSesionesHistorial[fechaKey].cards[panelCategory] &&
+                    window._gymSesionesHistorial[fechaKey].cards[panelCategory][cardIndex]) {
+                    window._gymSesionesHistorial[fechaKey].cards[panelCategory][cardIndex].completado = completado;
+                    if (typeof guardarDatos === 'function') guardarDatos();
+                }
             }
         }
         function toggleCronometroGym(btn) {
@@ -6528,9 +6639,10 @@
             var grid = document.createElement('div');
             grid.className = 'gym-panel-grid';
             panel.appendChild(grid);
-            cards.forEach(function(e) {
+            var panelCategory = panel.id.replace('gym-panel-', '');
+            cards.forEach(function(e, index) {
                 if (typeof _crearGymCardHTML !== 'function') return;
-                var cardHTML = '<div class="gym-card" style="background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;">' + _crearGymCardHTML(e) + '</div>';
+                var cardHTML = '<div class="gym-card" data-panel="' + panelCategory + '" data-card-index="' + index + '" style="background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;">' + _crearGymCardHTML(e) + '</div>';
                 grid.insertAdjacentHTML('beforeend', cardHTML);
                 if (e.cardTimeSecs && e.cardTimeSecs > 0) {
                     var newCard = grid.lastElementChild;
