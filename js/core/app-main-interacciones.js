@@ -6830,7 +6830,9 @@
                         cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                         imgSrc: imgEl ? imgEl.src : '',
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
-                                        completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
+                        completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
+                        rutaCoords: card.dataset.rutaCoords ? JSON.parse(card.dataset.rutaCoords) : null,
+                        rutaNombre: card.dataset.rutaNombre || ''
                     };
                 });
             });
@@ -6887,7 +6889,9 @@
                         cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                         imgSrc: imgEl ? imgEl.src : '',
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
-                                        completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
+                        completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
+                        rutaCoords: card.dataset.rutaCoords ? JSON.parse(card.dataset.rutaCoords) : null,
+                        rutaNombre: card.dataset.rutaNombre || ''
                     };
                 });
             });
@@ -6935,6 +6939,10 @@
                     }
                 }
                 if (e.completado && newCard && typeof _gymSetCardLocked === 'function') _gymSetCardLocked(newCard, true);
+                if (newCard && e.rutaCoords && Array.isArray(e.rutaCoords) && e.rutaCoords.length >= 2) {
+                    newCard.dataset.rutaCoords = JSON.stringify(e.rutaCoords);
+                    if (e.rutaNombre) newCard.dataset.rutaNombre = e.rutaNombre;
+                }
             });
             _initGymSortable(grid);
             if (readonly) grid.dataset.historico = '1';
@@ -7238,12 +7246,16 @@
             var menu = btn.nextElementSibling;
             var isOpen = menu.style.display === 'block';
             document.querySelectorAll('.gym-card-menu').forEach(function(m) { m.style.display = 'none'; });
+            document.querySelectorAll('.gym-card').forEach(function(c) { c.style.overflow = 'hidden'; });
             if (!isOpen) {
                 menu.style.display = 'block';
+                var card = btn.closest('.gym-card');
+                if (card) card.style.overflow = 'visible';
                 setTimeout(function() {
                     document.addEventListener('click', function closeMenu(e) {
                         if (!menu.contains(e.target) && e.target !== btn) {
                             menu.style.display = 'none';
+                            if (card) card.style.overflow = 'hidden';
                             document.removeEventListener('click', closeMenu);
                         }
                     });
@@ -7403,6 +7415,281 @@
             card.style.transform = 'scale(0.95)';
             setTimeout(function() { card.remove(); if (typeof guardarDatos === 'function') guardarDatos(); var p=document.getElementById('gym-panel-'+(window._vistaGymActiva||'pecho')); if(p&&typeof _gymEmptyState==='function')_gymEmptyState(p); }, 300);
         }
+
+        // ─── RUTAS (CARDIO) ──────────────────────────────────────────────────────
+        function gymToggleRutaCardio(btn) {
+            var card = btn.closest('.gym-card');
+            btn.closest('.gym-card-menu').style.display = 'none';
+            var existing = card.querySelector('.gym-ruta-section');
+            if (existing) {
+                var isHidden = existing.style.display === 'none';
+                existing.style.display = isHidden ? 'block' : 'none';
+                if (isHidden) {
+                    var _md = existing.querySelector('.gym-ruta-map');
+                    if (_md && _md._leafletMap) setTimeout(function() { _md._leafletMap.invalidateSize(); }, 50);
+                }
+                return;
+            }
+            var section = document.createElement('div');
+            section.className = 'gym-ruta-section';
+            section.style.cssText = 'border-top:1px solid rgba(255,255,255,0.06);padding:14px 14px 10px;';
+            if (card.dataset.rutaCoords) {
+                try { _gymRenderRutaEnSeccion(section, JSON.parse(card.dataset.rutaCoords), card, card.dataset.rutaNombre || ''); }
+                catch(e) { _gymRutaEmptyState(section, card); }
+            } else {
+                _gymRutaEmptyState(section, card);
+            }
+            card.appendChild(section);
+        }
+
+        function _gymRutaEmptyState(section, card) {
+            section.innerHTML = '<div style="text-align:center;padding:20px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;">'
+                + '<span class="material-symbols-rounded" style="font-size:44px;color:#334155;">route</span>'
+                + '<p style="color:#475569;font-size:12px;font-weight:600;margin:0;">Sin ruta importada</p>'
+                + '<button onclick="_gymAbrirImportRuta(this)" style="padding:9px 18px;border-radius:12px;border:1px solid rgba(234,179,8,0.4);background:rgba(234,179,8,0.1);color:#eab308;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">'
+                + '<span class="material-symbols-rounded" style="font-size:16px;">upload_file</span>Importar ruta</button>'
+                + '<input type="file" accept="*" multiple style="display:none;" onchange="_gymProcesarArchivosRuta(this)">'
+                + '</div>';
+        }
+
+        function _gymAbrirImportRuta(btn) {
+            var inp = btn.nextElementSibling;
+            if (inp) inp.click();
+        }
+
+        function _gymProcesarArchivosRuta(input) {
+            var card = input.closest('.gym-card');
+            var section = input.closest('.gym-ruta-section');
+            if (!input.files || input.files.length === 0) return;
+            var file = input.files[0];
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                var text = ev.target.result;
+                var name = file.name.toLowerCase();
+                var coords = null;
+                try {
+                    if (name.endsWith('.gpx'))
+                        coords = _gymParsarGPX(text);
+                    else if (name.endsWith('.tcx'))
+                        coords = _gymParsarTCX(text);
+                    else if (name.endsWith('.kml'))
+                        coords = _gymParsarKML(text);
+                    else if (name.endsWith('.geojson') || name.endsWith('.json'))
+                        coords = _gymParsarGeoJSON(text);
+                    else if (name.endsWith('.fit') || name.endsWith('.kmz')) {
+                        _gymRutaMostrarError(section, card, 'Formato ' + name.split('.').pop().toUpperCase() + ' no soportado. Usa GPX, TCX, KML o GeoJSON.');
+                        return;
+                    } else {
+                        try { var obj = JSON.parse(text); if (obj && obj.type) coords = _gymParsarGeoJSON(text); } catch(e2) {}
+                        if (!coords) {
+                            if (text.indexOf('<gpx') >= 0)                        coords = _gymParsarGPX(text);
+                            else if (text.indexOf('<TrainingCenterDatabase') >= 0) coords = _gymParsarTCX(text);
+                            else if (text.indexOf('<kml') >= 0)                   coords = _gymParsarKML(text);
+                        }
+                    }
+                } catch(parseErr) {
+                    _gymRutaMostrarError(section, card, 'Error al leer el archivo.');
+                    return;
+                }
+                if (!coords || coords.length < 2) {
+                    _gymRutaMostrarError(section, card, 'No se encontraron puntos de ruta en el archivo.');
+                    return;
+                }
+                coords = _gymSimplificarCoordenadas(coords, 500);
+                card.dataset.rutaCoords = JSON.stringify(coords);
+                card.dataset.rutaNombre = file.name;
+                _gymRenderRutaEnSeccion(section, coords, card, file.name);
+                if (typeof guardarDatos === 'function') guardarDatos();
+            };
+            reader.readAsText(file);
+        }
+
+        function _gymParsarGPX(text) {
+            var xml = (new DOMParser()).parseFromString(text, 'text/xml');
+            var c = [];
+            xml.querySelectorAll('trkpt,rtept,wpt').forEach(function(p) {
+                var la = parseFloat(p.getAttribute('lat')), lo = parseFloat(p.getAttribute('lon'));
+                if (!isNaN(la) && !isNaN(lo)) c.push([la, lo]);
+            });
+            return c;
+        }
+
+        function _gymParsarTCX(text) {
+            var xml = (new DOMParser()).parseFromString(text, 'text/xml');
+            var c = [];
+            xml.querySelectorAll('Position').forEach(function(p) {
+                var la = parseFloat(p.querySelector('LatitudeDegrees') ? p.querySelector('LatitudeDegrees').textContent : NaN);
+                var lo = parseFloat(p.querySelector('LongitudeDegrees') ? p.querySelector('LongitudeDegrees').textContent : NaN);
+                if (!isNaN(la) && !isNaN(lo)) c.push([la, lo]);
+            });
+            return c;
+        }
+
+        function _gymParsarKML(text) {
+            var xml = (new DOMParser()).parseFromString(text, 'text/xml');
+            var c = [];
+            xml.querySelectorAll('coordinates').forEach(function(el) {
+                el.textContent.trim().split(/\s+/).forEach(function(pair) {
+                    var p = pair.split(',');
+                    if (p.length >= 2) { var lo = parseFloat(p[0]), la = parseFloat(p[1]); if (!isNaN(la) && !isNaN(lo)) c.push([la, lo]); }
+                });
+            });
+            return c;
+        }
+
+        function _gymParsarGeoJSON(text) {
+            var obj = JSON.parse(text);
+            var c = [];
+            function extr(geom) {
+                if (!geom) return;
+                if (geom.type === 'LineString') geom.coordinates.forEach(function(p) { if (p.length >= 2) c.push([p[1], p[0]]); });
+                else if (geom.type === 'MultiLineString') geom.coordinates.forEach(function(l) { l.forEach(function(p) { if (p.length >= 2) c.push([p[1], p[0]]); }); });
+                else if (geom.type === 'Point' && geom.coordinates.length >= 2) c.push([geom.coordinates[1], geom.coordinates[0]]);
+                else if (geom.type === 'MultiPoint') geom.coordinates.forEach(function(p) { if (p.length >= 2) c.push([p[1], p[0]]); });
+            }
+            if (obj.type === 'Feature') extr(obj.geometry);
+            else if (obj.type === 'FeatureCollection') obj.features.forEach(function(f) { extr(f.geometry); });
+            else extr(obj);
+            return c;
+        }
+
+        function _gymSimplificarCoordenadas(coords, max) {
+            if (coords.length <= max) return coords;
+            var out = [], step = coords.length / max;
+            for (var i = 0; i < max; i++) out.push(coords[Math.round(i * step)]);
+            return out;
+        }
+
+        function _gymRutaMostrarError(section, card, msg) {
+            _gymRutaEmptyState(section, card);
+            var errEl = document.createElement('p');
+            errEl.style.cssText = 'color:#f87171;font-size:11px;font-weight:600;text-align:center;margin:-4px 0 4px;';
+            errEl.textContent = msg;
+            var inner = section.querySelector('div');
+            if (inner) inner.insertAdjacentElement('afterbegin', errEl);
+        }
+
+        function _gymRenderRutaEnSeccion(section, coords, card, nombre) {
+            section.innerHTML = '';
+
+            var header = document.createElement('div');
+            header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 2px;';
+
+            var info = document.createElement('div');
+            info.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;';
+            var displayNombre = nombre || (coords.length + ' puntos');
+            info.innerHTML = '<span class="material-symbols-rounded" style="font-size:15px;color:#eab308;flex-shrink:0;">route</span>'
+                + '<span style="color:#94a3b8;font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + displayNombre + '">' + displayNombre + '</span>';
+
+            var btns = document.createElement('div');
+            btns.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;';
+
+            var replaceInp = document.createElement('input');
+            replaceInp.type = 'file'; replaceInp.accept = '*'; replaceInp.multiple = true;
+            replaceInp.style.display = 'none';
+            replaceInp.addEventListener('change', function() { _gymProcesarArchivosRuta(replaceInp); });
+
+            var newBtn = document.createElement('button');
+            newBtn.style.cssText = 'background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:8px;color:#eab308;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:Manrope,sans-serif;';
+            newBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px;">upload_file</span>Nueva';
+            newBtn.addEventListener('click', function() { replaceInp.click(); });
+
+            var delBtn = document.createElement('button');
+            delBtn.style.cssText = 'background:none;border:none;color:#64748b;cursor:pointer;padding:4px;display:flex;align-items:center;';
+            delBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">delete</span>';
+            delBtn.addEventListener('click', function() { _gymEliminarRuta(delBtn); });
+
+            btns.appendChild(replaceInp);
+            btns.appendChild(newBtn);
+            btns.appendChild(delBtn);
+            header.appendChild(info);
+            header.appendChild(btns);
+            section.appendChild(header);
+
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'position:relative;border-radius:12px;overflow:hidden;height:220px;';
+            var mapDiv = document.createElement('div');
+            mapDiv.className = 'gym-ruta-map';
+            mapDiv.style.cssText = 'width:100%;height:100%;';
+            wrap.appendChild(mapDiv);
+            section.appendChild(wrap);
+            _gymCargarLeaflet(function() { _gymAnimarRutaMapa(mapDiv, coords, wrap); });
+        }
+
+        function _gymEliminarRuta(btn) {
+            var card = btn.closest('.gym-card');
+            var section = btn.closest('.gym-ruta-section');
+            delete card.dataset.rutaCoords;
+            delete card.dataset.rutaNombre;
+            _gymRutaEmptyState(section, card);
+            if (typeof guardarDatos === 'function') guardarDatos();
+        }
+
+        function _gymCargarLeaflet(cb) {
+            if (window.L) { cb(); return; }
+            if (window._leafletCargando) { (window._leafletCbs = window._leafletCbs || []).push(cb); return; }
+            window._leafletCargando = true;
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(link);
+            var script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.onload = function() {
+                window._leafletCargando = false;
+                cb();
+                (window._leafletCbs || []).forEach(function(fn) { fn(); });
+                window._leafletCbs = [];
+            };
+            document.head.appendChild(script);
+        }
+
+        function _gymAnimarRutaMapa(mapDiv, coords, wrap) {
+            if (mapDiv._leafletMap) { try { mapDiv._leafletMap.remove(); } catch(e) {} mapDiv._leafletMap = null; }
+            if (mapDiv._animId) { cancelAnimationFrame(mapDiv._animId); mapDiv._animId = null; }
+            var latlngs = coords.map(function(c) { return [c[0], c[1]]; });
+            var map = L.map(mapDiv, {
+                zoomControl: false, attributionControl: false,
+                dragging: false, scrollWheelZoom: false,
+                doubleClickZoom: false, touchZoom: false, keyboard: false, tap: false
+            });
+            mapDiv._leafletMap = map;
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+            map.fitBounds(L.latLngBounds(latlngs), { padding: [24, 24] });
+            L.polyline(latlngs, { color: '#334155', weight: 2.5, opacity: 0.9 }).addTo(map);
+            var yellowLine = L.polyline([], { color: '#eab308', weight: 3.5, opacity: 1 }).addTo(map);
+            var dotIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:14px;height:14px;background:#fbbf24;border-radius:50%;box-shadow:0 0 10px rgba(251,191,36,0.9);border:3px solid rgba(15,23,42,0.8);box-sizing:border-box;"></div>',
+                iconSize: [14, 14], iconAnchor: [7, 7]
+            });
+            var dotMarker = L.marker(latlngs[0], { icon: dotIcon, zIndexOffset: 1000 }).addTo(map);
+            var total = latlngs.length, FRAMES = 600, frame = 0;
+            function step() {
+                var vi = Math.min(Math.floor((frame / FRAMES) * total), total - 1);
+                yellowLine.setLatLngs(latlngs.slice(0, vi + 1));
+                dotMarker.setLatLng(latlngs[vi]);
+                frame++;
+                if (frame <= FRAMES) {
+                    mapDiv._animId = requestAnimationFrame(step);
+                } else {
+                    mapDiv._animId = null;
+                    yellowLine.setLatLngs(latlngs);
+                    dotMarker.setLatLng(latlngs[total - 1]);
+                    var replayBtn = document.createElement('button');
+                    replayBtn.style.cssText = 'position:absolute;bottom:8px;right:8px;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:8px;color:#eab308;padding:5px 9px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:Manrope,sans-serif;z-index:1000;';
+                    replayBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:14px;">replay</span>';
+                    replayBtn.onclick = function() {
+                        replayBtn.remove(); frame = 0;
+                        yellowLine.setLatLngs([]); dotMarker.setLatLng(latlngs[0]);
+                        mapDiv._animId = requestAnimationFrame(step);
+                    };
+                    if (wrap) wrap.appendChild(replayBtn);
+                }
+            }
+            map.whenReady(function() { setTimeout(function() { mapDiv._animId = requestAnimationFrame(step); }, 400); });
+        }
+        // ─────────────────────────────────────────────────────────────────────────
 
         function _actualizarBadgeGym() {
             var total = _gymArchivadosEnCategoria(window._vistaGymActiva || 'pecho').length;
@@ -7882,7 +8169,7 @@
     var dd = '<div class="gym-drag-handle" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;color:#334155;padding:0 2px;touch-action:none;user-select:none;">' + '<span class="material-symbols-rounded" style="font-size:26px;pointer-events:none;">drag_indicator</span>' + '</div>';
     var badgeMaqHTML = badgeMaquina ? '<div style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.25);border-radius:7px;padding:2px 8px;margin-left:6px;flex-shrink:0;"><span class="gym-card-badge-maq" style="color:#e2e8f0;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">' + badgeMaquina + '</span></div>' : '';
     var badgeCatHTML = badge ? '<div style="display:inline-flex;align-items:center;background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:7px;padding:2px 8px;flex-shrink:0;"><span class="gym-card-badge-cat" style="color:#eab308;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">' + badge + '</span></div>' : '';
-    var men = '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><div style="position:relative;"><button onclick="toggleGymCardMenu(this)" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(71,85,105,0.3);background:rgba(71,85,105,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button><div class="gym-card-menu" style="display:none;position:absolute;right:0;top:34px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);"><button onclick="editarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">edit</span>Editar</button><button onclick="duplicarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">content_copy</span>Duplicar</button><button onclick="archivarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">archive</span>Archivar</button><button onclick="moverGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">move_item</span>Mover</button><button onclick="_gymResetCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">restart_alt</span>Resetear</button><div style="height:1px;background:rgba(255,255,255,0.06);margin:3px 6px;"></div><button onclick="eliminarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#f87171;">delete</span>Eliminar</button></div></div></div>';
+    var men = '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><div style="position:relative;"><button onclick="toggleGymCardMenu(this)" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(71,85,105,0.3);background:rgba(71,85,105,0.1);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button><div class="gym-card-menu" style="display:none;position:absolute;right:0;top:34px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.4);"><button onclick="editarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">edit</span>Editar</button><button onclick="duplicarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">content_copy</span>Duplicar</button><button onclick="archivarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">archive</span>Archivar</button><button onclick="moverGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">move_item</span>Mover</button><button onclick="_gymResetCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">restart_alt</span>Resetear</button><button class="gym-menu-ruta" onclick="gymToggleRutaCardio(this)" style="display:none;width:100%;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#94a3b8;">route</span>Ruta</button><div style="height:1px;background:rgba(255,255,255,0.06);margin:3px 6px;"></div><button onclick="eliminarGymCard(this)" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:transparent;color:#f1f5f9;font-size:12px;font-weight:600;cursor:pointer;border-radius:8px;text-align:left;"><span class="material-symbols-rounded" style="font-size:15px;color:#f87171;">delete</span>Eliminar</button></div></div></div>';
     var cellS = 'position:relative;background:rgba(15,23,42,0.5);border-radius:16px;padding:6px 46px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;';
     var cellKG = 'background:rgba(15,23,42,0.5);border-radius:9px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;';
     var lblS  = 'font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;display:block;margin-bottom:2px;';
@@ -8553,6 +8840,8 @@
             }
 
             card.dataset.cardioMode = isCardio ? '1' : '0';
+            var rutaBtn = card.querySelector('.gym-menu-ruta');
+            if (rutaBtn) rutaBtn.style.display = isCardio ? 'flex' : 'none';
         }
 
         function _syncGymGridCardMeta(grid) {
