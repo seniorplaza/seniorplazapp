@@ -6198,6 +6198,29 @@
             inp.value = Number.isInteger(step) ? Math.round(val) : val;
             inp.dispatchEvent(new Event('input'));
         }
+        function _gymSetCardLocked(card, locked) {
+            if (!card) return;
+            card.dataset.locked = locked ? '1' : '0';
+            var existingOverlay = card.querySelector('._gymLockOverlay');
+            if (existingOverlay) existingOverlay.remove();
+            var checkBtn = card.querySelector('.gym-check-btn');
+            var menuBtn = card.querySelector('button[onclick*="toggleGymCardMenu"]');
+            var body = card.querySelector('.gym-card-body');
+            if (locked) {
+                card.style.position = 'relative';
+                if (body) body.style.opacity = '0.45';
+                var overlay = document.createElement('div');
+                overlay.className = '_gymLockOverlay';
+                overlay.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;z-index:10;cursor:not-allowed;background:rgba(15,23,42,0.25);';
+                card.appendChild(overlay);
+                if (checkBtn) { checkBtn.style.position = 'relative'; checkBtn.style.zIndex = '20'; }
+                if (menuBtn) { menuBtn.style.position = 'relative'; menuBtn.style.zIndex = '20'; }
+            } else {
+                if (body) body.style.opacity = '';
+                if (checkBtn) { checkBtn.style.position = ''; checkBtn.style.zIndex = ''; }
+                if (menuBtn) { menuBtn.style.position = ''; menuBtn.style.zIndex = ''; }
+            }
+        }
         function toggleEjercicioGym(btn) {
             var completado = btn.dataset.completado === '1';
             completado = !completado;
@@ -6238,6 +6261,7 @@
                     window._gymSesionesHistorial[fechaKey].ejercicios = _gymContarCompletadosDesdeCards(window._gymSesionesHistorial[fechaKey].cards);
                 }
             }
+            _gymSetCardLocked(card, completado);
             _gymActualizarStatEjercicios(fechaKey);
             if (typeof guardarDatos === 'function') guardarDatos();
         }
@@ -6289,6 +6313,24 @@
             timerBtn.dataset.cardPrevUploaded = '0';
             display.textContent = '00:00';
         }
+        var _gymResetTimerLPTimer = null;
+        function _gymResetTimerLP(btn, phase) {
+            if (phase === 'start') {
+                if (_gymResetTimerLPTimer) clearTimeout(_gymResetTimerLPTimer);
+                btn.style.background = 'rgba(234,179,8,0.3)';
+                btn.style.borderColor = 'rgba(234,179,8,0.9)';
+                _gymResetTimerLPTimer = setTimeout(function() {
+                    _gymResetTimerLPTimer = null;
+                    reiniciarCronometroGym(btn);
+                    btn.style.background = 'rgba(234,179,8,0.12)';
+                    btn.style.borderColor = 'rgba(234,179,8,0.5)';
+                }, 600);
+            } else {
+                if (_gymResetTimerLPTimer) { clearTimeout(_gymResetTimerLPTimer); _gymResetTimerLPTimer = null; }
+                btn.style.background = 'rgba(234,179,8,0.12)';
+                btn.style.borderColor = 'rgba(234,179,8,0.5)';
+            }
+        }
         var _gymLongPressTimer = null;
         var _gymLongPressEl = null;
         function gymLongPressStart(el, fnName, borderColor) {
@@ -6332,11 +6374,14 @@
                 badge.style.display = 'none'; badge.setAttribute('data-hidden','1');
             }
             var _lpt = null;
+            var _lptFired = false;
             badge.addEventListener('touchstart', function(e) {
                 e.stopPropagation();
+                _lptFired = false;
                 badge.style.opacity = '0.7';
                 badge.style.borderColor = 'rgba(59,130,246,0.8)';
                 _lpt = setTimeout(function() {
+                    _lptFired = true;
                     badge.style.opacity = '1';
                     gymResetCardTime(badge);
                 }, 600);
@@ -6344,17 +6389,25 @@
             badge.addEventListener('touchmove', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                if (_lpt) { clearTimeout(_lpt); _lpt = null; }
             }, { passive: false });
             badge.addEventListener('touchend', function(e) {
                 e.stopPropagation();
-                clearTimeout(_lpt);
+                clearTimeout(_lpt); _lpt = null;
                 badge.style.opacity = '1';
                 badge.style.borderColor = 'rgba(59,130,246,0.35)';
+                if (!_lptFired) {
+                    e.preventDefault();
+                    _gymEditarTimeBadge(badge);
+                }
             }, { passive: false });
             badge.addEventListener('touchcancel', function() {
-                clearTimeout(_lpt);
+                if (_lpt) { clearTimeout(_lpt); _lpt = null; }
                 badge.style.opacity = '1';
                 badge.style.borderColor = 'rgba(59,130,246,0.35)';
+            });
+            badge.addEventListener('click', function() {
+                _gymEditarTimeBadge(badge);
             });
         }
 
@@ -6373,6 +6426,58 @@
                 badge.style.display = 'none';
                 badge.setAttribute('data-hidden', '1');
             }, 50);
+        }
+        function _gymEditarTimeBadge(badge) {
+            var prev = document.getElementById('_modalGymTimeBadge');
+            if (prev) prev.remove();
+            var totalSecs = parseInt(badge.dataset.totalSecs || 0);
+            var hh = Math.floor(totalSecs / 3600);
+            var mm = Math.floor((totalSecs % 3600) / 60);
+            var ss = totalSecs % 60;
+            var overlay = document.createElement('div');
+            overlay.id = '_modalGymTimeBadge';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.innerHTML = '<div style="background:#0f172a;border:1px solid rgba(59,130,246,0.3);border-radius:20px;width:100%;max-width:280px;display:flex;flex-direction:column;overflow:hidden;">'
+                + '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.05);">'
+                + '<div style="display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded" style="font-size:18px;color:#60a5fa;">schedule</span><span style="color:#f1f5f9;font-size:14px;font-weight:800;">Tiempo registrado</span></div>'
+                + '<button onclick="document.getElementById(\'_modalGymTimeBadge\').remove()" style="background:none;border:none;color:#64748b;cursor:pointer;padding:4px;"><span class="material-symbols-rounded" style="font-size:20px;">close</span></button>'
+                + '</div>'
+                + '<div style="padding:20px;display:flex;flex-direction:column;gap:16px;">'
+                + '<div style="display:flex;align-items:flex-end;justify-content:center;gap:6px;">'
+                + '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Horas</span><input id="_tbEditH" type="number" min="0" max="23" value="' + hh + '" style="width:62px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#93c5fd;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;text-align:center;padding:8px 4px;outline:none;" onfocus="this.select()"></div>'
+                + '<span style="color:#475569;font-size:24px;font-weight:900;padding-bottom:10px;">:</span>'
+                + '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Min</span><input id="_tbEditM" type="number" min="0" max="59" value="' + String(mm).padStart(2,'0') + '" style="width:62px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#93c5fd;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;text-align:center;padding:8px 4px;outline:none;" onfocus="this.select()"></div>'
+                + '<span style="color:#475569;font-size:24px;font-weight:900;padding-bottom:10px;">:</span>'
+                + '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Seg</span><input id="_tbEditS" type="number" min="0" max="59" value="' + String(ss).padStart(2,'0') + '" style="width:62px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#93c5fd;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;text-align:center;padding:8px 4px;outline:none;" onfocus="this.select()"></div>'
+                + '</div>'
+                + '<div style="display:flex;gap:8px;">'
+                + '<button onclick="document.getElementById(\'_modalGymTimeBadge\').remove()" style="flex:1;height:40px;border-radius:12px;border:1px solid rgba(71,85,105,0.4);background:rgba(71,85,105,0.1);color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;">Cancelar</button>'
+                + '<button onclick="_gymConfirmarEditTimeBadge()" style="flex:2;height:40px;border-radius:12px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.15);color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;">Confirmar</button>'
+                + '</div>'
+                + '</div>'
+                + '</div>';
+            overlay._targetBadge = badge;
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+            document.body.appendChild(overlay);
+            setTimeout(function() { var inp = document.getElementById('_tbEditM'); if (inp) inp.focus(); }, 100);
+        }
+        function _gymConfirmarEditTimeBadge() {
+            var overlay = document.getElementById('_modalGymTimeBadge');
+            if (!overlay) return;
+            var badge = overlay._targetBadge;
+            var h = Math.max(0, parseInt(document.getElementById('_tbEditH')?.value || 0));
+            var m = Math.max(0, Math.min(59, parseInt(document.getElementById('_tbEditM')?.value || 0)));
+            var s = Math.max(0, Math.min(59, parseInt(document.getElementById('_tbEditS')?.value || 0)));
+            var totalSecs = h * 3600 + m * 60 + s;
+            if (badge) {
+                badge.dataset.totalSecs = totalSecs;
+                var label = badge.querySelector('.gym-card-time-label');
+                if (label) label.textContent = h > 0 ? (h + 'h ' + String(m).padStart(2,'0') + 'm') : (String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'));
+                if (totalSecs > 0) { badge.style.display = 'flex'; badge.removeAttribute('data-hidden'); }
+                else { badge.style.display = 'none'; badge.setAttribute('data-hidden','1'); }
+            }
+            overlay.remove();
+            if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
         }
         function gymResetCardio() {
             var el = document.getElementById('gym-stat-cardio-km');
@@ -6462,13 +6567,7 @@
             return window._gymReposoState.running;
         }
         function _gymReposoRestoreBtn() {
-            var btn = document.querySelector('.gym-reposo-btn');
-            if (!btn) return;
-            var icon = btn.querySelector('.material-symbols-rounded');
-            btn.dataset.running = '1';
-            btn.style.background = 'rgba(168,85,247,0.3)';
-            btn.style.borderColor = 'rgba(168,85,247,0.8)';
-            if (icon) { icon.style.color = '#e9d5ff'; icon.textContent = 'pause'; }
+            _gymReposoSetAllIcons(true);
         }
 
         function _gymReposoSetAllIcons(running) {
@@ -6682,7 +6781,7 @@
             var cardioKmDia = _gymCalcularKmCardioDesdeCards(cards);
             sesiones[fechaKey] = {
                 tiempo:      parseInt(document.getElementById('gym-stat-tiempo')?.dataset.totalSecs || prev.tiempo || 0),
-                reposo:      parseInt(document.getElementById('gym-stat-reposo')?.dataset.totalSecs || prev.reposo || 0),
+                reposo:      (fechaKey !== _gymFechaKey(0) && _gymReposoRunning()) ? (prev.reposo || 0) : parseInt(document.getElementById('gym-stat-reposo')?.dataset.totalSecs || prev.reposo || 0),
                 hidratacion: parseFloat(document.getElementById('gym-stat-hidratacion')?.dataset.litros || prev.hidratacion || 0),
                 cardio:      cardioKmDia,
                 calorias:    document.getElementById('gym-stat-calorias')?.textContent || prev.calorias || '—',
@@ -6777,12 +6876,10 @@
                         badge.style.display = 'flex'; badge.removeAttribute('data-hidden');
                     }
                 }
+                if (e.completado && newCard && typeof _gymSetCardLocked === 'function') _gymSetCardLocked(newCard, true);
             });
-            if (!readonly) {
-                _initGymSortable(grid);
-            } else {
-                grid.dataset.historico = '1';
-            }
+            _initGymSortable(grid);
+            if (readonly) grid.dataset.historico = '1';
             if (typeof _gymUpdateBolts === 'function') setTimeout(function(){ _gymUpdateBolts(grid); }, 50);
         }
 
@@ -6864,6 +6961,7 @@
                     var eEl3 = document.getElementById('gym-stat-ejercicios');
                     if (eEl3) eEl3.textContent = _gymContarCompletadosDesdeCards((sDia && sDia.cards) || {});
                     _gymActualizarStatCardioKm(fechaKey);
+                    if (_gymReposoRunning()) setTimeout(function(){ _gymReposoSetAllIcons(true); }, 50);
                     return;
                 }
             }
@@ -7726,7 +7824,7 @@
          // --- CAMBIO AQUÍ ---
          + '<span class="gym-timer-display" style="color:#eab308;font-size:14px;font-weight:800;font-family:Manrope,sans-serif;width:52px;min-width:52px;text-align:center;line-height:32px;letter-spacing:0.03em;">' + tiempoDisplay + '</span>'
          + '<button onclick="toggleReposoGym(this)" class="gym-reposo-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#c084fc;">stop_circle</span></button>'
-         + '<button onclick="reiniciarCronometroGym(this)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;margin-left:6px;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">laps</span></button>'
+         + '<button ontouchstart="_gymResetTimerLP(this,\'start\')" ontouchend="_gymResetTimerLP(this,\'end\')" ontouchcancel="_gymResetTimerLP(this,\'cancel\')" onmousedown="_gymResetTimerLP(this,\'start\')" onmouseup="_gymResetTimerLP(this,\'end\')" onmouseleave="_gymResetTimerLP(this,\'cancel\')" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;margin-left:6px;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">laps</span></button>'
          + '<button onclick="enviarTiempoGym(this)" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;"><span class="material-symbols-rounded" style="font-size:16px;color:#eab308;">more_time</span></button>'
          + '</div>'
          + '<div style="flex:1;"></div>'
@@ -8376,7 +8474,6 @@
         function _initGymSortable(grid) {
             if (!grid) return;
             if (grid._sortable) { grid._sortable.destroy(); grid._sortable = null; }
-            if (grid.dataset && grid.dataset.historico === '1') return;
 
             _syncGymGridCardMeta(grid);
             if (!window.Sortable) return;
@@ -8406,6 +8503,7 @@
                     var rect = evt.item.getBoundingClientRect();
                     var realWidth = rect.width;
                     var realHeight = rect.height;
+                    var isMobile = window.innerWidth < 768;
 
                     evt.item.style.width = realWidth + 'px';
                     evt.item.style.height = realHeight + 'px';
@@ -8420,12 +8518,22 @@
                             fallback.style.backdropFilter = 'blur(8px)';
                             fallback.style.webkitBackdropFilter = 'blur(8px)';
                             fallback.style.border = '2px solid rgba(99, 102, 241, 0.5)';
-                            fallback.style.borderRadius = '12px';
+                            fallback.style.borderRadius = '20px';
                             fallback.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
                             fallback.style.transform = 'scale(1.05)';
                             fallback.style.transition = 'none';
                             fallback.style.cursor = 'grabbing';
                             fallback.style.zIndex = '100000';
+                            if (isMobile) {
+                                var lockedLeft = parseFloat(fallback.style.left) || rect.left;
+                                var _axisLockCancelled = false;
+                                grid._axisLockCancel = function() { _axisLockCancelled = true; };
+                                (function lockX() {
+                                    if (_axisLockCancelled || !fallback.isConnected) return;
+                                    fallback.style.left = lockedLeft + 'px';
+                                    requestAnimationFrame(lockX);
+                                })();
+                            }
                         }
                     }, 0);
                 },
@@ -8437,6 +8545,7 @@
                     }
                 },
                 onEnd: function(evt) {
+                    if (grid._axisLockCancel) { grid._axisLockCancel(); delete grid._axisLockCancel; }
                     var mainEl = document.querySelector('main');
                     var containerEl = document.querySelector('.container');
                     document.body.classList.add('drag-ending');
@@ -8461,9 +8570,7 @@
                     var elInt = document.getElementById('gym-intervalo-label');
                     var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
                     var fechaKey = _gymFechaKey(offset);
-                    if (typeof _gymActualizarStatEjercicios === 'function') _gymActualizarStatEjercicios(fechaKey);
-                    if (typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(fechaKey);
-                    if (typeof guardarDatos === 'function') guardarDatos();
+                    if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(fechaKey);
                     if (typeof _gymUpdateBolts === 'function') {
                         if (evt && evt.from && evt.from !== evt.to) _gymUpdateBolts(evt.from);
                         _gymUpdateBolts(evt && evt.to ? evt.to : grid);
