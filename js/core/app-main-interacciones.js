@@ -7955,6 +7955,7 @@
 
             _syncGymGridCardMeta(grid);
             if (!window.Sortable) return;
+            var _isMobileSort = window.innerWidth <= 768;
 
             var _lpHandle = null;
             function _lpStart(handle) {
@@ -7976,14 +7977,15 @@
                 animation: 180,
                 easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
                 draggable: '.gym-card',
-                ghostClass: 'sortable-ghost gym-sortable-ghost',
-                chosenClass: 'sortable-chosen gym-sortable-chosen',
-                dragClass: 'sortable-drag gym-sortable-drag',
-                fallbackClass: 'sortable-fallback gym-sortable-fallback',
+                ghostClass: 'gym-sortable-ghost',
+                chosenClass: 'gym-sortable-chosen',
+                dragClass: 'gym-sortable-drag',
+                fallbackClass: 'gym-sortable-fallback',
                 handle: '.gym-drag-handle',
-                forceFallback: false,
-                fallbackTolerance: 4,
-                delay: (window.innerWidth <= 768 ? 180 : 0),
+                forceFallback: true,
+                fallbackOnBody: true,
+                fallbackTolerance: _isMobileSort ? 0 : 2,
+                delay: (_isMobileSort ? 180 : 0),
                 delayOnTouchOnly: true,
                 touchStartThreshold: 5,
                 onChoose: function(evt) {
