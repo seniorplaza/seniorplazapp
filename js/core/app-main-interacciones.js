@@ -5965,6 +5965,8 @@
                                     btn.style.border = '2px solid #334155';
                                     if (icon) { icon.textContent = 'check'; icon.style.color = '#475569'; icon.style.fontWeight = ''; }
                                 }
+                                var card = btn.closest('.gym-card');
+                                if (card && typeof _gymSetCardLocked === 'function') _gymSetCardLocked(card, shouldBeCompleted);
                             }
                         });
                     }
@@ -6205,6 +6207,7 @@
             if (existingOverlay) existingOverlay.remove();
             var checkBtn = card.querySelector('.gym-check-btn');
             var menuBtn = card.querySelector('button[onclick*="toggleGymCardMenu"]');
+            var dragHandle = card.querySelector('.gym-drag-handle');
             var body = card.querySelector('.gym-card-body');
             if (locked) {
                 card.style.position = 'relative';
@@ -6215,10 +6218,12 @@
                 card.appendChild(overlay);
                 if (checkBtn) { checkBtn.style.position = 'relative'; checkBtn.style.zIndex = '20'; }
                 if (menuBtn) { menuBtn.style.position = 'relative'; menuBtn.style.zIndex = '20'; }
+                if (dragHandle) { dragHandle.style.position = 'relative'; dragHandle.style.zIndex = '20'; }
             } else {
                 if (body) body.style.opacity = '';
                 if (checkBtn) { checkBtn.style.position = ''; checkBtn.style.zIndex = ''; }
                 if (menuBtn) { menuBtn.style.position = ''; menuBtn.style.zIndex = ''; }
+                if (dragHandle) { dragHandle.style.position = ''; dragHandle.style.zIndex = ''; }
             }
         }
         function toggleEjercicioGym(btn) {
@@ -8652,6 +8657,11 @@
                         });
                     }
                     card.dataset.cardioKmInputInit = '1';
+                }
+                // Apply lock state based on check button data-completado
+                var checkBtn = card.querySelector('.gym-check-btn');
+                if (checkBtn && checkBtn.dataset.completado === '1' && typeof _gymSetCardLocked === 'function') {
+                    _gymSetCardLocked(card, true);
                 }
             });
             document.querySelectorAll('.gym-panel-grid').forEach(function(grid) {
