@@ -7938,17 +7938,25 @@
 
         function _initGymCardDrag(card) { /* no-op */ }
 
+        function _syncGymGridCardMeta(grid) {
+            if (!grid) return;
+            var panel = grid.closest('[id^="gym-panel-"]');
+            var panelCategory = panel ? panel.id.replace('gym-panel-', '') : '';
+            Array.from(grid.querySelectorAll(':scope > .gym-card')).forEach(function(card, idx) {
+                if (panelCategory) card.dataset.panel = panelCategory;
+                card.dataset.cardIndex = String(idx);
+            });
+        }
+
         function _initGymSortable(grid) {
             if (!grid) return;
             if (grid._sortable) { grid._sortable.destroy(); grid._sortable = null; }
             if (grid.dataset && grid.dataset.historico === '1') return;
+
+            _syncGymGridCardMeta(grid);
             if (!window.Sortable) return;
 
-            var _gridRect = null, _itemW = 0, _itemH = 0, _rafId = null;
-            var _grabOffsetX = 0, _grabOffsetY = 0;
-            var _cursorX = 0, _cursorY = 0;
             var _lpHandle = null;
-
             function _lpStart(handle) {
                 _lpHandle = handle;
                 handle.style.color = '#eab308';
@@ -7964,94 +7972,42 @@
                 }
             }
 
-            function _clampFallback() {
-                var fb = document.querySelector('.gym-sortable-fallback, .sortable-fallback');
-                if (!fb) return;
-                var targetLeft = _cursorX - _grabOffsetX;
-                var targetTop  = _cursorY - _grabOffsetY;
-                fb.style.position = 'fixed';
-                fb.style.left = targetLeft + 'px';
-                fb.style.top  = targetTop  + 'px';
-                fb.style.margin = '0';
-                fb.style.transform = 'scale(1.04)';
-                _rafId = requestAnimationFrame(_clampFallback);
-            }
-            document.addEventListener('mousemove', function(e) { _cursorX = e.clientX; _cursorY = e.clientY; }, { passive: true, capture: true });
-            document.addEventListener('touchmove', function(e) { if (e.touches[0]) { _cursorX = e.touches[0].clientX; _cursorY = e.touches[0].clientY; } }, { passive: true, capture: true });
-            grid.addEventListener('mousedown', function(e) {
-                var handle = e.target.closest('.gym-drag-handle');
-                if (!handle) return;
-                var card = handle.closest('.gym-card');
-                if (!card) return;
-                var r = card.getBoundingClientRect();
-                _grabOffsetX = e.clientX - r.left;
-                _grabOffsetY = e.clientY - r.top;
-                _lpStart(handle);
-            });
-            grid.addEventListener('mouseup',    function() { _lpEnd(); });
-            grid.addEventListener('mouseleave', function() { _lpEnd(); });
-            grid.addEventListener('touchstart', function(e) {
-                var handle = e.target.closest('.gym-drag-handle');
-                if (!handle) return;
-                var card = handle.closest('.gym-card');
-                if (!card) return;
-                var r = card.getBoundingClientRect();
-                var t = e.touches[0];
-                _grabOffsetX = t.clientX - r.left;
-                _grabOffsetY = t.clientY - r.top;
-                _lpStart(handle);
-            }, { passive: true });
-            grid.addEventListener('touchend',    function() { _lpEnd(); });
-            grid.addEventListener('touchcancel', function() { _lpEnd(); });
-
             grid._sortable = new Sortable(grid, {
                 animation: 180,
                 easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
                 draggable: '.gym-card',
                 ghostClass: 'sortable-ghost gym-sortable-ghost',
                 chosenClass: 'sortable-chosen gym-sortable-chosen',
+                dragClass: 'sortable-drag gym-sortable-drag',
                 fallbackClass: 'sortable-fallback gym-sortable-fallback',
                 handle: '.gym-drag-handle',
-                filter: '.gym-card-menu, .toggleGymCardMenu',
-                preventOnFilter: true,
-                forceFallback: true,
-                fallbackOnBody: true,
-                fallbackTolerance: 0,
-                delay: (window.innerWidth <= 768 ? 220 : 0),
+                forceFallback: false,
+                fallbackTolerance: 4,
+                delay: (window.innerWidth <= 768 ? 180 : 0),
                 delayOnTouchOnly: true,
                 touchStartThreshold: 5,
                 onChoose: function(evt) {
-                    // feedback visual al activarse el long press
                     var handle = evt.item.querySelector('.gym-drag-handle');
-                    if (handle) {
-                        handle.style.color = '#eab308';
-                        handle.style.transform = 'scale(1.25)';
-                    }
+                    if (handle) _lpStart(handle);
                     if (navigator.vibrate) navigator.vibrate(40);
                 },
-                onStart: function(evt) {
+                onUnchoose: function() {
+                    _lpEnd();
+                },
+                onStart: function() {
                     _lpEnd();
                     if (navigator.vibrate) navigator.vibrate([20, 15, 50]);
-                    _gridRect = grid.getBoundingClientRect();
-                    var r = evt.item.getBoundingClientRect();
-                    _itemW = r.width; _itemH = r.height;
-                    requestAnimationFrame(function() {
-                        var fb = document.querySelector('.gym-sortable-fallback, .sortable-fallback');
-                        if (fb) {
-                            fb.style.width = _itemW + 'px';
-                            fb.style.height = _itemH + 'px';
-                        }
-                        _rafId = requestAnimationFrame(_clampFallback);
-                    });
-                },
-                onUnchoose: function(evt) {
-                    _lpEnd();
                 },
                 onEnd: function(evt) {
-                    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
-                    _gridRect = null;
+                    _lpEnd();
+                    _syncGymGridCardMeta(grid);
+                    if (evt && evt.to && evt.to !== grid) _syncGymGridCardMeta(evt.to);
+                    var elInt = document.getElementById('gym-intervalo-label');
+                    var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
+                    var fechaKey = _gymFechaKey(offset);
+                    if (typeof _gymActualizarStatEjercicios === 'function') _gymActualizarStatEjercicios(fechaKey);
                     if (typeof guardarDatos === 'function') guardarDatos();
-                    if (typeof _gymUpdateBolts === 'function') _gymUpdateBolts(evt.to);
+                    if (typeof _gymUpdateBolts === 'function') _gymUpdateBolts(evt && evt.to ? evt.to : grid);
                 }
             });
         }
