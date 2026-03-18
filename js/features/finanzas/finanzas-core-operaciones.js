@@ -3228,6 +3228,14 @@
                 label = d.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
                 label = label.charAt(0).toUpperCase() + label.slice(1);
             }
+            if (window._intervaloCtx === 'gym') {
+                const diffMs = d.getTime() - hoy.getTime();
+                const offset = Math.round(diffMs / 86400000);
+                const el = document.getElementById('gym-intervalo-label');
+                if (el) { el.dataset.filtro = 'dia'; el.dataset.offset = String(offset); el.textContent = label; }
+                if (typeof gymCargarStatsParaIntervalo === 'function') gymCargarStatsParaIntervalo();
+                return;
+            }
             window._opNavDesde = new Date(d); window._opNavDesde.setHours(0,0,0,0);
             window._opNavHasta = new Date(d); window._opNavHasta.setHours(23,59,59,999);
             window._opNavOffset = 0;
@@ -3408,7 +3416,11 @@
         if (!desde && !hasta) return;
         const fmt = v => v ? new Date(v).toLocaleDateString('es-ES', {day:'numeric',month:'short'}) : '?';
         const label = fmt(desde) + ' → ' + fmt(hasta);
-        if (window._intervaloCtx === 'est') {
+        if (window._intervaloCtx === 'gym') {
+            window._gymRangoDesde = desde;
+            window._gymRangoHasta = hasta;
+            if (typeof _setGymFiltroIntervalo === 'function') _setGymFiltroIntervalo('rango', label);
+        } else if (window._intervaloCtx === 'est') {
             document.getElementById('est-fecha-desde').value = desde;
             document.getElementById('est-fecha-hasta').value = hasta;
             setEstFiltroIntervalo('rango', label);

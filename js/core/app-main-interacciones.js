@@ -6345,6 +6345,7 @@
             el.style.opacity = '0.7';
             _gymLongPressTimer = setTimeout(function() {
                 el.style.opacity = '1';
+                window._gymLongPressFired = true;
                 window[fnName](el);
             }, 600);
         }
@@ -6526,6 +6527,42 @@
             gymRecalcularCalorias();
             gymGuardarSesionHoy();
         }
+        function gymEditarReposo() {
+            if (window._gymLongPressFired) { window._gymLongPressFired = false; return; }
+            if (_gymReposoRunning()) return;
+            var modal = document.getElementById('modal-gym-reposo');
+            var inp = document.getElementById('modal-gym-reposo-inp');
+            var rEl = document.getElementById('gym-stat-reposo');
+            var secs = parseInt(rEl ? rEl.dataset.totalSecs || 0 : 0);
+            var mm = Math.floor(secs / 60), ss = secs % 60;
+            if (inp) inp.value = String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+            if (modal) { modal.style.display = 'flex'; setTimeout(function(){ if (inp) { inp.focus(); inp.select(); } }, 100); }
+        }
+        function gymConfirmarReposo() {
+            var inp = document.getElementById('modal-gym-reposo-inp');
+            if (!inp) return;
+            var val = inp.value.trim();
+            var totalSecs = 0;
+            if (val.indexOf(':') >= 0) {
+                var parts = val.split(':');
+                totalSecs = (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+            } else {
+                totalSecs = parseInt(val) || 0;
+            }
+            var rEl = document.getElementById('gym-stat-reposo');
+            if (rEl) { rEl.dataset.totalSecs = totalSecs; rEl.textContent = _gymSecsToLabel(totalSecs); }
+            document.getElementById('modal-gym-reposo').style.display = 'none';
+            var elInt = document.getElementById('gym-intervalo-label');
+            var filtro = elInt ? (elInt.dataset.filtro || 'dia') : 'dia';
+            var offset = parseInt(elInt ? (elInt.dataset.offset || 0) : 0);
+            if (filtro === 'dia' && offset === 0) {
+                if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+            } else if (filtro === 'dia') {
+                var fechaKey = _gymFechaKey(offset);
+                var sesiones = window._gymSesionesHistorial || {};
+                if (sesiones[fechaKey]) { sesiones[fechaKey].reposo = totalSecs; if (typeof guardarDatos === 'function') guardarDatos(); }
+            }
+        }
         function gymAbrirModalPeso() {
             var modal = document.getElementById('modal-gym-peso');
             var inp = document.getElementById('modal-gym-peso-inp');
@@ -6581,17 +6618,33 @@
                 if (running) {
                     b.style.background = 'rgba(168,85,247,0.3)';
                     b.style.borderColor = 'rgba(168,85,247,0.8)';
+                    b.style.opacity = '';
+                    b.style.pointerEvents = '';
                     if (ic) { ic.style.color = '#e9d5ff'; ic.textContent = 'pause'; }
                 } else {
                     b.dataset.running = '0';
                     b.style.background = 'rgba(168,85,247,0.08)';
                     b.style.borderColor = 'rgba(168,85,247,0.4)';
+                    b.style.opacity = '';
+                    b.style.pointerEvents = '';
                     if (ic) { ic.style.color = '#c084fc'; ic.textContent = 'stop_circle'; }
                 }
             });
         }
+        function _gymReposoSetBloqueado(bloqueado) {
+            document.querySelectorAll('.gym-reposo-btn').forEach(function(b) {
+                b.style.opacity = bloqueado ? '0.3' : '';
+                b.style.pointerEvents = bloqueado ? 'none' : '';
+            });
+        }
 
+        function _gymReposoBloqueado() {
+            var el = document.getElementById('gym-intervalo-label');
+            if (!el) return false;
+            return !(el.dataset.filtro === 'dia' && (parseInt(el.dataset.offset) || 0) === 0);
+        }
         function toggleReposoGym(btn) {
+            if (_gymReposoBloqueado()) return;
             var icon = btn.querySelector('.material-symbols-rounded');
             if (window._gymReposoState.running) {
                 // Pararlo todo (ya sea la misma card u otra)
@@ -6896,6 +6949,8 @@
             var sesiones = window._gymSesionesHistorial || {};
             var esHoy = (filtro === 'dia' && offset === 0);
             var _esMultiple = (filtro !== 'dia');
+            // Lock/unlock reposo buttons based on whether we are viewing today
+            if (typeof _gymReposoSetBloqueado === 'function') _gymReposoSetBloqueado(!esHoy);
             var _wrapper = document.getElementById('gym-controles-wrapper');
             var _histCont = document.getElementById('gym-historico-container');
             var _paneles = ['pecho','espalda','brazo','pierna','cardio'];
@@ -6991,7 +7046,13 @@
             } else if (filtro === 'todo') {
                 fechas = Object.keys(sesiones).sort();
             } else if (filtro === 'rango') {
-                fechas = Object.keys(sesiones).sort();
+                var _rDesde = window._gymRangoDesde || '';
+                var _rHasta = window._gymRangoHasta || '';
+                fechas = Object.keys(sesiones).filter(function(f) {
+                    if (_rDesde && f < _rDesde) return false;
+                    if (_rHasta && f > _rHasta) return false;
+                    return true;
+                }).sort();
             }
             var totTiempo = 0, totReposo = 0, totHid = 0, totKcal = 0, totEj = 0, totCardio = 0;
             fechas.forEach(function(f) {
@@ -7060,14 +7121,43 @@
                                  + '</span>';
                         }).join('');
                         var todosEj = [];
-                        _paneles.forEach(function(p) { if (s.cards && s.cards[p]) todosEj = todosEj.concat(s.cards[p]); });
+                        _paneles.forEach(function(p) { if (s.cards && s.cards[p]) todosEj = todosEj.concat(s.cards[p].map(function(e) { return Object.assign({}, e, { _panel: p }); })); });
                         var ejHtml = todosEj.map(function(ej) {
                             var label = ej.nombre || '—';
-                            var detalle = (ej.series && ej.reps) ? ' <span style="color:#475569;font-size:10px;">'+ej.series+'×'+ej.reps+'</span>' : '';
-                            var catColor = {'PECHO':'#eab308','ESPALDA':'#60a5fa','BRAZO':'#a78bfa','PIERNA':'#10b981','CARDIO':'#f97316'}[ej.badge] || '#64748b';
+                            var tieneMetricasCardio = !!(ej.cardioSeriesLabel || ej.cardioRepsLabel || ej.cardioRirLabel || ej.cardioRpeLabel);
+                            var esCardio = ej.badge === 'CARDIO' || tieneMetricasCardio || ej._panel === 'cardio';
+                            var detalleHtml = '';
+                            if (esCardio) {
+                                // Show up to 4 cardio metric labels with values
+                                var metPairs = [
+                                    { lbl: ej.cardioSeriesLabel, val: ej.series },
+                                    { lbl: ej.cardioRepsLabel,   val: ej.reps },
+                                    { lbl: ej.cardioRirLabel,    val: ej.rir },
+                                    { lbl: ej.cardioRpeLabel,    val: ej.rpe }
+                                ].filter(function(p) { return p.lbl && p.val && p.val !== '0'; });
+                                if (metPairs.length > 0) {
+                                    detalleHtml = ' <span style="color:#64748b;font-size:10px;display:inline-flex;flex-wrap:wrap;gap:3px;">'
+                                        + metPairs.map(function(p) {
+                                            return '<span style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:5px;padding:1px 5px;color:#fb923c;font-size:9px;font-weight:700;">'
+                                                 + p.lbl + ' <span style="color:#94a3b8;font-weight:600;">' + p.val + '</span></span>';
+                                          }).join('')
+                                        + '</span>';
+                                }
+                            } else {
+                                if (ej.series && ej.reps) {
+                                    detalleHtml = ' <span style="color:#475569;font-size:10px;">'
+                                        + '<span style="color:#64748b;font-size:9px;font-weight:700;">S</span>' + ej.series
+                                        + '<span style="color:#334155;font-size:9px;font-weight:600;margin:0 2px;">×</span>'
+                                        + '<span style="color:#64748b;font-size:9px;font-weight:700;">R</span>' + ej.reps
+                                        + '</span>';
+                                }
+                            }
+                            var maqHtml = ej.badgeMaquina ? '<span style="font-size:9px;font-weight:700;color:#64748b;border:1px solid rgba(71,85,105,0.3);border-radius:4px;padding:0 4px;margin-left:2px;">'+ej.badgeMaquina+'</span>' : '';
                             return '<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:4px 10px;">'
-                                 + (ej.badge ? '<span style="font-size:9px;font-weight:800;color:'+catColor+';text-transform:uppercase;letter-spacing:0.05em;">'+ej.badge+'</span><span style="color:#1e293b;font-size:9px;">·</span>' : '')
-                                 + '<span style="color:#cbd5e1;font-size:12px;font-weight:600;">'+label+'</span>'+detalle
+                                 + (ej.badge ? '<span style="font-size:9px;font-weight:800;color:#eab308;text-transform:uppercase;letter-spacing:0.05em;">'+ej.badge+'</span><span style="color:#1e293b;font-size:9px;">·</span>' : '')
+                                 + '<span style="color:#cbd5e1;font-size:12px;font-weight:600;">'+label+'</span>'
+                                 + maqHtml
+                                 + detalleHtml
                                  + '</span>';
                         }).join('');
 

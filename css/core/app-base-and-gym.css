@@ -4293,7 +4293,8 @@
         body.mobile-view select {
             font-size: 14px !important;
         }
-        body.mobile-view #modal-gym-peso-inp {
+        body.mobile-view #modal-gym-peso-inp,
+        body.mobile-view #modal-gym-reposo-inp {
             font-size: 28px !important;
         }
         

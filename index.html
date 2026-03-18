@@ -1898,7 +1898,7 @@
                             <button onclick="event.stopPropagation();gymAjustarAgua(-0.05)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" style="width:32px;height:32px;border-radius:9px;border:1px solid rgba(6,182,212,0.3);background:rgba(6,182,212,0.1);color:#22d3ee;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><span class="material-symbols-rounded" style="font-size:20px;">remove</span></button>
                         </div>
                     </div>
-                    <div ontouchstart="gymLongPressStart(this,'gymResetReposo','rgba(168,85,247,0.5)')" ontouchend="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" ontouchcancel="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" onmousedown="gymLongPressStart(this,'gymResetReposo','rgba(168,85,247,0.5)')" onmouseup="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" onmouseleave="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(139,92,246,0.12));border:1px solid rgba(168,85,247,0.25);border-radius:18px;padding:16px 18px;cursor:pointer;transition:border-color 0.2s;user-select:none;">
+                    <div onclick="gymEditarReposo()" ontouchstart="gymLongPressStart(this,'gymResetReposo','rgba(168,85,247,0.5)')" ontouchend="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" ontouchcancel="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" onmousedown="gymLongPressStart(this,'gymResetReposo','rgba(168,85,247,0.5)')" onmouseup="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" onmouseleave="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(139,92,246,0.12));border:1px solid rgba(168,85,247,0.25);border-radius:18px;padding:16px 18px;cursor:pointer;transition:border-color 0.2s;user-select:none;">
                         <div style="color:#d8b4fe;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Reposo</div>
                         <div id="gym-stat-reposo" data-total-secs="0" style="color:#c084fc;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">00:00</div>
                         <div style="color:#64748b;font-size:10px;font-weight:600;margin-top:2px;">entre series</div>
@@ -4005,6 +4005,24 @@
     <!-- ══════════════════════════════════════════════════════
          MODAL: INTERVALO DE TIEMPO
          ══════════════════════════════════════════════════════ -->
+    <!-- MODAL: EDITAR REPOSO GYM -->
+    <div id="modal-gym-reposo" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);z-index:10200;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
+        <div onclick="event.stopPropagation()" style="background:#0f172a;border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:28px 24px;width:280px;display:flex;flex-direction:column;gap:16px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span class="material-symbols-rounded" style="font-size:22px;color:#a855f7;">pause_circle</span>
+                <span style="color:#f1f5f9;font-size:15px;font-weight:800;">Tiempo de reposo</span>
+            </div>
+            <div style="color:#64748b;font-size:12px;line-height:1.5;">Introduce el tiempo en formato mm:ss</div>
+            <div style="display:flex;align-items:center;justify-content:center;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:12px;padding:10px 14px;">
+                <input type="text" inputmode="numeric" id="modal-gym-reposo-inp" placeholder="00:00" onfocus="this.select()" onkeydown="if(event.key==='Enter')gymConfirmarReposo()" style="background:transparent;border:none;color:#c084fc;font-size:28px !important;font-weight:900;font-family:Manrope,sans-serif;outline:none;text-align:center;width:100%;min-width:0;box-sizing:border-box;">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button onclick="document.getElementById('modal-gym-reposo').style.display='none'" style="padding:13px;border-radius:13px;border:1px solid rgba(71,85,105,0.4);background:transparent;color:#94a3b8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                <button onclick="gymConfirmarReposo()" style="padding:13px;border-radius:13px;border:1px solid rgba(168,85,247,0.6);background:rgba(168,85,247,0.15);color:#c084fc;font-size:14px;font-weight:700;cursor:pointer;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalIntervaloTiempo" onclick="if(event.target===this)cerrarModalIntervalo()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:10100;align-items:center;justify-content:center;padding:16px;">
         <div onclick="event.stopPropagation()" style="background:#1e2535;border-radius:24px;width:100%;max-width:420px;padding:28px 20px 24px;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
             <div style="text-align:center;margin-bottom:24px;">
