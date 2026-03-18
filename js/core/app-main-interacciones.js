@@ -6048,21 +6048,27 @@
             ));
             if (currentIdx < 0) currentIdx = 0;
 
+            var esCardio = typeof _gymEsCardioCard === 'function' && _gymEsCardioCard(kgInp.closest('.gym-card'));
+            var _dialColor    = esCardio ? '#fb923c' : '#eab308';
+            var _dialColorRgb = esCardio ? '249,115,22' : '234,179,8';
+            var _dialUnit     = esCardio ? 'km' : 'kg';
+            var _dialTitle    = esCardio ? 'Distancia' : 'Peso';
+
             var overlay = document.createElement('div');
             overlay.id = '_gymKgDialOverlay';
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;';
 
             overlay.innerHTML = `
-                <div id="_gymKgDialModal" style="background:#0f172a;border:1px solid rgba(234,179,8,0.3);border-radius:28px;width:220px;padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:16px;box-shadow:0 32px 80px rgba(0,0,0,0.7);touch-action:none;">
+                <div id="_gymKgDialModal" style="background:#0f172a;border:1px solid rgba(${_dialColorRgb},0.3);border-radius:28px;width:220px;padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:16px;box-shadow:0 32px 80px rgba(0,0,0,0.7);touch-action:none;">
                     <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-                        <span style="color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">Peso</span>
+                        <span style="color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">${_dialTitle}</span>
                         <button id="_gymKgDialClose" style="background:none;border:none;color:#64748b;cursor:pointer;padding:4px;line-height:1;"><span class="material-symbols-rounded" style="font-size:20px;">close</span></button>
                     </div>
 
                     <!-- Valor actual grande -->
                     <div style="display:flex;align-items:baseline;gap:6px;">
-                        <span id="_gymKgDialVal" style="color:#eab308;font-size:64px;font-weight:900;font-family:Manrope,sans-serif;line-height:1;min-width:110px;text-align:center;">${currentVal % 1 === 0 ? currentVal : currentVal.toFixed(1)}</span>
-                        <span style="color:#94a3b8;font-size:18px;font-weight:700;">kg</span>
+                        <span id="_gymKgDialVal" style="color:${_dialColor};font-size:64px;font-weight:900;font-family:Manrope,sans-serif;line-height:1;min-width:110px;text-align:center;">${currentVal % 1 === 0 ? currentVal : currentVal.toFixed(1)}</span>
+                        <span style="color:#94a3b8;font-size:18px;font-weight:700;">${_dialUnit}</span>
                     </div>
 
                     <!-- Dial rueda -->
@@ -6071,7 +6077,7 @@
                         <div style="position:absolute;top:0;left:0;right:0;height:70px;background:linear-gradient(to bottom,rgba(15,23,42,0.95),transparent);z-index:2;pointer-events:none;"></div>
                         <div style="position:absolute;bottom:0;left:0;right:0;height:70px;background:linear-gradient(to top,rgba(15,23,42,0.95),transparent);z-index:2;pointer-events:none;"></div>
                         <!-- Indicador central -->
-                        <div style="position:absolute;top:50%;left:12px;right:12px;transform:translateY(-50%);height:52px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:12px;z-index:1;pointer-events:none;"></div>
+                        <div style="position:absolute;top:50%;left:12px;right:12px;transform:translateY(-50%);height:52px;background:rgba(${_dialColorRgb},0.1);border:1px solid rgba(${_dialColorRgb},0.35);border-radius:12px;z-index:1;pointer-events:none;"></div>
                         <!-- Lista scrollable -->
                         <div id="_gymKgDialList" style="position:absolute;inset:0;overflow:hidden;touch-action:none;">
                             <div id="_gymKgDialTrack" style="display:flex;flex-direction:column;align-items:center;will-change:transform;"></div>
@@ -6079,7 +6085,7 @@
                     </div>
 
                     <!-- Botón confirmar -->
-                    <button id="_gymKgDialOk" style="width:100%;padding:14px;background:linear-gradient(135deg,rgba(234,179,8,0.25),rgba(234,179,8,0.15));border:1px solid rgba(234,179,8,0.5);border-radius:16px;color:#eab308;font-size:15px;font-weight:800;font-family:Manrope,sans-serif;cursor:pointer;letter-spacing:0.03em;">Confirmar</button>
+                    <button id="_gymKgDialOk" style="width:100%;padding:14px;background:linear-gradient(135deg,rgba(${_dialColorRgb},0.25),rgba(${_dialColorRgb},0.15));border:1px solid rgba(${_dialColorRgb},0.5);border-radius:16px;color:${_dialColor};font-size:15px;font-weight:800;font-family:Manrope,sans-serif;cursor:pointer;letter-spacing:0.03em;">Confirmar</button>
                 </div>`;
 
             document.body.appendChild(overlay);
@@ -6114,7 +6120,7 @@
                     var itemIdx = ci - 1; // offset por padding
                     if (itemIdx < 0 || itemIdx >= values.length) return;
                     var dist = Math.abs(itemIdx - idx);
-                    if (dist === 0) { child.style.color = '#eab308'; child.style.fontSize = '28px'; }
+                    if (dist === 0) { child.style.color = _dialColor; child.style.fontSize = '28px'; }
                     else if (dist === 1) { child.style.color = '#94a3b8'; child.style.fontSize = '22px'; }
                     else { child.style.color = '#334155'; child.style.fontSize = '18px'; }
                 });
@@ -6358,9 +6364,17 @@
         function gymResetCardio() {
             var el = document.getElementById('gym-stat-cardio-km');
             if (!el) return;
-            el.dataset.totalKm = 0;
+            var panelCardio = document.getElementById('gym-panel-cardio');
+            if (panelCardio) {
+                panelCardio.querySelectorAll('.gym-card .gym-card-kg').forEach(function(inp) {
+                    inp.value = '0';
+                });
+            }
+            el.dataset.totalKm = '0.00';
             el.textContent = '0.0';
             el.style.color = '#fb923c';
+            var ctx = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
+            if (ctx && ctx.esDia && typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(ctx.fechaKey);
             gymGuardarSesionHoy();
         }
         function gymResetHidratacion() {
@@ -6562,6 +6576,51 @@
             });
             return total;
         }
+        function _gymNum(v) {
+            if (typeof v === 'string') v = v.replace(',', '.');
+            var n = parseFloat(v);
+            return isNaN(n) ? 0 : n;
+        }
+        function _gymCalcularKmCardioDesdeCards(cardsPorPanel) {
+            var total = 0;
+            var lista = cardsPorPanel && cardsPorPanel.cardio;
+            if (!Array.isArray(lista)) return 0;
+            lista.forEach(function(card) {
+                if (!card) return;
+                // En cardio, el campo de la derecha (gym-card-kg) representa KM.
+                total += _gymNum(card.kg);
+            });
+            return Math.max(0, Math.round(total * 100) / 100);
+        }
+        function _gymActualizarStatCardioKm(fechaKey) {
+            var el = document.getElementById('gym-stat-cardio-km');
+            if (!el) return 0;
+            var sesiones = window._gymSesionesHistorial || {};
+            var key = fechaKey || _gymFechaKey(0);
+            var s = sesiones[key] || {};
+            var totalKm = 0;
+
+            if (s.cards) {
+                totalKm = _gymCalcularKmCardioDesdeCards(s.cards);
+            } else {
+                totalKm = _gymNum(s.cardio || 0);
+            }
+
+            if (totalKm === 0) {
+                // Fallback visual en vivo antes de persistencia completa.
+                var panelCardio = document.getElementById('gym-panel-cardio');
+                if (panelCardio) {
+                    panelCardio.querySelectorAll('.gym-card .gym-card-kg').forEach(function(inp) {
+                        totalKm += _gymNum(inp.value);
+                    });
+                    totalKm = Math.max(0, Math.round(totalKm * 100) / 100);
+                }
+            }
+
+            el.dataset.totalKm = totalKm.toFixed(2);
+            el.textContent = totalKm.toFixed(1);
+            return totalKm;
+        }
         function _gymActualizarStatEjercicios(fechaKey) {
             var el = document.getElementById('gym-stat-ejercicios');
             if (!el) return 0;
@@ -6602,16 +6661,19 @@
             });
             var prev = sesiones[fechaKey] || {};
             var ejerciciosTotalesDia = _gymContarCompletadosDesdeCards(cards);
+            var cardioKmDia = _gymCalcularKmCardioDesdeCards(cards);
             sesiones[fechaKey] = {
                 tiempo:      parseInt(document.getElementById('gym-stat-tiempo')?.dataset.totalSecs || prev.tiempo || 0),
                 reposo:      parseInt(document.getElementById('gym-stat-reposo')?.dataset.totalSecs || prev.reposo || 0),
                 hidratacion: parseFloat(document.getElementById('gym-stat-hidratacion')?.dataset.litros || prev.hidratacion || 0),
+                cardio:      cardioKmDia,
                 calorias:    document.getElementById('gym-stat-calorias')?.textContent || prev.calorias || '—',
                 ejercicios:  ejerciciosTotalesDia,
                 peso:        parseFloat(document.getElementById('gym-peso-usuario')?.value || prev.peso || 0),
                 cards:       cards
             };
             window._gymSesionesHistorial = sesiones;
+            if (typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(fechaKey);
             if (typeof guardarDatos === 'function') guardarDatos();
         }
         function gymGuardarSesionHoy() {
@@ -6650,16 +6712,19 @@
                 });
             });
             var ejerciciosTotalesHoy = _gymContarCompletadosDesdeCards(cards);
+            var cardioKmHoy = _gymCalcularKmCardioDesdeCards(cards);
             sesiones[fecha] = {
                 tiempo:     parseInt(document.getElementById('gym-stat-tiempo')?.dataset.totalSecs || 0),
                 reposo:     parseInt(document.getElementById('gym-stat-reposo')?.dataset.totalSecs || 0),
                 hidratacion:parseFloat(document.getElementById('gym-stat-hidratacion')?.dataset.litros || 0),
+                cardio:     cardioKmHoy,
                 calorias:   document.getElementById('gym-stat-calorias')?.textContent || '—',
                 ejercicios: ejerciciosTotalesHoy,
                 peso:       parseFloat(document.getElementById('gym-peso-usuario')?.value || 0),
                 cards:      cards
             };
             window._gymSesionesHistorial = sesiones;
+            if (typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(fecha);
             if (typeof guardarDatos === 'function') guardarDatos();
         }
         function _gymRenderCards(panel, cards, readonly) {
@@ -6759,6 +6824,7 @@
                         var eEl2 = document.getElementById('gym-stat-ejercicios');
                         if (eEl2) eEl2.textContent = _gymContarCompletadosDesdeCards((sHoy && sHoy.cards) || {});
                     }
+                    _gymActualizarStatCardioKm(_gymFechaKey(0));
                     return;
                 } else {
                     var sDia = sesiones[fechaKey] || {};
@@ -6772,6 +6838,7 @@
                     if (cEl3) cEl3.textContent = sDia.calorias || '—';
                     var eEl3 = document.getElementById('gym-stat-ejercicios');
                     if (eEl3) eEl3.textContent = _gymContarCompletadosDesdeCards((sDia && sDia.cards) || {});
+                    _gymActualizarStatCardioKm(fechaKey);
                     return;
                 }
             }
@@ -6805,7 +6872,8 @@
                 totTiempo  += (s.tiempo      || 0);
                 totReposo  += (s.reposo      || 0);
                 totHid     += parseFloat(s.hidratacion || 0);
-                totCardio  += parseFloat(s.cardio      || 0);
+                var kmDia = s.cards ? _gymCalcularKmCardioDesdeCards(s.cards) : parseFloat(s.cardio || 0);
+                totCardio  += kmDia;
                 if (s.calorias && s.calorias !== '—') totKcal += parseInt(s.calorias) || 0;
                 var ejDia = s.cards ? _gymContarCompletadosDesdeCards(s.cards) : (s.ejercicios || 0);
                 totEj      += ejDia;
@@ -6820,8 +6888,11 @@
             if (cEl) cEl.textContent = totKcal > 0 ? totKcal : '—';
             var eEl = document.getElementById('gym-stat-ejercicios');
             if (eEl) eEl.textContent = totEj > 0 ? totEj : '0';
-            var cdEl = document.getElementById('gym-stat-cardio');
-            if (cdEl) cdEl.textContent = totCardio > 0 ? totCardio.toFixed(1) : '0.0';
+            var cdEl = document.getElementById('gym-stat-cardio-km');
+            if (cdEl) {
+                cdEl.dataset.totalKm = totCardio.toFixed(2);
+                cdEl.textContent = totCardio > 0 ? totCardio.toFixed(1) : '0.0';
+            }
             if (_esMultiple && _histCont) {
                 var _DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
                 var _MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -7306,7 +7377,8 @@
                 if (!_sesC[_fechaC].cards) _sesC[_fechaC].cards = {pecho:[],espalda:[],brazo:[],pierna:[],cardio:[]};
                 var _panelNomC = window._vistaGymActiva || 'pecho';
                 if (!_sesC[_fechaC].cards[_panelNomC]) _sesC[_fechaC].cards[_panelNomC] = [];
-                var _nuevoEjC = { nombre:nombre, desc:desc, badge:badge, badgeMaquina:badgeMaquina, series:series, reps:reps, kg:kg, rir:'', rpe:'', imgSrc:'', cardTimeSecs:0, completado:false };
+                var _kgHist = (_panelNomC === 'cardio') ? ((km > 0 ? km : (parseFloat(kg || 0) || 0))) : kg;
+                var _nuevoEjC = { nombre:nombre, desc:desc, badge:badge, badgeMaquina:badgeMaquina, series:series, reps:reps, kg:_kgHist, rir:'', rpe:'', imgSrc:'', cardTimeSecs:0, completado:false };
                 _sesC[_fechaC].cards[_panelNomC].push(_nuevoEjC);
                 window._gymSesionesHistorial = _sesC;
                 if (_overlayNuevoEjercicio) { _overlayNuevoEjercicio.remove(); _overlayNuevoEjercicio = null; }
@@ -7334,25 +7406,15 @@
             card.style.cssText = 'background:rgba(15,23,42,0.7);border:2px solid rgba(234,179,8,0.2);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;opacity:0;transform:scale(0.95);transition:opacity 0.3s,transform 0.3s;';
             card.innerHTML = _gymCardInnerHTML(nombre, desc, badge, series, reps,
                 '<span class="material-symbols-rounded" style="font-size:38px;color:#334155;">exercise</span>', kg, badgeMaquina);
+            if (panelActivo && panelActivo.id) card.dataset.panel = panelActivo.id.replace('gym-panel-', '');
             if (esCardio && km > 0) {
-                card.dataset.cardioKm = km;
-                var header = card.querySelector('[style*="justify-content:space-between"]');
-                if (header) {
-                    var kmBadge = document.createElement('div');
-                    kmBadge.style.cssText = 'display:inline-flex;align-items:center;gap:3px;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);border-radius:7px;padding:2px 7px;flex-shrink:0;';
-                    kmBadge.innerHTML = '<span class="material-symbols-rounded" style="font-size:11px;color:#fb923c;">directions_run</span><span style="color:#fb923c;font-size:10px;font-weight:800;font-family:Manrope,sans-serif;">' + km.toFixed(1) + ' km</span>';
-                    header.insertBefore(kmBadge, header.firstChild);
-                }
-                var kmEl = document.getElementById('gym-stat-cardio-km');
-                if (kmEl) {
-                    var cur = Math.round(parseFloat(kmEl.dataset.totalKm || 0) * 100);
-                    var next = (cur + Math.round(km * 100)) / 100;
-                    kmEl.dataset.totalKm = next;
-                    kmEl.textContent = next.toFixed(1);
-                }
+                var kmInpAdd = card.querySelector('.gym-card-kg');
+                if (kmInpAdd) kmInpAdd.value = String(parseFloat(km.toFixed(1)));
             }
+            if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(card);
             _initGymCardDrag(card);
             grid.appendChild(card);
+            if (typeof _syncGymGridCardMeta === 'function') _syncGymGridCardMeta(grid);
             if (typeof _gymUpdateBolts === 'function') _gymUpdateBolts(grid);
             if (typeof _initGymSwipeCells === 'function') _initGymSwipeCells(card);
             if (window.innerWidth < 768) {
@@ -7363,6 +7425,10 @@
                 });
             }
             requestAnimationFrame(function(){ card.style.opacity='1'; card.style.transform='scale(1)'; });
+            var _ctxAdd = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
+            if (_ctxAdd && _ctxAdd.esDia && typeof _gymActualizarStatCardioKm === 'function') {
+                _gymActualizarStatCardioKm(_ctxAdd.fechaKey);
+            }
             if (_overlayNuevoEjercicio) { _overlayNuevoEjercicio.remove(); _overlayNuevoEjercicio = null; }
             else { document.getElementById('_overlayNuevoEjercicio')?.remove(); }
             if (typeof guardarDatos === 'function') setTimeout(guardarDatos, 100);
@@ -7954,7 +8020,12 @@
     }
     if (newTimerDisplay) newTimerDisplay.textContent = savedTimerDisplay;
 
+    if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(card);
     if (typeof _initGymCardDrag === 'function') _initGymCardDrag(card);
+    var _ctxEdit = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
+    if (_ctxEdit && _ctxEdit.esDia && typeof _gymActualizarStatCardioKm === 'function') {
+        _gymActualizarStatCardioKm(_ctxEdit.fechaKey);
+    }
     if (typeof initTooltips === 'function') initTooltips();
     overlay.remove();
     if (typeof guardarDatos === 'function') guardarDatos();
@@ -7963,6 +8034,90 @@
 
         function _initGymCardDrag(card) { /* no-op */ }
 
+        function _gymEsCardioCard(card) {
+            if (!card) return false;
+            var panel = card.dataset.panel || '';
+            if (!panel) {
+                var parent = card.closest('[id^="gym-panel-"]');
+                panel = parent ? parent.id.replace('gym-panel-', '') : '';
+            }
+            return panel === 'cardio';
+        }
+
+        function _gymAplicarModoCardioEnCard(card) {
+            if (!card) return;
+            var isCardio = _gymEsCardioCard(card);
+
+            var inpSeries = card.querySelector('.gym-card-series');
+            var inpReps = card.querySelector('.gym-card-reps');
+            var inpRir = card.querySelector('.gym-card-rir');
+            var inpRpe = card.querySelector('.gym-card-rpe');
+            var inpKg = card.querySelector('.gym-card-kg');
+
+            var lblSeries = inpSeries ? inpSeries.closest('.gym-stat-cell')?.querySelector('.gym-stat-lbl') : null;
+            var lblReps = inpReps ? inpReps.closest('.gym-stat-cell')?.querySelector('.gym-stat-lbl') : null;
+            var cellRir = inpRir ? inpRir.closest('.gym-stat-cell') : null;
+            var cellRpe = inpRpe ? inpRpe.closest('.gym-stat-cell') : null;
+            var lblRir = cellRir ? cellRir.querySelector('div:first-child > span:not(.material-symbols-rounded)') : null;
+            var lblRpe = cellRpe ? cellRpe.querySelector('div:first-child > span:not(.material-symbols-rounded)') : null;
+            var tipRir = cellRir ? cellRir.querySelector('.tooltip-container') : null;
+            var tipRpe = cellRpe ? cellRpe.querySelector('.tooltip-container') : null;
+            var lblKg = inpKg ? inpKg.closest('div')?.querySelector('.gym-stat-lbl') : null;
+
+            if (lblSeries) lblSeries.textContent = isCardio ? 'POT MED' : 'Series';
+            if (lblReps) lblReps.textContent = isCardio ? 'CAD MED' : 'Reps';
+            if (lblRir) lblRir.textContent = isCardio ? 'FC MED' : 'RIR';
+            if (lblRpe) lblRpe.textContent = isCardio ? 'FC MAX' : 'RPE';
+            if (lblKg) lblKg.textContent = isCardio ? 'KM' : 'KG';
+
+            [lblSeries, lblReps, lblRir, lblRpe].forEach(function(lbl) {
+                if (!lbl) return;
+                if (isCardio) {
+                    lbl.style.whiteSpace = 'normal';
+                    lbl.style.textAlign = 'center';
+                    lbl.style.lineHeight = '1.1';
+                    lbl.style.fontSize = '8px';
+                    lbl.style.letterSpacing = '0.03em';
+                } else {
+                    lbl.style.whiteSpace = '';
+                    lbl.style.textAlign = '';
+                    lbl.style.lineHeight = '';
+                    lbl.style.fontSize = '9px';
+                    lbl.style.letterSpacing = '';
+                }
+            });
+
+            if (tipRir) tipRir.style.display = isCardio ? 'none' : '';
+            if (tipRpe) tipRpe.style.display = isCardio ? 'none' : '';
+
+            if (inpSeries) {
+                inpSeries.min = isCardio ? '0' : '1';
+                inpSeries.max = isCardio ? '3000' : '99';
+            }
+            if (inpReps) {
+                inpReps.min = isCardio ? '0' : '1';
+                inpReps.max = isCardio ? '250' : '999';
+            }
+            if (inpRir) {
+                inpRir.min = '0';
+                inpRir.max = isCardio ? '250' : '10';
+            }
+            if (inpRpe) {
+                inpRpe.min = isCardio ? '0' : '1';
+                inpRpe.max = isCardio ? '250' : '10';
+            }
+            if (inpKg) {
+                inpKg.min = '0';
+                inpKg.step = isCardio ? '0.1' : '1';
+                inpKg.style.color = isCardio ? '#fb923c' : '#eab308';
+            }
+            if (inpKg && inpKg.parentElement) {
+                inpKg.parentElement.style.borderColor = isCardio ? 'rgba(249,115,22,0.4)' : 'rgba(234,179,8,0.4)';
+            }
+
+            card.dataset.cardioMode = isCardio ? '1' : '0';
+        }
+
         function _syncGymGridCardMeta(grid) {
             if (!grid) return;
             var panel = grid.closest('[id^="gym-panel-"]');
@@ -7970,6 +8125,7 @@
             Array.from(grid.querySelectorAll(':scope > .gym-card')).forEach(function(card, idx) {
                 if (panelCategory) card.dataset.panel = panelCategory;
                 card.dataset.cardIndex = String(idx);
+                _gymAplicarModoCardioEnCard(card);
             });
         }
 
@@ -8062,6 +8218,7 @@
                     var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
                     var fechaKey = _gymFechaKey(offset);
                     if (typeof _gymActualizarStatEjercicios === 'function') _gymActualizarStatEjercicios(fechaKey);
+                    if (typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(fechaKey);
                     if (typeof guardarDatos === 'function') guardarDatos();
                     if (typeof _gymUpdateBolts === 'function') {
                         if (evt && evt.from && evt.from !== evt.to) _gymUpdateBolts(evt.from);
@@ -8121,6 +8278,7 @@
         }
         function _initAllGymCards() {
             document.querySelectorAll('.gym-card').forEach(function(card) {
+                if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(card);
                 if (!card.dataset.dragInit) {
                     card.dataset.dragInit = '1';
                     card.removeAttribute('draggable');
@@ -8130,6 +8288,19 @@
                     _initGymSwipeCells(card); // también llama _initGymTimerBadge
                 } else {
                     _initGymTimerBadge(card); // por si acaso ya tenía swipeInit
+                }
+                if (!card.dataset.cardioKmInputInit) {
+                    var kmInp = card.querySelector('.gym-card-kg');
+                    if (kmInp) {
+                        kmInp.addEventListener('input', function() {
+                            if (!_gymEsCardioCard(card)) return;
+                            var ctx = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
+                            if (!ctx || !ctx.esDia) return;
+                            if (typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(ctx.fechaKey);
+                            if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+                        });
+                    }
+                    card.dataset.cardioKmInputInit = '1';
                 }
             });
             document.querySelectorAll('.gym-panel-grid').forEach(function(grid) {
