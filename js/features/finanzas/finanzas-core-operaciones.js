@@ -1031,7 +1031,7 @@
             <div style="display:flex;gap:20px;margin-bottom:24px;align-items:center;flex-wrap:wrap;">
                 <div style="flex-shrink:0;position:relative;width:180px;height:180px;">
                     <svg width="180" height="180" viewBox="0 0 180 180">${donutSegments}</svg>
-                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                         <span style="color:#64748b;font-size:11px;font-weight:600;">ACTIVOS</span>
                         <span style="color:#f1f5f9;font-size:20px;font-weight:800;">${datos.length}</span>
                     </div>
@@ -1151,7 +1151,7 @@
             <div style="display:flex;gap:20px;margin-bottom:24px;align-items:center;flex-wrap:wrap;">
                 <div style="flex-shrink:0;position:relative;width:180px;height:180px;">
                     <svg width="180" height="180" viewBox="0 0 180 180">${donutSegments}</svg>
-                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                         <span style="color:#64748b;font-size:11px;font-weight:600;">CUENTAS</span>
                         <span style="color:#f1f5f9;font-size:20px;font-weight:800;">${datos.length}</span>
                     </div>
@@ -1279,8 +1279,8 @@
             position:relative;overflow:hidden;">
 
             <!-- Barra de animación de confirmación -->
-            <div id="traspasoAnimBar" style="display:none;position:absolute;inset:0;border-radius:20px;z-index:10;pointer-events:none;overflow:hidden;">
-                <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.25) 40%,rgba(16,185,129,0.5) 50%,rgba(16,185,129,0.25) 60%,transparent 100%);transform:translateX(-100%);width:100%;height:100%;"></div>
+            <div id="traspasoAnimBar" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;border-radius:20px;z-index:10;pointer-events:none;overflow:hidden;">
+                <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.25) 40%,rgba(16,185,129,0.5) 50%,rgba(16,185,129,0.25) 60%,transparent 100%);transform:translateX(-100%);width:100%;height:100%;"></div>
             </div>
 
             <!-- Header -->
@@ -1508,7 +1508,7 @@
         const floating = document.createElement('div');
         floating.id = 'floatingTraspasoMenu';
         floating._tipo = tipo;
-        floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:240px;max-height:300px;overflow-y:auto;z-index:99995;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
+        floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:240px;max-height:300px;overflow-y:auto;z-index:99995;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
 
         cuentas.forEach((cuenta, i) => {
             const b = document.createElement('button');

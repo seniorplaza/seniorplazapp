@@ -216,7 +216,7 @@
 
             var overlay = document.createElement('div');
             overlay.id = '_modalCantidadOverlay';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:10100;display:flex;align-items:center;justify-content:center;padding:24px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10100;display:flex;align-items:center;justify-content:center;padding:24px;';
 
             overlay.innerHTML = `
                 <div id="_modalCantidadBox" style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:24px;width:100%;max-width:360px;padding:28px 24px 24px;box-shadow:0 25px 60px rgba(0,0,0,0.7);animation:slideUp 0.2s ease-out;">
@@ -686,8 +686,10 @@
                 btn.style.outlineOffset = '2px';
             });
 
+            const _vh = window.innerHeight;
             inner.style.height = 'auto';
-            inner.style.maxHeight = '90vh';
+            inner.style.maxHeight = Math.floor(_vh * 0.88) + 'px';
+            inner.style.minHeight = '200px';
             inner.style.borderRadius = '1.5rem';
             modal.style.alignItems = 'center';
             modal.style.paddingBottom = '16px';
@@ -1268,7 +1270,7 @@
                         if (!img && wrap) {
                             img = document.createElement('img');
                             img.className = 'gimnasio-mini-img';
-                            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:10px;position:absolute;inset:0;';
+                            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:10px;position:absolute;top:0;left:0;right:0;bottom:0;';
                             wrap.style.position = 'relative';
                             wrap.style.overflow = 'hidden';
                             wrap.appendChild(img);
@@ -1333,7 +1335,7 @@
                 if (esPrincipal) {
                     if (!iconContainer.classList.contains('bg-gradient-to-br')) {
                         iconContainer.className = 'icon-container-principal relative p-3 rounded-2xl text-white cursor-pointer transition-all duration-300 group';
-                        iconContainer.style.cssText = 'background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);';
+                        iconContainer.style.cssText = 'background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);';
                         iconContainer.innerHTML = `
                             <span class="material-symbols-rounded" style="font-size: 36px; color:${colorTemporal};">${iconoTemporal}</span>
                             <div class="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -1498,9 +1500,9 @@
             const card = elementoIconoActual ? elementoIconoActual.closest('.card-input-group') : null;
             if (!card) { if (callback) callback(); return; }
             const sweep = document.createElement('div');
-            sweep.style.cssText = `position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:10;overflow:hidden;`;
+            sweep.style.cssText = `position:absolute;top:0;left:0;right:0;bottom:0;border-radius:inherit;pointer-events:none;z-index:10;overflow:hidden;`;
             const bar = document.createElement('div');
-            bar.style.cssText = `position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,${color}55 30%,${color}cc 50%,${color}55 70%,transparent 100%);animation:miniaturaSwipe 2.4s cubic-bezier(0.4,0,0.2,1) forwards;`;
+            bar.style.cssText = `position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent 0%,${color}55 30%,${color}cc 50%,${color}55 70%,transparent 100%);animation:miniaturaSwipe 2.4s cubic-bezier(0.4,0,0.2,1) forwards;`;
             sweep.appendChild(bar);
             card.style.position = 'relative';
             card.style.overflow = 'hidden';
@@ -2070,8 +2072,8 @@
             const iconoFondo = seccionIcono || (isReforma ? 'construction' : 'weekend');
             const bgHTML = portadaSrc
                 ? `<img class="card-bg-img" src="${portadaSrc}" alt="">`
-                : `<div class="card-bg-color" style="position:absolute;inset:0;background: linear-gradient(135deg, ${colorDark} 0%, ${colorMid} 100%);"></div>
-                   <div class="card-bg-icon" style="position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;opacity:0.18;pointer-events:none;">
+                : `<div class="card-bg-color" style="position:absolute;top:0;left:0;right:0;bottom:0;background: linear-gradient(135deg, ${colorDark} 0%, ${colorMid} 100%);"></div>
+                   <div class="card-bg-icon" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:0;display:flex;align-items:center;justify-content:center;opacity:0.18;pointer-events:none;">
                        <span class="material-symbols-rounded" style="font-size:90px;color:white;">${iconoFondo}</span>
                    </div>`;
 
@@ -2079,7 +2081,7 @@
                 ${bgHTML}
                 <div class="card-gradient"></div>
                 <!-- Reflejo diagonal: z-index 50 para estar sobre todo -->
-                <div class="card-shine" style="position:absolute;inset:0;z-index:50;pointer-events:none;overflow:hidden;border-radius:inherit;"></div>
+                <div class="card-shine" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:50;pointer-events:none;overflow:hidden;border-radius:inherit;"></div>
                 <!-- Badge: position absolute arriba izquierda -->
                 <div style="position:absolute;top:12px;left:12px;right:12px;z-index:3;display:flex;align-items:center;gap:6px;">
                     <span class="card-badge" style="background:${badgeBg};color:white;border:1px solid ${badgeBorder};">${badgeLabel}</span>
@@ -2369,7 +2371,7 @@
                 if (!iconDiv) {
                     iconDiv = document.createElement('div');
                     iconDiv.className = 'card-bg-icon';
-                    iconDiv.style.cssText = 'position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;opacity:0.18;pointer-events:none;';
+                    iconDiv.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;z-index:0;display:flex;align-items:center;justify-content:center;opacity:0.18;pointer-events:none;';
                     iconDiv.innerHTML = `<span class="material-symbols-rounded" style="font-size:90px;color:white;">${iconoDefault}</span>`;
                     bgColorEl.insertAdjacentElement('afterend', iconDiv);
                 }
@@ -3289,7 +3291,7 @@
 
             const modal = document.createElement('div');
             modal.id = 'lightbox-foto';
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:9999999;display:flex;align-items:center;justify-content:center;touch-action:none;';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.97);z-index:9999999;display:flex;align-items:center;justify-content:center;touch-action:none;';
 
             const render = () => {
                 const hasPrev = idx > 0;
@@ -4007,7 +4009,7 @@
             const floating = document.createElement('div');
             floating.id = 'floatingFrecuenciaMenu';
             floating._sourceBtn = btn;
-            floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:150px;z-index:150;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
+            floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:150px;z-index:150;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
 
             const opciones = [
                 { value: 'mensual', label: 'Mensual' },
@@ -4096,7 +4098,7 @@
             const floating = document.createElement('div');
             floating.id = 'floatingFrecuenciaMenuIngreso';
             floating._sourceBtn = btn;
-            floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:150px;z-index:150;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
+            floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:150px;z-index:150;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
 
             const opciones = [
                 { value: 'mensual', label: 'Mensual' },
@@ -4348,7 +4350,7 @@
             const floating = document.createElement('div');
             floating.id = 'floatingCardMenu';
             floating._sourceBtn = btn;
-            floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);backdrop-filter:blur(16px);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:150px;z-index:150;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
+            floating.style.cssText = 'position:fixed;background:rgba(15,23,42,0.97);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:6px;min-width:150px;z-index:150;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:2px;';
 
             function makeBtn(icon, label, isDanger, action) {
                 const b = document.createElement('button');
@@ -4462,7 +4464,7 @@
 
             const modal = document.createElement('div');
             modal.id = 'modalArchivo';
-            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);';
 
             if (archivados.length === 0) {
                 modal.innerHTML = `
@@ -5345,7 +5347,7 @@
                         });
                     } else if (datos.iconoPrincipal) {
                         iconoPrincipalContainer.className = 'icon-container-principal relative p-3 rounded-2xl text-white cursor-pointer transition-all duration-300 group';
-                        iconoPrincipalContainer.style.cssText = 'background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);';
+                        iconoPrincipalContainer.style.cssText = 'background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);';
                         
                         const iconoSpan = iconoPrincipalContainer.querySelector('.material-symbols-rounded');
                         if (iconoSpan) {
@@ -6083,7 +6085,7 @@
 
             var overlay = document.createElement('div');
             overlay.id = '_gymKgDialOverlay';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;';
 
             overlay.innerHTML = `
                 <div id="_gymKgDialModal" style="background:#0f172a;border:1px solid rgba(${_dialColorRgb},0.3);border-radius:28px;width:220px;padding:24px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:16px;box-shadow:0 32px 80px rgba(0,0,0,0.7);touch-action:none;">
@@ -6106,7 +6108,7 @@
                         <!-- Indicador central -->
                         <div style="position:absolute;top:50%;left:12px;right:12px;transform:translateY(-50%);height:52px;background:rgba(${_dialColorRgb},0.1);border:1px solid rgba(${_dialColorRgb},0.35);border-radius:12px;z-index:1;pointer-events:none;"></div>
                         <!-- Lista scrollable -->
-                        <div id="_gymKgDialList" style="position:absolute;inset:0;overflow:hidden;touch-action:none;">
+                        <div id="_gymKgDialList" style="position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;touch-action:none;">
                             <div id="_gymKgDialTrack" style="display:flex;flex-direction:column;align-items:center;will-change:transform;"></div>
                         </div>
                     </div>
@@ -6454,7 +6456,7 @@
             var ss = totalSecs % 60;
             var overlay = document.createElement('div');
             overlay.id = '_modalGymTimeBadge';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
             overlay.innerHTML = '<div style="background:#0f172a;border:1px solid rgba(59,130,246,0.3);border-radius:20px;width:100%;max-width:280px;display:flex;flex-direction:column;overflow:hidden;">'
                 + '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid rgba(255,255,255,0.05);">'
                 + '<div style="display:flex;align-items:center;gap:8px;"><span class="material-symbols-rounded" style="font-size:18px;color:#60a5fa;">schedule</span><span style="color:#f1f5f9;font-size:14px;font-weight:800;">Tiempo registrado</span></div>'
@@ -7297,7 +7299,7 @@
 
             // Crear overlay de selección
             var overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
 
             var opciones = vistas.filter(function(v) { return v !== vistaActual; }).map(function(v) {
                 return '<button onclick="window._gymMoverDestino(\'' + v + '\')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid rgba(71,85,105,0.3);background:rgba(15,23,42,0.8);color:#f1f5f9;font-size:13px;font-weight:700;cursor:pointer;border-radius:10px;text-align:left;transition:background 0.15s;" onmouseover="this.style.background=\'rgba(234,179,8,0.12)\';this.style.borderColor=\'rgba(234,179,8,0.4)\'" onmouseout="this.style.background=\'rgba(15,23,42,0.8)\';this.style.borderColor=\'rgba(71,85,105,0.3)\'">'
@@ -8009,7 +8011,7 @@
             var archivados = _gymArchivadosEnCategoria(window._vistaGymActiva || 'pecho').slice();
             var overlay = document.createElement('div');
             overlay.id = '_modalArchivadosGym';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
             overlay.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(71,85,105,0.3);border-radius:20px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;flex-shrink:0;">
@@ -8276,7 +8278,7 @@
             if (!_GYM_ALLOW_ADD_HISTORIAL && _filA === 'dia' && _offA !== 0) return;
             var overlay = document.createElement('div');
             overlay.id = '_overlayNuevoEjercicio';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
             overlay.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(71,85,105,0.3);border-radius:20px;width:100%;max-width:420px;display:flex;flex-direction:column;overflow:hidden;">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;flex-shrink:0;">
@@ -8614,7 +8616,7 @@
             if (prev) prev.remove();
             var modal = document.createElement('div');
             modal.id = '_gymDupModal';
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;';
             modal.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:24px;width:100%;max-width:380px;padding:20px 20px 24px;box-shadow:0 25px 60px rgba(0,0,0,0.6);animation:slideUp 0.25s ease-out;">
                     <div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:0 auto 18px;"></div>
@@ -8735,7 +8737,7 @@
             if (prev) prev.remove();
             var modal = document.createElement('div');
             modal.id = '_gymConfirmModal';
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;';
             modal.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(239,68,68,0.35);border-radius:20px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.6);">
                     <div style="padding:20px 20px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.06);">
@@ -8922,7 +8924,7 @@
                 : _gymNormalizarMetricasCardio();
             var pendingImgHTML = null;
             var overlay = document.createElement('div');
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
             overlay.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(71,85,105,0.35);border-radius:20px;width:100%;max-width:440px;display:flex;flex-direction:column;overflow:hidden;">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.05);">
@@ -8933,7 +8935,7 @@
                         <div style="display:flex;gap:12px;align-items:flex-start;">
                             <div id="_edit_img_preview" style="flex-shrink:0;width:72px;height:72px;border-radius:10px;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;" title="Clic para cambiar imagen">
                                 ${curImgHTML}
-                                <div style="position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background 0.2s;border-radius:10px;" onmouseover="this.style.background='rgba(0,0,0,0.5)'" onmouseout="this.style.background='rgba(0,0,0,0)'">
+                                <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background 0.2s;border-radius:10px;" onmouseover="this.style.background='rgba(0,0,0,0.5)'" onmouseout="this.style.background='rgba(0,0,0,0)'">
                                     <span class="material-symbols-rounded" style="font-size:20px;color:rgba(255,255,255,0.8);">add_photo_alternate</span>
                                 </div>
                             </div>
@@ -8975,7 +8977,7 @@
                         if (firstChild && firstChild.tagName !== 'DIV') firstChild.remove();
                         var img = document.createElement('img');
                         img.src = src;
-                        img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:10px;';
+                        img.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;object-fit:cover;border-radius:10px;';
                         preview.insertBefore(img, preview.firstChild);
                     };
                     try {
@@ -9288,7 +9290,7 @@
         function gymAbrirVisorImagen(src) {
             var overlay = document.createElement('div');
             overlay.id = '_gymImgVisor';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;transition:opacity 0.2s;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;transition:opacity 0.2s;';
             overlay.innerHTML =
                 '<button onclick="this.parentNode._closeVisor()" style="position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;"><span class="material-symbols-rounded" style="font-size:22px;">close</span></button>'
               + '<img src="' + src + '" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.8);transition:transform 0.2s;user-select:none;touch-action:none;">';

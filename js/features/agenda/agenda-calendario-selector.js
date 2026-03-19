@@ -18,7 +18,7 @@ function abrirCalendarioAct(targetId) {
     if (!document.getElementById('modalCalAct')) {
         const el = document.createElement('div');
         el.id = 'modalCalAct';
-        el.style.cssText = 'display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);';
+        el.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);';
         el.innerHTML = '<div id="modalCalActInner" style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:360px;padding:24px;box-sizing:border-box;margin:16px;"></div>';
         document.body.appendChild(el);
         el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });

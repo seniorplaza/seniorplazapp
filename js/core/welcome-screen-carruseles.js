@@ -244,6 +244,7 @@
             showTab(tabId, null);
             if (typeof calculate === 'function') calculate();
             welcome.style.display = 'none';
+            welcome.classList.remove('visible');
             welcome.style.opacity = '';
             mainApp.style.opacity = '1';
             if (mainNav) mainNav.style.opacity = '1';
@@ -284,6 +285,7 @@
             _detenerPulsacionesTarjetas();
             try { sessionStorage.setItem('_lastTab', tabId); } catch(e) {}
             welcome.style.display = 'none';
+            welcome.classList.remove('visible');
             welcome.style.transition = '';
             welcome.style.opacity = '';
             mainApp.style.display = 'block';

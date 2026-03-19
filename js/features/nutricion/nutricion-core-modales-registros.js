@@ -194,6 +194,8 @@ function abrirModalComida() {
     });
     const fd = document.getElementById('nutri-modal-fecha');
     if (fd) { const _d=new Date(); _d.setDate(_d.getDate()+(window._nutriNavOffset||0)); fd.textContent = _d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); }
+    const inner = document.getElementById('modalComidaInner');
+    if (inner) inner.style.maxHeight = Math.floor(window.innerHeight * 0.88) + 'px';
     m.style.display = 'flex';
     setTimeout(() => { const i = document.getElementById('nutri-input-nombre'); if(i) i.focus(); }, 100);
     document.addEventListener('keydown', _nutriEscClose);
@@ -663,7 +665,7 @@ function _nutriAbrirArchivados() {
     if (overlay) overlay.remove();
     overlay = document.createElement('div');
     overlay.id = '_nutriArchiModal';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999999;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;';
     overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
     document.body.appendChild(overlay);
     const panel = document.createElement('div');
@@ -996,7 +998,7 @@ function _nutriEditSubirFotos(input){
 }
 function _nutriEditVerFoto(img){
     if(typeof verFotoGrandeModal==='function'){verFotoGrandeModal(img);return;}
-    const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+    const ov=document.createElement('div');ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
     ov.onclick=()=>document.body.removeChild(ov);
     const bi=document.createElement('img');bi.src=img.src;bi.style.cssText='max-width:95vw;max-height:90vh;border-radius:12px;object-fit:contain;';
     ov.appendChild(bi);document.body.appendChild(ov);
@@ -1384,8 +1386,8 @@ function renderNutricion() {
 
         const bgHTML = portada
             ? `<img class="card-bg-img" src="${portada}" alt="">`
-            : `<div class="card-bg-color" style="position:absolute;inset:0;background:linear-gradient(135deg,${col}22 0%,${col}88 100%);"></div>
-               <div style="position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;opacity:0.18;pointer-events:none;">
+            : `<div class="card-bg-color" style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,${col}22 0%,${col}88 100%);"></div>
+               <div style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:0;display:flex;align-items:center;justify-content:center;opacity:0.18;pointer-events:none;">
                    <span class="material-symbols-rounded" style="font-size:90px;color:white;">${ic}</span>
                </div>`;
 
@@ -1401,7 +1403,7 @@ function renderNutricion() {
         div.innerHTML = `
             ${bgHTML}
             <div class="card-gradient"></div>
-            <div class="card-shine" style="position:absolute;inset:0;z-index:50;pointer-events:none;overflow:hidden;border-radius:inherit;"></div>
+            <div class="card-shine" style="position:absolute;top:0;left:0;right:0;bottom:0;z-index:50;pointer-events:none;overflow:hidden;border-radius:inherit;"></div>
             <div style="position:absolute;top:12px;left:12px;right:12px;z-index:3;display:flex;align-items:center;gap:6px;">
                 <span class="card-badge" style="background:${badgeBg};color:white;border:1px solid ${badgeBorder};">${c.tipo.toUpperCase()}</span>
                 <span class="card-ghost-heart" style="${isLiked ? 'display:flex' : 'display:none'};background:rgba(220,38,38,0.9);border:1px solid rgba(220,38,38,0.6);border-radius:50%;align-items:center;justify-content:center;width:22px;height:22px;flex-shrink:0;box-sizing:border-box;">
@@ -2388,7 +2390,7 @@ function _importarActividades(lineas, parseCSVRow, input) {
     }
     const modal = document.createElement('div');
     modal.id = 'modalCSVPreview';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);padding:20px;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);padding:20px;';
     const STYLE = 'background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.6);';
     const row = (icon, color, label, val) => `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);margin-bottom:8px;">
@@ -2890,7 +2892,7 @@ function importarCSV(input) {
             if (modalEl) modalEl.remove();
             const modal = document.createElement('div');
             modal.id = 'modalCSVPreview';
-            modal.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);padding:20px;';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);padding:20px;';
             modal.innerHTML = `
               <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:32px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
@@ -2961,7 +2963,7 @@ function importarCSV(input) {
                     Cancelar
                   </button>
                   <button onclick="confirmarImportCSV();"
-                    style="flex:2;padding:14px;border-radius:14px;border:1px solid rgba(139,92,246,0.6);background:rgba(139,92,246,0.15);color:#a78bfa;font-size:14px;font-weight:800;cursor:pointer;backdrop-filter:blur(8px);">
+                    style="flex:2;padding:14px;border-radius:14px;border:1px solid rgba(139,92,246,0.6);background:rgba(139,92,246,0.15);color:#a78bfa;font-size:14px;font-weight:800;cursor:pointer;">
                     Confirmar importación
                   </button>
                 </div>
@@ -3111,7 +3113,7 @@ async function cargarListaCopias() {
 
 async function restaurarCopiaInterna(key) {
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;z-index:30000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:30000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);';
     modal.innerHTML = `
         <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:24px;max-width:340px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -3184,7 +3186,7 @@ async function restaurarCopiaInterna(key) {
 
 async function eliminarCopiaInterna(key) {
     const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;z-index:30000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:30000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);';
     modal.innerHTML = `
         <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid rgba(239,68,68,0.3);border-radius:20px;padding:24px;max-width:320px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">

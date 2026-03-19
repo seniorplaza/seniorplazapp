@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -26,14 +26,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 </head>
 <body class="pb-24">
-<canvas id="bg-canvas" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
+<canvas id="bg-canvas" style="position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
 
     <!-- BOTÓN TOGGLE VISTA MÓVIL/DESKTOP (solo en Claude artifacts) -->
     
     <script src="js/core/embed-view-toggle.js"></script>
     <!-- ══ WELCOME SCREEN ══ -->
     <div id="welcome-screen">
-        <div style="position:fixed;inset:0;z-index:-1;overflow:hidden;">
+        <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:-1;overflow:hidden;">
 
         </div>
         <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;width:100%;padding:60px 0 40px;box-sizing:border-box;">
@@ -118,7 +118,7 @@
         <div style="display:flex; flex-direction:column; align-items:center; gap:1rem; overflow:visible; width:100%; box-sizing:border-box; padding:0 1rem;">
             <!-- Primera fila: Logo y título -->
             <div class="flex items-center justify-center gap-4 py-2">
-                <div id="iconoPrincipalContainer" class="icon-container-principal relative rounded-2xl text-white transition-all duration-300" onclick="_irAWelcome()" style="width:62px;height:62px;min-width:62px;min-height:62px;display:flex;align-items:center;justify-content:center;background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); cursor:pointer;">
+                <div id="iconoPrincipalContainer" class="icon-container-principal relative rounded-2xl text-white transition-all duration-300" onclick="_irAWelcome()" style="width:62px;height:62px;min-width:62px;min-height:62px;display:flex;align-items:center;justify-content:center;background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); cursor:pointer;">
                     <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 419.68 370.91" style="width:auto;height:44px;display:block;"><path d="M201.35,84.19c-24.86.82-39.84-4.72-41.63-5.76-4.21-2.42-5.65-5.83-4.56-10.5.63-2.71,1.85-5.14,3.29-7.44,2.6-4.21,5.83-7.91,9.46-11.31,9.35-8.66,19.73-15.81,30.76-22.04,17.48-9.87,35.89-17.66,55.28-22.97C263.12,1.62,272.47.07,282.05,0c5.42-.06,10.79.12,16.04,1.73,2.02.63,3.98,1.44,5.83,2.54,2.13,1.27,3.81,2.94,5.02,5.08,1.96,3.35,2.08,6.81.46,10.33-1.15,2.42-2.71,4.62-4.67,6.46-2.31,2.25-4.85,4.27-7.62,5.94-2.89,1.79-5.77,3.46-8.71,5.14-.58.35-1.21.58-1.9.75-.29.06-.87-.12-1.04-.35-.17-.23,0-.75.17-1.1.12-.35.46-.58.75-.81,3.58-3,6.87-6.29,9.92-9.81,1.62-1.85,3-3.87,4.1-6.06.46-.92.87-1.85,1.15-2.83.75-2.42.06-4.1-2.25-5.25-2.19-1.1-4.56-1.44-6.92-1.73-4.27-.58-8.48-.12-12.69.4-18.87,2.48-36.47,9.06-53.14,18-8.08,4.33-15.98,8.89-23.83,13.56-6.69,3.98-12.98,8.54-19.1,13.44-3.81,3.06-7.16,6.52-10.04,10.44-.23.35-.46.69-.75,1.15.69.23,1.21.4,1.79.58,4.73,1.38,9.58,1.9,14.48,2.25,12,.81,24,.63,36.01.35,5.71-.12,11.43-.29,17.14-.69,5.31-.35,10.56-1.1,15.81-1.73,6.75-.87,13.44-1.96,20.2-2.42,2.83-.17,5.71-.58,8.54-.81,5.08-.46,10.16-.29,15.23.06,6.52.46,12.93,1.38,19.27,3,4.56,1.15,8.94,2.94,13.04,5.25,3.98,2.19,7.39,5.08,10.16,8.66,3,3.81,4.85,8.14,4.96,12.98.12,3.52-.35,6.98-1.1,10.44-1.56,6.92-4.44,13.27-8.02,19.33-3.23,5.48-7.04,10.56-11.31,15.35-16.91,18.93-36.47,34.56-57.99,47.89-12.64,7.79-25.68,14.71-39.41,20.37-1.1.46-1.85,1.21-2.48,2.25-24.93,42.76-50.72,84.94-76.74,127-6.4,10.39-13.21,20.48-19.85,30.7-.52.75-1.15,1.5-1.85,2.19-.29.35-.75.58-1.15.75-1.1.4-2.13-.4-2.02-1.56,0-.46.23-.98.4-1.44,2.65-6.98,5.89-13.73,9.23-20.43,10.04-20.02,20.02-40.05,30.24-59.95,11.48-22.27,24.81-46.45,37.04-68.32h0c-.65.08-.95.2-3.22.97-.33.11-2.72.91-2.77.93-18.67,6.45-32.81,11.21-51.71,16.86-11.6,3.4-23.43,6.29-35.31,8.6-9.12,1.79-18.23,1.73-27.35-.12-2.6-.58-5.02-1.62-7.21-3.12-4.15-2.77-6.23-6.81-6.64-11.71-.35-3.98.58-7.79,1.85-11.54,2.37-6.98,5.89-13.33,10.5-19.04,7.33-9.12,15.29-17.66,23.95-25.56,2.08-1.9,4.39-3.58,6.58-5.31.52-.46,1.15-.75,1.79-1.04.52-.23.92.17.75.75-.06.29-.17.52-.35.75-.87,1.33-1.62,2.71-2.54,3.98-3.75,5.14-7.56,10.21-11.43,15.29-5.19,6.81-9.98,13.85-14.43,21.18-2.25,3.81-4.33,7.73-5.65,12-.58,1.9-.98,3.81-.98,5.83-.06,2.08.87,3.64,2.65,4.67,2.31,1.33,4.73,2.02,7.39,2.02,6.58,0,12.98-.81,19.39-2.08,14.02-2.83,27.64-7.21,41.08-12.06,22.79-8.25,45.18-17.66,67.05-28.16,1.44-.69,2.48-1.62,3.29-3,8.02-13.68,15.98-27.29,24.58-40.62,6.35-9.87,12.93-19.56,20.2-28.79,2.65-3.35,5.54-6.58,8.77-9.41.11-.09.21-.19.32-.28,2.08-1.78,3.44-.98,2.97,1.72h0c-.35,2.13-.81,4.27-1.38,6.35-1.79,6.12-4.44,11.83-7.16,17.54-6.07,12.85-13.62,26.68-20.57,39.19-.23.41.22.85.63.63,9.78-5.3,20.43-11.9,29.46-18.18,5.65-3.92,11.19-8.02,16.62-12.23,5.89-4.56,10.91-10.1,15.98-15.52,3.92-4.15,7.79-8.37,11.19-12.98,2.77-3.81,5.14-7.79,7.04-12.06,1.62-3.69,2.31-7.56,1.73-11.6-.29-2.02-1.15-3.69-2.54-5.14-1.5-1.5-3.29-2.6-5.31-3.4-4.5-1.85-9.23-2.94-14.02-3.58-6.12-.81-12.29-1.21-18.46-1.27-4.73,0-9.41.52-14.08,1.1-21.41,2.54-42.06,8.54-62.49,15.23-30.18,9.92-58.68,23.6-85.92,39.87-18.41,11.02-36.06,23.14-52.91,36.35-1.79,1.44-3.69,2.77-5.54,4.15-.58.46-1.21.81-2.02,1.04.12-.29.23-.69.4-.92.75-.98,1.44-2.02,2.31-2.94,20.37-21.75,43.62-40.05,68.67-56.09,19.4-12.38,40.67-23.91,62-33.07.58-.25.4-1.05-.23-1.1" fill="#fff"/><path d="M399.86,259.53l2.34,6.33c1.74,4.7,5.44,8.4,10.14,10.14l6.33,2.34c1.35.5,1.35,2.4,0,2.9l-6.33,2.34c-4.7,1.74-8.4,5.44-10.14,10.14l-2.34,6.33c-.5,1.35-2.4,1.35-2.9,0l-2.34-6.33c-1.74-4.7-5.44-8.4-10.14-10.14l-6.33-2.34c-1.35-.5-1.35-2.4,0-2.9l6.33-2.34c4.7-1.74,8.4-5.44,10.14-10.14l2.34-6.33c.5-1.35,2.4-1.35,2.9,0Z" fill="#fff"/><path d="M22.72,70.91l2.34,6.33c1.74,4.7,5.44,8.4,10.14,10.14l6.33,2.34c1.35.5,1.35,2.4,0,2.9l-6.33,2.34c-4.7,1.74-8.4,5.44-10.14,10.14l-2.34,6.33c-.5,1.35-2.4,1.35-2.9,0l-2.34-6.33c-1.74-4.7-5.44-8.4-10.14-10.14l-6.33-2.34c-1.35-.5-1.35-2.4,0-2.9l6.33-2.34c4.7-1.74,8.4-5.44,10.14-10.14l2.34-6.33c.5-1.35,2.4-1.35,2.9,0Z" fill="#fff"/><path d="M67.69,54.16l-1.17-3.17c-.87-2.35-2.72-4.2-5.07-5.07l-3.17-1.17c-.67-.25-.67-1.2,0-1.45l3.17-1.17c2.35-.87,4.2-2.72,5.07-5.07l1.17-3.17c.25-.67,1.2-.67,1.45,0l1.17,3.17c.87,2.35,2.72,4.2,5.07,5.07l3.17,1.17c.67.25.67,1.2,0,1.45l-3.17,1.17c-2.35.87-4.2,2.72-5.07,5.07l-1.17,3.17c-.25.67-1.2.67-1.45,0Z" fill="#fff"/><path d="M350.54,337.01l-1.17-3.17c-.87-2.35-2.72-4.2-5.07-5.07l-3.17-1.17c-.67-.25-.67-1.2,0-1.45l3.17-1.17c2.35-.87,4.2-2.72,5.07-5.07l1.17-3.17c.25-.67,1.2-.67,1.45,0l1.17,3.17c.87,2.35,2.72,4.2,5.07,5.07l3.17,1.17c.67.25.67,1.2,0,1.45l-3.17,1.17c-2.35.87-4.2,2.72-5.07,5.07l-1.17,3.17c-.25.67-1.2.67-1.45,0Z" fill="#fff"/></svg></span>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:4px;">
@@ -179,7 +179,7 @@
                 <!-- Botones de acciones a la derecha (Desktop) -->
                 <div class="desktop-actions flex items-center gap-2 bg-slate-950/80 rounded-2xl border border-slate-800/50 p-2" style="flex-shrink:0; margin-left:auto;">
                     <!-- Pantalla Completa -->
-                    <button onclick="toggleFullscreen()" title="Pantalla completa" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
+                    <button onclick="toggleFullscreen()" title="Pantalla completa" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
                         <span id="fullscreenIconDesktop" class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">fullscreen</span>
                     </button>
                     
@@ -187,18 +187,18 @@
                     <div class="w-px h-8 bg-slate-700/50"></div>
                     
                     <!-- Backup -->
-                    <button onclick="abrirModalBackup()" title="Copia de seguridad" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
+                    <button onclick="abrirModalBackup()" title="Copia de seguridad" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
                         <span class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">backup</span>
                     </button>
                     <input type="file" id="importFile" accept=".json,.txt,application/json,text/plain,text/*,application/*" style="display: none;" onchange="importarDatos(this)">
 
                     <!-- Deshacer (Ctrl+Z) -->
-                    <button id="btnUndo" onclick="undoEstado()" title="Deshacer (Ctrl+Z)" disabled style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); opacity: 0.4; cursor: not-allowed; transition: opacity 0.2s;">
+                    <button id="btnUndo" onclick="undoEstado()" title="Deshacer (Ctrl+Z)" disabled style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); opacity: 0.4; cursor: not-allowed; transition: opacity 0.2s;">
                         <span class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">undo</span>
                     </button>
 
                     <!-- Rehacer (Ctrl+Alt+Z) -->
-                    <button id="btnRedo" onclick="redoEstado()" title="Rehacer (Ctrl+Alt+Z)" disabled style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); opacity: 0.4; cursor: not-allowed; transition: opacity 0.2s;">
+                    <button id="btnRedo" onclick="redoEstado()" title="Rehacer (Ctrl+Alt+Z)" disabled style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); opacity: 0.4; cursor: not-allowed; transition: opacity 0.2s;">
                         <span class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">redo</span>
                     </button>
 
@@ -206,7 +206,7 @@
                     <div class="w-px h-8 bg-slate-700/50"></div>
 
                     <!-- Borrar todo -->
-                    <button onclick="confirmarBorrarTodo()" title="Borrar todo el contenido" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(127, 29, 29, 0.5) 0%, rgba(185, 28, 28, 0.4) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 8px 32px 0 rgba(185, 28, 28, 0.2); transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(239,68,68,0.7)';this.style.boxShadow='0 8px 32px 0 rgba(185,28,28,0.4)'" onmouseout="this.style.borderColor='rgba(239,68,68,0.3)';this.style.boxShadow='0 8px 32px 0 rgba(185,28,28,0.2)'">
+                    <button onclick="confirmarBorrarTodo()" title="Borrar todo el contenido" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(127, 29, 29, 0.5) 0%, rgba(185, 28, 28, 0.4) 100%);  border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 8px 32px 0 rgba(185, 28, 28, 0.2); transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(239,68,68,0.7)';this.style.boxShadow='0 8px 32px 0 rgba(185,28,28,0.4)'" onmouseout="this.style.borderColor='rgba(239,68,68,0.3)';this.style.boxShadow='0 8px 32px 0 rgba(185,28,28,0.2)'">
                         <span class="material-symbols-rounded" style="font-size: 20px; line-height: 1; display: flex; color: #f87171;">delete_sweep</span>
                     </button>
                     
@@ -223,7 +223,7 @@
                         </div>
                         
                         <!-- Tooltip detallado -->
-                        <div id="storageTooltip" class="absolute top-full right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-opacity duration-200 z-50" style="backdrop-filter: blur(12px);">
+                        <div id="storageTooltip" class="absolute top-full right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-opacity duration-200 z-50" style="">
                             <div class="p-4">
                                 <div class="flex items-center justify-between mb-3 pb-3 border-b border-slate-700">
                                     <h4 class="text-sm font-bold text-white">Uso de Almacenamiento</h4>
@@ -1066,7 +1066,7 @@
             <div class="space-y-0">
 
                 <!-- BARRA SUPERIOR -->
-                <div id="filtros-bar" class="flex flex-wrap items-center gap-2 p-3 rounded-2xl mb-6" style="background: rgba(30,41,59,0.45); border: 1px solid rgba(51,65,85,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 90;">
+                <div id="filtros-bar" class="flex flex-wrap items-center gap-2 p-3 rounded-2xl mb-6" style="background: rgba(30,41,59,0.45); border: 1px solid rgba(51,65,85,0.6);   z-index: 90;">
                     <span class="material-symbols-rounded" style="font-size:16px;color:#64748b;flex-shrink:0;">filter_list</span>
                     <div class="flex gap-1 flex-1 flex-wrap">
                         <button onclick="ordenarReformas('mayor')" id="filtro-mayor" class="filtro-reforma-btn btn-add rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all" style="padding: 0 12px;"><span class="material-symbols-rounded" style="font-size:15px;">arrow_downward</span><span class="hidden sm:inline">Mayor precio</span></button>
@@ -1222,15 +1222,15 @@
 
         <!-- PESTAÑA: VIVIENDA -->
         <section id="vivienda" class="tab-content">
-            <div id="visor-main-container" style="width: 100%; height: 900px; position: relative; background: rgba(15, 23, 42, 0.25); backdrop-filter: blur(8px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); overflow: hidden;">
+            <div id="visor-main-container" style="width: 100%; height: 900px; position: relative; background: rgba(15, 23, 42, 0.25);  border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); overflow: hidden;">
                 
                 <!-- Fondo negro que aparece solo cuando hay imagen -->
-                <div id="visor-background" style="position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 0;"></div>
+                <div id="visor-background" style="position: absolute; top:0;left:0;right:0;bottom:0; background: #000; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 0;"></div>
                 
                 <!-- Visor 360 Inmersivo -->
-                <div id="visor360-container" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; touch-action: pan-y;">
+                <div id="visor360-container" style="position: absolute; top:0;left:0;right:0;bottom:0; width: 100%; height: 100%; z-index: 1; touch-action: pan-y;">
                     
-                    <div id="loader360" style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100;">
+                    <div id="loader360" style="position: absolute; top:0;left:0;right:0;bottom:0; background: rgba(0, 0, 0, 0.8);  display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100;">
                         <div class="spinner360"></div>
                         <p style="margin-top: 15px; font-size: 10px; letter-spacing: 2px; color: #3b82f6; text-transform: uppercase; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600;">Cargando Entorno</p>
                     </div>
@@ -1283,10 +1283,10 @@
                     </div>
 
                     <input type="file" id="file-input-360" hidden accept="image/*">
-                    <div id="canvas-container-360" style="width: 100%; height: 100%; position: absolute; inset: 0; cursor: grab; touch-action: pan-y;"></div>
+                    <div id="canvas-container-360" style="width: 100%; height: 100%; position: absolute; top:0;left:0;right:0;bottom:0; cursor: grab; touch-action: pan-y;"></div>
                     
                     <!-- Hint para móvil: usar pantalla completa -->
-                    <div id="mobile-fullscreen-hint" style="display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(59, 130, 246, 0.95); color: white; padding: 12px 20px; border-radius: 12px; font-size: 12px; font-weight: 600; text-align: center; z-index: 100; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: pulse-hint 2s ease-in-out infinite;">
+                    <div id="mobile-fullscreen-hint" style="display: none; position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(59, 130, 246, 0.95); color: white; padding: 12px 20px; border-radius: 12px; font-size: 12px; font-weight: 600; text-align: center; z-index: 100;  box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: pulse-hint 2s ease-in-out infinite;">
                         <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle; margin-right: 6px;">fullscreen</span>
                         Usa pantalla completa para explorar
                     </div>
@@ -1541,7 +1541,7 @@
                             <circle cx="28" cy="28" r="23" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="4.5"/>
                             <circle id="est-flujo-circle" cx="28" cy="28" r="23" fill="none" stroke="#10b981" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="144.5" style="transition:stroke-dashoffset 0.7s ease,stroke 0.4s;"/>
                         </svg>
-                        <span id="est-flujo-pct" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:800;font-family:Manrope,sans-serif;"></span>
+                        <span id="est-flujo-pct" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:800;font-family:Manrope,sans-serif;"></span>
                     </div>
                 </div>
 
@@ -1568,7 +1568,7 @@
             <div class="space-y-6">
 
                 <!-- DINERO DISPONIBLE - barra compacta -->
-                <div class="flex items-center justify-between px-5 py-3 rounded-2xl border border-slate-700/60" style="background: rgba(15,23,42,0.6); backdrop-filter: blur(10px);">
+                <div class="flex items-center justify-between px-5 py-3 rounded-2xl border border-slate-700/60" style="background: rgba(15,23,42,0.6); ">
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-rounded text-slate-400 cursor-pointer hover:text-white transition-all" data-longpress-icon-selector="emerald" title="Mantén pulsado para cambiar icono" style="font-size: 18px;">account_balance_wallet</span>
                         <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Dinero Disponible</h3>
@@ -1581,7 +1581,7 @@
                 <div class="grid grid-cols-1 gap-6">
 
                     <!-- GASTO INICIAL TOTAL -->
-                    <div class="p-6 rounded-2xl border border-slate-700/60" style="background: rgba(15,23,42,0.6); backdrop-filter: blur(10px);">
+                    <div class="p-6 rounded-2xl border border-slate-700/60" style="background: rgba(15,23,42,0.6); ">
                         <div class="flex items-center gap-2 mb-4">
                             <span class="material-symbols-rounded text-slate-400 cursor-pointer hover:text-white transition-all" data-longpress-icon-selector="red" title="Mantén pulsado para cambiar icono" style="font-size: 18px;">account_balance</span>
                             <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Gasto Inicial Total</h3>
@@ -1660,7 +1660,7 @@
                 </div>
 
                 <!-- FILA 3: Resumen hipoteca -->
-                <div class="p-6 rounded-2xl border border-slate-700/60" style="background: rgba(15,23,42,0.6); backdrop-filter: blur(10px);">
+                <div class="p-6 rounded-2xl border border-slate-700/60" style="background: rgba(15,23,42,0.6); ">
                     <div class="flex items-center gap-2 mb-6">
                         <span class="material-symbols-rounded text-slate-400 cursor-pointer hover:text-white transition-all" data-longpress-icon-selector="blue" title="Mantén pulsado para cambiar icono" style="font-size: 18px;">description</span>
                         <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Resumen de la Hipoteca</h3>
@@ -1864,22 +1864,22 @@
                 <div id="gym-stats-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;">
                     <div onclick="gymAbrirModalPeso()" style="background:linear-gradient(135deg,rgba(234,179,8,0.08),rgba(202,138,4,0.12));border:1px solid rgba(234,179,8,0.25);border-radius:18px;padding:16px 18px;position:relative;cursor:pointer;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(234,179,8,0.55)'" onmouseout="this.style.borderColor='rgba(234,179,8,0.25)'">
                         <div style="color:#fbbf24;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Calorías</div>
-                        <div id="gym-stat-calorias" style="color:#eab308;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;">—</div>
+                        <div id="gym-stat-calorias" style="color:#eab308;font-size:23px;font-weight:900;font-family:Manrope,sans-serif;">—</div>
                         <div style="color:#64748b;font-size:10px;font-weight:600;margin-top:2px;">kcal est.</div>
                     </div>
                     <div ontouchstart="gymLongPressStart(this,'gymResetTiempoTotal','rgba(59,130,246,0.5)')" ontouchend="gymLongPressEnd(this,'rgba(59,130,246,0.25)')" ontouchcancel="gymLongPressEnd(this,'rgba(59,130,246,0.25)')" onmousedown="gymLongPressStart(this,'gymResetTiempoTotal','rgba(59,130,246,0.5)')" onmouseup="gymLongPressEnd(this,'rgba(59,130,246,0.25)')" onmouseleave="gymLongPressEnd(this,'rgba(59,130,246,0.25)')" style="background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(37,99,235,0.12));border:1px solid rgba(59,130,246,0.25);border-radius:18px;padding:16px 18px;cursor:pointer;transition:border-color 0.2s;user-select:none;">
                         <div style="color:#93c5fd;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Tiempo</div>
-                        <div id="gym-stat-tiempo" data-total-secs="0" style="color:#f1f5f9;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">00:00</div>
+                        <div id="gym-stat-tiempo" data-total-secs="0" style="color:#f1f5f9;font-size:23px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">00:00</div>
                         <div style="color:#64748b;font-size:10px;font-weight:600;margin-top:2px;">sesión</div>
                     </div>
                     <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(5,150,105,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:18px;padding:16px 18px;">
                         <div style="color:#6ee7b7;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Ejercicios</div>
-                        <div id="gym-stat-ejercicios" style="color:#10b981;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;">0</div>
+                        <div id="gym-stat-ejercicios" style="color:#10b981;font-size:23px;font-weight:900;font-family:Manrope,sans-serif;">0</div>
                         <div style="color:#64748b;font-size:10px;font-weight:600;margin-top:2px;">completados</div>
                     </div>
                     <div ontouchstart="gymLongPressStart(this,'gymResetCardio','rgba(249,115,22,0.5)')" ontouchend="gymLongPressEnd(this,'rgba(249,115,22,0.25)')" ontouchcancel="gymLongPressEnd(this,'rgba(249,115,22,0.25)')" onmousedown="gymLongPressStart(this,'gymResetCardio','rgba(249,115,22,0.5)')" onmouseup="gymLongPressEnd(this,'rgba(249,115,22,0.25)')" onmouseleave="gymLongPressEnd(this,'rgba(249,115,22,0.25)')" style="background:linear-gradient(135deg,rgba(249,115,22,0.08),rgba(234,88,12,0.12));border:1px solid rgba(249,115,22,0.25);border-radius:18px;padding:16px 18px;cursor:pointer;transition:border-color 0.2s;user-select:none;">
                         <div style="color:#fdba74;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Cardio</div>
-                        <div id="gym-stat-cardio-km" data-total-km="0" style="color:#fb923c;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">0.0</div>
+                        <div id="gym-stat-cardio-km" data-total-km="0" style="color:#fb923c;font-size:23px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">0.0</div>
                         <div style="color:#64748b;font-size:10px;font-weight:600;margin-top:2px;">km totales</div>
                     </div>
                     <div ontouchstart="gymLongPressStart(this,'gymResetHidratacion','rgba(6,182,212,0.5)')" ontouchend="gymLongPressEnd(this,'rgba(6,182,212,0.25)')" ontouchcancel="gymLongPressEnd(this,'rgba(6,182,212,0.25)')" onmousedown="gymLongPressStart(this,'gymResetHidratacion','rgba(6,182,212,0.5)')" onmouseup="gymLongPressEnd(this,'rgba(6,182,212,0.25)')" onmouseleave="gymLongPressEnd(this,'rgba(6,182,212,0.25)')" style="background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(8,145,178,0.12));border:1px solid rgba(6,182,212,0.25);border-radius:18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:border-color 0.2s;user-select:none;">
@@ -1898,7 +1898,7 @@
                     </div>
                     <div onclick="gymEditarReposo()" ontouchstart="gymLongPressStart(this,'gymResetReposo','rgba(168,85,247,0.5)')" ontouchend="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" ontouchcancel="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" onmousedown="gymLongPressStart(this,'gymResetReposo','rgba(168,85,247,0.5)')" onmouseup="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" onmouseleave="gymLongPressEnd(this,'rgba(168,85,247,0.25)')" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(139,92,246,0.12));border:1px solid rgba(168,85,247,0.25);border-radius:18px;padding:16px 18px;cursor:pointer;transition:border-color 0.2s;user-select:none;">
                         <div style="color:#d8b4fe;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">Reposo</div>
-                        <div id="gym-stat-reposo" data-total-secs="0" style="color:#c084fc;font-size:22px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">00:00</div>
+                        <div id="gym-stat-reposo" data-total-secs="0" style="color:#c084fc;font-size:23px;font-weight:900;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;">00:00</div>
                         <div style="color:#64748b;font-size:10px;font-weight:600;margin-top:2px;">entre series</div>
                     </div>
                 </div>
@@ -1906,7 +1906,7 @@
                 <input type="hidden" id="gym-peso-usuario" value="0">
 
                 <!-- MODAL PESO -->
-                <div id="modal-gym-peso" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+                <div id="modal-gym-peso" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
                     <div style="background:#0f172a;border:1px solid rgba(234,179,8,0.3);border-radius:20px;padding:28px 24px;width:280px;display:flex;flex-direction:column;gap:16px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <span class="material-symbols-rounded" style="font-size:22px;color:#eab308;">monitor_weight</span>
@@ -1979,7 +1979,7 @@
             <div class="space-y-0">
 
                 <!-- BARRA SUPERIOR NUTRICIÓN -->
-                <div id="filtros-bar-nutri" class="flex flex-wrap items-center gap-2 p-3 rounded-2xl mb-6" style="background: rgba(30,41,59,0.45); border: 1px solid rgba(51,65,85,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 90; position: sticky; top: 210px; margin-top: 0;">
+                <div id="filtros-bar-nutri" class="flex flex-wrap items-center gap-2 p-3 rounded-2xl mb-6" style="background: rgba(30,41,59,0.45); border: 1px solid rgba(51,65,85,0.6);   z-index: 90; position: sticky; top: 210px; margin-top: 0;">
                     <span class="material-symbols-rounded" style="font-size:16px;color:#64748b;flex-shrink:0;">filter_list</span>
                     <div class="flex gap-1 flex-1 flex-wrap">
                         <button id="nutri-filtro-mayor" onclick="_nutriFiltrarMayor()" class="filtro-reforma-btn btn-add rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all" style="padding: 0 12px;"><span class="material-symbols-rounded" style="font-size:15px;">arrow_downward</span><span class="hidden sm:inline">Mayor kcal</span></button>
@@ -2082,7 +2082,7 @@
                     </div>
                     <div id="nutri-peso-chart-wrap" style="position:relative;height:220px;display:none;">
                         <canvas id="nutri-peso-canvas"></canvas>
-                        <div id="nutri-peso-empty" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;">
+                        <div id="nutri-peso-empty" style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;">
                             <span class="material-symbols-rounded" style="font-size:36px;color:#1e293b;">monitor_weight</span>
                             <p style="color:#334155;font-size:13px;margin:0;">Sin registros de peso aún</p>
                         </div>
@@ -2134,7 +2134,7 @@
                                     <!-- Donut -->
                                     <div style="position:relative;flex-shrink:0;width:110px;height:110px;">
                                         <canvas id="nutri-kcal-donut" width="110" height="110"></canvas>
-                                        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                        <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                                             <div id="nutri-kcal-restantes" style="font-size:22px;font-weight:900;color:#f1f5f9;font-family:Manrope,sans-serif;">—</div>
                                             <div style="font-size:9px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Restantes</div>
                                         </div>
@@ -2175,7 +2175,7 @@
                                         <div style="font-size:12px;font-weight:700;color:#10b981;margin-bottom:8px;">Carbos</div>
                                         <div style="position:relative;width:72px;height:72px;">
                                             <canvas id="nutri-carbs-donut" width="72" height="72"></canvas>
-                                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                            <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                                                 <div id="nutri-carbs-val" style="font-size:14px;font-weight:900;color:#f1f5f9;font-family:Manrope,sans-serif;">0</div>
                                                 <div id="nutri-carbs-obj" style="font-size:9px;color:#475569;"></div>
                                             </div>
@@ -2187,7 +2187,7 @@
                                         <div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:8px;">Grasas</div>
                                         <div style="position:relative;width:72px;height:72px;">
                                             <canvas id="nutri-grasas-donut" width="72" height="72"></canvas>
-                                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                            <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                                                 <div id="nutri-grasas-val" style="font-size:14px;font-weight:900;color:#f1f5f9;font-family:Manrope,sans-serif;">0</div>
                                                 <div id="nutri-grasas-obj" style="font-size:9px;color:#475569;"></div>
                                             </div>
@@ -2199,7 +2199,7 @@
                                         <div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:8px;">Proteínas</div>
                                         <div style="position:relative;width:72px;height:72px;">
                                             <canvas id="nutri-prot-donut" width="72" height="72"></canvas>
-                                            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                                            <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                                                 <div id="nutri-prot-val" style="font-size:14px;font-weight:900;color:#f1f5f9;font-family:Manrope,sans-serif;">0</div>
                                                 <div id="nutri-prot-obj" style="font-size:9px;color:#475569;"></div>
                                             </div>
@@ -2238,7 +2238,7 @@
 
         <!-- ══ MODAL EDITAR COMIDA (estilo reforma) ══ -->
         <div id="modal-nutri-edit-overlay" onclick="_nutriEditCloseOverlay(event)"
-             style="display:none;position:fixed;inset:0;z-index:999998;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity 0.3s ease;align-items:flex-end;justify-content:center;">
+             style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:999998;background:rgba(0,0,0,0.85);opacity:0;pointer-events:none;transition:opacity 0.3s ease;align-items:flex-end;justify-content:center;">
             <link rel="stylesheet" href="css/features/nutricion/nutricion-edit-modal-responsive.css">
             <div id="modal-nutri-edit-panel"
                  style="width:100%;max-width:600px;height:100dvh;max-height:100dvh;background:#0d1424;border-radius:20px 20px 0 0;overflow-y:auto;transform:translateY(100%);transition:transform 0.35s cubic-bezier(.32,1,.48,1);scrollbar-width:none;"
@@ -2406,8 +2406,8 @@
         </div>
 
         <!-- ══ MODAL AÑADIR COMIDA ══ -->
-        <div id="modalComida" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
-            <div id="modalComidaInner" style="background:rgba(13,19,33,0.98);border:1px solid rgba(16,185,129,0.25);border-radius:24px;padding:24px 24px 20px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,0.7);position:relative;touch-action:pan-y;max-height:92vh;overflow-y:auto;"
+        <div id="modalComida" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:20px;">
+            <div id="modalComidaInner" style="background:rgba(13,19,33,0.98);border:1px solid rgba(16,185,129,0.25);border-radius:24px;padding:24px 24px 20px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,0.7);position:relative;touch-action:pan-y;min-height:200px;overflow-y:auto;"
                  onmousedown="_nutriSwipeStart(event)" ontouchstart="_nutriSwipeStart(event)">
                 <!-- Handle -->
                 <div style="display:flex;justify-content:center;margin-bottom:16px;">
@@ -2557,7 +2557,7 @@
         </div>
 
         <!-- ══ MODAL REGISTRAR PESO ══ -->
-        <div id="modalPeso" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
+        <div id="modalPeso" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;">
             <div id="modalPesoInner" style="background:#0f172a;border:1px solid rgba(96,165,250,0.3);border-radius:20px;padding:28px 24px;width:280px;display:flex;flex-direction:column;gap:16px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <span class="material-symbols-rounded" style="font-size:22px;color:#60a5fa;">monitor_weight</span>
@@ -2585,7 +2585,7 @@
         </div>
 
         <!-- MODAL EDITAR REGISTRO PESO -->
-        <div id="modalEditarPeso" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+        <div id="modalEditarPeso" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;padding:20px;">
             <div style="background:rgba(13,19,33,0.98);border:1px solid rgba(96,165,250,0.3);border-radius:24px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 60px rgba(0,0,0,0.8);position:relative;">
                 <div style="display:flex;justify-content:center;margin-bottom:20px;">
                     <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);"></div>
@@ -2698,8 +2698,8 @@
     </div>
 
     <!-- MODAL SELECTOR DE ICONOS Y MINIATURA -->
-    <div id="modalIconos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:10001;display:none;align-items:flex-end;justify-content:center;padding:0;">
-        <div id="modalIconosInner" style="background:#111b2e;border:1px solid rgba(59,130,246,0.2);border-radius:1.5rem;width:100%;max-width:560px;height:auto;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div id="modalIconos" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10001;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">
+        <div id="modalIconosInner" style="background:#111b2e;border:1px solid rgba(59,130,246,0.2);border-radius:1.5rem;width:100%;max-width:560px;min-height:200px;height:auto;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
 
             <!-- Handle -->
             <div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;">
@@ -3546,7 +3546,7 @@
     </div>
 
     <!-- BOTTOM SHEET selector de cuenta -->
-    <div id="modalSelectorCuenta" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10001;align-items:center;justify-content:center;padding:16px;">
+    <div id="modalSelectorCuenta" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10001;align-items:center;justify-content:center;padding:16px;">
         <div style="background:#111b2e;border-radius:20px;width:100%;max-width:440px;max-height:70vh;overflow-y:auto;padding:20px 20px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;" id="selector-cuenta-titulo">Selecciona cuenta</div><button onclick="document.getElementById('modalSelectorCuenta').style.display='none'" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,0.07);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:17px;">close</span></button></div>
             <div id="selector-cuenta-lista" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -3838,8 +3838,8 @@
     <div id="modalNuevaCategoria" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10010;align-items:center;justify-content:center;">
         <div id="nuevaCatCard" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:1px solid rgba(59,130,246,0.25);border-radius:28px;padding:28px 24px 36px;width:calc(100% - 32px);max-width:480px;max-height:90%;overflow-y:auto;position:relative;overflow:hidden;">
             <!-- Barra de animación -->
-            <div id="nuevaCatAnimBar" style="display:none;position:absolute;inset:0;border-radius:28px;z-index:10;pointer-events:none;overflow:hidden;">
-                <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(59,130,246,0.25) 40%,rgba(59,130,246,0.5) 50%,rgba(59,130,246,0.25) 60%,transparent 100%);transform:translateX(-100%);width:100%;height:100%;"></div>
+            <div id="nuevaCatAnimBar" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;border-radius:28px;z-index:10;pointer-events:none;overflow:hidden;">
+                <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent 0%,rgba(59,130,246,0.25) 40%,rgba(59,130,246,0.5) 50%,rgba(59,130,246,0.25) 60%,transparent 100%);transform:translateX(-100%);width:100%;height:100%;"></div>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
                 <div style="display:flex;align-items:center;gap:12px;">
@@ -4020,7 +4020,7 @@
         </div>
     </div>
 
-    <div id="modalIntervaloTiempo" onclick="if(event.target===this)cerrarModalIntervalo()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:10100;align-items:center;justify-content:center;padding:16px;">
+    <div id="modalIntervaloTiempo" onclick="if(event.target===this)cerrarModalIntervalo()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10100;align-items:center;justify-content:center;padding:16px;">
         <div onclick="event.stopPropagation()" style="background:#1e2535;border-radius:24px;width:100%;max-width:420px;padding:28px 20px 24px;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
             <div style="text-align:center;margin-bottom:24px;">
                 <h2 style="color:white;font-size:20px;font-weight:800;">Intervalo de tiempo</h2>
@@ -4067,7 +4067,7 @@
     </div>
 
     <!-- MODAL: RANGO DE FECHAS -->
-    <div id="modalRangoFechas" onclick="if(event.target===this)cerrarModalRangoFechas()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:10101;align-items:center;justify-content:center;padding:16px;">
+    <div id="modalRangoFechas" onclick="if(event.target===this)cerrarModalRangoFechas()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10101;align-items:center;justify-content:center;padding:16px;">
         <div onclick="event.stopPropagation()" style="background:#1e2535;border-radius:24px;width:100%;max-width:400px;padding:28px 24px;">
             <h3 style="color:white;font-size:17px;font-weight:800;margin-bottom:20px;">Rango de fechas</h3>
             <div style="margin-bottom:14px;">
@@ -4098,8 +4098,8 @@
 <!-- ══════════════════════════════════════════════════════
      MODAL FILTRO OPERACIONES
 ══════════════════════════════════════════════════════ -->
-<div id="modal-filtro-op-overlay" onclick="cerrarModalFiltroOp()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10500;backdrop-filter:blur(4px);"></div>
-<div id="modal-filtro-op-panel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);z-index:10501;background:linear-gradient(160deg,#0d1628 0%,#0f172a 100%);border:1px solid rgba(59,130,246,0.25);border-radius:24px;padding:0;max-height:90vh;width:min(480px,95vw);overflow-y:auto;opacity:0;transition:transform 0.35s cubic-bezier(.32,1,.48,1),opacity 0.3s ease;">
+<div id="modal-filtro-op-overlay" onclick="cerrarModalFiltroOp()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10500;"></div>
+<div id="modal-filtro-op-panel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);z-index:10501;background:linear-gradient(160deg,#0d1628 0%,#0f172a 100%);border:1px solid rgba(59,130,246,0.25);border-radius:24px;padding:0;width:min(480px,92%);overflow-y:auto;opacity:0;transition:transform 0.35s cubic-bezier(.32,1,.48,1),opacity 0.3s ease;">
 
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 16px;">
@@ -4198,7 +4198,7 @@
         <!-- BOTONES ACCIÓN -->
         <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
             <button onclick="aplicarFiltroOp()" style="width:100%;height:52px;border-radius:26px;border:1.5px solid rgba(59,130,246,0.6);background:rgba(59,130,246,0.15);color:#60a5fa;font-size:15px;font-weight:800;letter-spacing:0.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 16px rgba(59,130,246,0.1);">
-                <span class="material-symbols-rounded" style="font-size:18px;">check</span>Aplicar
+                Aplicar
             </button>
             <button onclick="restablecerFiltroOp()" style="width:100%;height:48px;border-radius:24px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;">
                 Restablecer todo
@@ -4287,7 +4287,7 @@
      MODAL COPIA DE SEGURIDAD
      ══════════════════════════════════════════════════════ -->
 <div id="modalBackup" style="display:none; position:fixed; top:0;left:0;right:0;bottom:0; z-index:20000; align-items:center; justify-content:center;">
-    <div onclick="cerrarModalBackup()" style="position:absolute; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px);"></div>
+    <div onclick="cerrarModalBackup()" style="position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); "></div>
     <div style="position:relative; width:100%; max-width:420px; margin:0 16px; background:linear-gradient(135deg,#0f172a,#1e293b); border:1px solid rgba(59,130,246,0.3); border-radius:20px; overflow:hidden; box-shadow:0 24px 64px rgba(0,0,0,0.6); max-height:90%; display:flex; flex-direction:column;">
         
         <!-- Header -->
@@ -4310,7 +4310,7 @@
 
                 <!-- GUARDAR COPIA EN LA WEB -->
                 <div id="backup-guardar-box" style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:14px; padding:14px; position:relative; overflow:hidden;">
-                    <div id="backup-sweep" style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.35) 50%,transparent 100%);transform:translateX(-100%);pointer-events:none;border-radius:14px;"></div>
+                    <div id="backup-sweep" style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.35) 50%,transparent 100%);transform:translateX(-100%);pointer-events:none;border-radius:14px;"></div>
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                         <span class="material-symbols-rounded" style="color:#10b981;font-size:20px;">cloud_done</span>
                         <span style="color:white;font-size:14px;font-weight:700;">Guardar copia en esta web</span>
@@ -4422,7 +4422,7 @@
       <button id="actBtnAnterior" onclick="actPasoAnterior()" style="flex:1;padding:14px;border-radius:14px;border:1px solid rgba(71,85,105,0.5);background:rgba(71,85,105,0.1);color:#94a3b8;font-size:14px;font-weight:700;cursor:pointer;display:none;align-items:center;justify-content:center;gap:6px;">
         <span class="material-symbols-rounded" style="font-size:18px;line-height:1;">arrow_back</span><span>Anterior</span>
       </button>
-      <button id="actBtnSiguiente" onclick="actPasoSiguiente()" style="flex:2;padding:14px;border-radius:14px;border:1px solid rgba(59,130,246,0.5);background:rgba(59,130,246,0.08);color:rgba(96,165,250,0.9);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;backdrop-filter:blur(4px);">
+      <button id="actBtnSiguiente" onclick="actPasoSiguiente()" style="flex:2;padding:14px;border-radius:14px;border:1px solid rgba(59,130,246,0.5);background:rgba(59,130,246,0.08);color:rgba(96,165,250,0.9);font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
         <span>Siguiente</span><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">arrow_forward</span>
       </button>
       <button id="actBtnFinalizar" onclick="actFinalizar()" style="flex:2;padding:14px;border-radius:14px;border:1.5px solid rgba(16,185,129,0.6);background:rgba(16,185,129,0.12);color:#6ee7b7;font-size:14px;font-weight:800;cursor:pointer;display:none;align-items:center;justify-content:center;gap:6px;">
@@ -4435,7 +4435,7 @@
 <script src="js/features/agenda/agenda-core-flujos.js"></script>
 
 <!-- MODAL ESTADÍSTICAS HÁBITO -->
-<div id="modalEstadisticasHabito" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:10030;align-items:center;justify-content:center;">
+<div id="modalEstadisticasHabito" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10030;align-items:center;justify-content:center;">
     <div id="modalEstHabitoInner" style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:min(96vw,1040px);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;">
         <div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;">
             <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);"></div>
@@ -4460,7 +4460,7 @@
 </div>
 
 <!-- MODAL HISTÓRICO CALENDARIO HÁBITO -->
-<div id="modalCalHistorico" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:10031;align-items:center;justify-content:center;">
+<div id="modalCalHistorico" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10031;align-items:center;justify-content:center;">
     <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:400px;display:flex;flex-direction:column;overflow:hidden;">
         <div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;">
             <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);"></div>
@@ -4481,7 +4481,7 @@
 </div>
 
 <!-- MODAL EDITAR HÁBITO -->
-<div id="modalEditarHabito" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:10032;align-items:center;justify-content:center;">
+<div id="modalEditarHabito" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10032;align-items:center;justify-content:center;">
     <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:560px;max-height:88%;display:flex;flex-direction:column;overflow:hidden;">
         <div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;">
             <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);"></div>
@@ -4565,7 +4565,7 @@
 <!-- ══════════════════════════════════════════════════════
      MODAL EDITAR TAREA / TAREA RECURRENTE
      ══════════════════════════════════════════════════════ -->
-<div id="modalEditarTarea" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:10033;align-items:center;justify-content:center;padding:16px;">
+<div id="modalEditarTarea" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10033;align-items:center;justify-content:center;padding:16px;">
     <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:520px;max-height:88%;display:flex;flex-direction:column;overflow:visible;">
         <div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;">
             <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);"></div>
@@ -4656,7 +4656,7 @@
 <script src="js/features/finanzas/mobile-swipe-close-modals-extended.js"></script>
 <script src="js/features/finanzas/mobile-swipe-close-modals-finanzas.js"></script>
 <!-- MODAL CATEGORÍA ESTADÍSTICAS -->
-<div id="modalCatEst" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:10001;align-items:center;justify-content:center;padding:16px;" onclick="document.getElementById('modalCatEst').style.display='none'">
+<div id="modalCatEst" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10001;align-items:center;justify-content:center;padding:16px;" onclick="document.getElementById('modalCatEst').style.display='none'">
     <div id="modalCatEst-inner" onclick="event.stopPropagation()" style="background:#111b2e;border-radius:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding-bottom:32px;">
         <!-- Drag handle -->
         <div style="display:flex;justify-content:center;padding:12px 0 4px;">
@@ -4683,7 +4683,7 @@
 <script src="js/features/finanzas/finanzas-categoria-estadisticas-modal.js"></script>
 
     <!-- MODAL INTERVALO NUTRICIÓN -->
-    <div id="modalIntervaloNutri" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:10010;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarModalIntervaloNutri()">
+    <div id="modalIntervaloNutri" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10010;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)cerrarModalIntervaloNutri()">
         <div style="background:#0d1321;border:1px solid rgba(255,255,255,0.08);border-radius:24px;width:100%;max-width:440px;padding:24px 20px;box-shadow:0 -8px 40px rgba(0,0,0,0.5);">
             <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);"></div></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -4707,7 +4707,7 @@
     </div>
 
         <!-- ══ MODAL ESCÁNER CÓDIGO DE BARRAS ══ -->
-        <div id="modalNutriScanner" style="display:none;position:fixed;inset:0;z-index:10010;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div id="modalNutriScanner" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:10010;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:20px;">
             <div style="background:rgba(13,19,33,0.99);border:1px solid rgba(16,185,129,0.3);border-radius:24px;padding:24px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,0.8);position:relative;">
                 <!-- Handle -->
                 <div style="display:flex;justify-content:center;margin-bottom:16px;">
@@ -4730,7 +4730,7 @@
                 <div style="position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3;">
                     <video id="nutri-scanner-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;"></video>
                     <!-- Guía de encuadre -->
-                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                    <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
                         <div style="width:65%;aspect-ratio:2/1;border:2px solid rgba(16,185,129,0.8);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);position:relative;">
                             <!-- Esquinas -->
                             <div style="position:absolute;top:-2px;left:-2px;width:20px;height:20px;border-top:3px solid #10b981;border-left:3px solid #10b981;border-radius:4px 0 0 0;"></div>

@@ -11,6 +11,7 @@
         _renderFiltroOp();
         const overlay = document.getElementById('modal-filtro-op-overlay');
         const panel   = document.getElementById('modal-filtro-op-panel');
+        panel.style.maxHeight = Math.floor(window.innerHeight * 0.88) + 'px';
         overlay.style.display = 'block';
         panel.style.display   = 'block';
         requestAnimationFrame(() => {
