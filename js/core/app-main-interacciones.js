@@ -686,33 +686,16 @@
                 btn.style.outlineOffset = '2px';
             });
 
-            if (window.innerWidth < 768) {
-                const mobileNav = document.getElementById('mobileBottomNav');
-                let clearance = 98;
-                if (mobileNav) {
-                    const navRect = mobileNav.getBoundingClientRect();
-                    clearance = (window.innerHeight - navRect.top) + 8;
-                }
-                const topMargin = 40;
-                modal.style.alignItems = 'flex-end';
-                modal.style.paddingBottom = clearance + 'px';
-                modal.style.paddingLeft = '0';
-                modal.style.paddingRight = '0';
-                modal.style.paddingTop = topMargin + 'px';
-                const availableHeight = window.innerHeight - clearance - topMargin;
-                inner.style.height = 'auto';
-                inner.style.maxHeight = availableHeight + 'px';
-                inner.style.borderRadius = '1.5rem 1.5rem 0 0';
-                const bi = document.getElementById('buscadorIconos');
-                if (bi) { bi.value = ''; buscarIconos(''); }
-            } else {
-                inner.style.height = 'auto';
-                inner.style.maxHeight = '90vh';
-                inner.style.borderRadius = '1.5rem';
-                modal.style.alignItems = 'center';
-                modal.style.paddingBottom = '';
-                modal.style.paddingTop = '';
-            }
+            inner.style.height = 'auto';
+            inner.style.maxHeight = '90vh';
+            inner.style.borderRadius = '1.5rem';
+            modal.style.alignItems = 'center';
+            modal.style.paddingBottom = '16px';
+            modal.style.paddingTop = '16px';
+            modal.style.paddingLeft = '16px';
+            modal.style.paddingRight = '16px';
+            const bi = document.getElementById('buscadorIconos');
+            if (bi) { bi.value = ''; buscarIconos(''); }
         }
 
         function cerrarModalIconos() {

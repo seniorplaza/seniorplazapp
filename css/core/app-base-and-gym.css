@@ -55,6 +55,7 @@
 
         @media (max-width: 768px) {
             .desktop-only { display: none !important; }
+            #fitness-gimnasio > div { padding: 16px !important; }
             .gym-panel-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
             .gym-card-body {
                 padding: 8px !important;
@@ -124,7 +125,11 @@
             .tooltip-container { pointer-events: auto !important; touch-action: auto !important; cursor: pointer !important; }
             .tooltip-container .tooltip-icon { pointer-events: auto !important; }
             #gym-stats-grid { grid-template-columns: repeat(3,1fr) !important; }
-            #gym-stats-grid > div { grid-column: span 1; }
+            #gym-stats-grid > div { grid-column: span 1; box-sizing: border-box !important; padding: 12px 10px !important; }
+            #gym-stats-grid > div > div[style*="font-size:22px"] { font-size: 18px !important; }
+            .section-header-box .flex.flex-row > div.flex.flex-col.justify-center { min-width: 0 !important; flex-shrink: 1 !important; }
+            .section-header-box .flex.flex-row > div.flex.flex-col.justify-center h2,
+            .section-header-box .flex.flex-row > div.flex.flex-col.justify-center p { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 100% !important; }
         }
 
         /* Fuente monoespaciada uniforme en todas las plataformas */
