@@ -159,7 +159,7 @@
             return window.innerWidth < 768;
         }
         const tabOrder = [
-            'patrimonio', 'ingresos', 'finanzas-operaciones', 'finanzas-estadisticas',
+            'mis-activos', 'ingresos', 'finanzas-operaciones', 'finanzas-estadisticas',
             'agenda-diario', 'agenda-habitos', 'agenda-tareas',
             'finanzas-categorias',
             'hipoteca', 'reformas', 'vivienda', 'analisis',
@@ -2508,11 +2508,11 @@
             catSwitchTipo(null, tipoActivo, 'editar');
             return;
         }
-        const finanzasTabs = ['patrimonio','finanzas-operaciones','finanzas-estadisticas','ingresos'];
+        const finanzasTabs = ['mis-activos','finanzas-operaciones','finanzas-estadisticas','ingresos'];
         const btnFinanzas = document.querySelector('[onclick*="toggleFinanzasDropdown"]');
         if (btnFinanzas) {
             const iconMap = {
-                'patrimonio':            { icon: 'account_balance', label: 'Mis Activos' },
+                'mis-activos':           { icon: 'account_balance', label: 'Mis Activos' },
                 'ingresos':              { icon: 'euro',             label: 'Ingresos & Gastos' },
                 'finanzas-operaciones':  { icon: 'receipt_long',     label: 'Operaciones' },
                 'finanzas-estadisticas': { icon: 'bar_chart',        label: 'Estadísticas' }
@@ -2531,7 +2531,7 @@
         (function() {
             var mfb = document.getElementById('mobileFinanzasBtn');
             if (!mfb) return;
-            var iconMap = {'patrimonio':'account_balance','ingresos':'euro','finanzas-operaciones':'receipt_long','finanzas-estadisticas':'bar_chart'};
+            var iconMap = {'mis-activos':'account_balance','ingresos':'euro','finanzas-operaciones':'receipt_long','finanzas-estadisticas':'bar_chart'};
             var iconEl = mfb.querySelector('.material-symbols-rounded');
             if (finanzasTabs.includes(id)) {
                 document.querySelectorAll('.mobile-tab-btn').forEach(function(b){b.classList.remove('active');});

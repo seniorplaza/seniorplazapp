@@ -3,6 +3,12 @@
             const welcome = document.getElementById('welcome-screen');
             if (!welcome) return;
             try { if (sessionStorage.getItem('_lastTab')) return; } catch(e) {}
+            const _ma = document.getElementById('main-app');
+            const _mn = document.getElementById('mainNav');
+            const _mb = document.getElementById('mobileBottomNav');
+            if (_ma) _ma.style.display = 'none';
+            if (_mn) _mn.style.display = 'none';
+            if (_mb) _mb.style.display = 'none';
             const hora = new Date().getHours();
             const saludo = document.getElementById('welcomeSaludo');
             const fecha  = document.getElementById('welcomeFecha');
@@ -22,7 +28,9 @@
         }
         (function() {
             try {
-                if (!sessionStorage.getItem('_lastTab')) return;
+                let _lt = sessionStorage.getItem('_lastTab');
+                if (!_lt) return;
+                if (_lt === 'patrimonio') { _lt = 'mis-activos'; sessionStorage.setItem('_lastTab', _lt); }
                 const ma = document.getElementById('main-app');
                 const ws = document.getElementById('welcome-screen');
                 if (ws) ws.style.display = 'none';
@@ -204,6 +212,16 @@
 
         document.addEventListener('DOMContentLoaded', () => setTimeout(initCarruseles, 500));
         document.getElementById('mag-btn')?.addEventListener('click', () => setTimeout(initCarruseles, 600));
+        window._irAWelcome = function() {
+            try { sessionStorage.removeItem('_lastTab'); } catch(e) {}
+            const ma = document.getElementById('main-app');
+            const mn = document.getElementById('mainNav');
+            const mb = document.getElementById('mobileBottomNav');
+            if (ma) ma.style.display = 'none';
+            if (mn) mn.style.display = 'none';
+            if (mb) mb.style.display = 'none';
+            _mostrarWelcome();
+        };
         window._welcomeGo = function(tabId, cardEl) {
             try {
                 const visits = JSON.parse(localStorage.getItem('_welcomeVisits') || '{}');

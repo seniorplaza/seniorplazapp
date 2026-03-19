@@ -239,6 +239,9 @@
         body:has(#welcome-screen.visible) .footer-text {
             display: none !important;
         }
+        body:has(#welcome-screen.visible) #mobileBottomNav {
+            display: none !important;
+        }
 
         .welcome-saludo {
             font-size: clamp(2rem, 8vw, 4.5rem);
@@ -3101,7 +3104,7 @@
                 padding-left: 3mm !important;
             }
             
-            #patrimonio::before { content: "1. MIS ACTIVOS" !important; }
+            #mis-activos::before { content: "1. MIS ACTIVOS" !important; }
             #ingresos::before { content: "2. INGRESOS & GASTOS" !important; }
             #hipoteca::before { content: "3. HIPOTECA" !important; }
             #reformas::before { content: "4. REFORMAS & MOBILIARIO" !important; }

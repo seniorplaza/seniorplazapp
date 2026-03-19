@@ -160,12 +160,12 @@
             if (e.state && e.state.tab) {
                 showTab(e.state.tab, null, 'popstate');
             } else {
-                showTab('patrimonio', null, 'popstate');
+                showTab('mis-activos', null, 'popstate');
             }
         });
         (function() {
             const activeTab = document.querySelector('.tab-content.active');
-            const initialId = activeTab ? activeTab.id : 'patrimonio';
+            const initialId = activeTab ? activeTab.id : 'mis-activos';
             try { history.replaceState({ tab: initialId }, '', '#' + initialId); } catch(e) {}
         })();
 
@@ -1053,10 +1053,10 @@
                 if (s) s.style.color = '#64748b';
             });
             btn.classList.add('selected-icon');
-            btn.style.borderColor = 'rgba(99,102,241,0.6)';
-            btn.style.background = 'rgba(99,102,241,0.2)';
+            btn.style.borderColor = 'rgba(99, 241, 153, 0.6)';
+            btn.style.background = 'rgba(99, 241, 153, 0.2)';
             const s = btn.querySelector('span,svg');
-            if (s) s.style.color = '#a5b4fc';
+            if (s) s.style.color = '#89edbb';
             iconoTemporal = icono;
             _svgDataTemporal = svgData || null;
             fontClassTemporal = fontClass || btn.dataset.fontClass || 'material-symbols-rounded';
@@ -5890,7 +5890,8 @@
             } catch (error) {
             } finally {
                 _cargando = false; // Reactivar guardarDatos
-                const _tabToRestore = (datos && datos.activeTab) || (function(){ try { return sessionStorage.getItem('_lastTab'); } catch(e){ return null; } })();
+                let _tabToRestore = (datos && datos.activeTab) || (function(){ try { return sessionStorage.getItem('_lastTab'); } catch(e){ return null; } })();
+                if (_tabToRestore === 'patrimonio') _tabToRestore = 'mis-activos';
                 if (_tabToRestore && document.getElementById(_tabToRestore)) {
                     window._restoringTab = true;
                     const _ws = document.getElementById('welcome-screen');
