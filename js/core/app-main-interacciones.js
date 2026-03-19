@@ -2453,12 +2453,13 @@
             _actualizarCorazonModal(card);
             const _panel = document.getElementById('modal-reforma-panel');
             _panel.style.transition = 'none';
-            _panel.style.transform = '';
+            _panel.style.transform = 'translateY(100%)';
             _panel.scrollTop = 0;
             const _overlay = document.getElementById('modal-reforma-overlay');
             _overlay.style.opacity = '';
             requestAnimationFrame(function() {
-                _panel.style.transition = '';
+                _panel.style.transition = 'transform 0.35s cubic-bezier(.32,1,.48,1)';
+                _panel.style.transform = 'translateY(0)';
                 _overlay.classList.add('open');
             });
             document.body.style.overflow = 'hidden';
@@ -2565,7 +2566,7 @@
             const panel = document.getElementById('modal-reforma-panel');
             const overlay = document.getElementById('modal-reforma-overlay');
             panel.style.transition = 'transform 0.35s cubic-bezier(.32,1,.48,1)';
-            panel.style.transform = '';
+            panel.style.transform = 'translateY(100%)';
             overlay.classList.remove('open');
             overlay.style.opacity = ''; // reset inline opacity set during swipe
             document.body.style.overflow = '';
@@ -4478,7 +4479,7 @@
 
             const modal = document.createElement('div');
             modal.id = 'modalArchivo';
-            modal.style.cssText = 'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);';
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);';
 
             if (archivados.length === 0) {
                 modal.innerHTML = `
@@ -4489,7 +4490,7 @@
                     </div>`;
             } else {
                 const inner = document.createElement('div');
-                inner.style.cssText = 'background:rgba(15,23,42,0.97);border:1px solid rgba(59,130,246,0.2);border-radius:20px;padding:24px;max-width:420px;width:90%;max-height:80vh;overflow-y:auto;';
+                inner.style.cssText = 'background:rgba(15,23,42,0.97);border:1px solid rgba(59,130,246,0.2);border-radius:20px;padding:24px;max-width:420px;width:90%;max-height:80%;overflow-y:auto;';
                 inner.innerHTML = `
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
                         <span class="material-symbols-rounded" style="font-size:22px;color:#3b82f6;">archive</span>

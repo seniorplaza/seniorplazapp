@@ -804,10 +804,10 @@
 
         const overlay = document.createElement('div');
         overlay.id = 'modalEstadisticasVidaLaboral';
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         overlay.innerHTML = `
-        <div style="background:#0f172a;border:1px solid rgba(234,179,8,0.2);border-radius:20px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:24px;box-shadow:0 0 60px rgba(234,179,8,0.15);">
+        <div style="background:#0f172a;border:1px solid rgba(234,179,8,0.2);border-radius:20px;width:100%;max-width:640px;max-height:90%;overflow-y:auto;padding:24px;box-shadow:0 0 60px rgba(234,179,8,0.15);">
             <!-- Header -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -857,7 +857,7 @@
 
         const overlay = document.createElement('div');
         overlay.id = 'modalEmpresasVidaLaboral';
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99990;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         const rowsHTML = sits.map((s, i) => {
             const isActiva = !!activas[i];
@@ -901,7 +901,7 @@
         }).join('');
 
         overlay.innerHTML = `
-        <div style="background:#0f172a;border:1px solid rgba(234,179,8,0.2);border-radius:20px;width:100%;max-width:600px;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(234,179,8,0.1);">
+        <div style="background:#0f172a;border:1px solid rgba(234,179,8,0.2);border-radius:20px;width:100%;max-width:600px;max-height:88%;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(234,179,8,0.1);">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:rgba(234,179,8,0.07);border-bottom:1px solid rgba(234,179,8,0.15);flex-shrink:0;">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <span class="material-symbols-rounded" style="color:#eab308;font-size:20px;">badge</span>
@@ -946,9 +946,8 @@
         const overlay = document.createElement('div');
         overlay.id = 'modalEstadisticasInversiones';
         overlay.style.cssText = `
-            position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);
+            position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99990;background:rgba(0,0,0,0.85);
             display:flex;align-items:center;justify-content:center;padding:16px;
-            backdrop-filter:blur(8px);
         `;
 
         const COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1'];
@@ -1006,7 +1005,7 @@
 
         overlay.innerHTML = `
         <div style="background:#0f172a;border:1px solid rgba(59,130,246,0.2);border-radius:20px;
-            width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:24px;
+            width:100%;max-width:640px;max-height:90%;overflow-y:auto;padding:24px;
             box-shadow:0 0 60px rgba(59,130,246,0.15);">
             <!-- Header -->
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -1070,9 +1069,8 @@
         const overlay = document.createElement('div');
         overlay.id = 'modalEstadisticasCuentas';
         overlay.style.cssText = `
-            position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);
+            position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99990;background:rgba(0,0,0,0.85);
             display:flex;align-items:center;justify-content:center;padding:16px;
-            backdrop-filter:blur(8px);
         `;
 
         const COLORS = ['#10b981','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1'];
@@ -1130,7 +1128,7 @@
 
         overlay.innerHTML = `
         <div style="background:#0f172a;border:1px solid rgba(16,185,129,0.2);border-radius:20px;
-            width:100%;max-width:640px;max-height:90vh;overflow-y:auto;padding:24px;
+            width:100%;max-width:640px;max-height:90%;overflow-y:auto;padding:24px;
             box-shadow:0 0 60px rgba(16,185,129,0.12);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -1272,8 +1270,8 @@
 
         const overlay = document.createElement('div');
         overlay.id = 'modalTraspasoCuentas';
-        overlay.style.cssText = `position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.85);
-            display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px);`;
+        overlay.style.cssText = `position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:99990;background:rgba(0,0,0,0.85);
+            display:flex;align-items:center;justify-content:center;padding:16px;`;
 
         overlay.innerHTML = `
         <div id="traspasoCard" style="background:#0f172a;border:1px solid rgba(59,130,246,0.2);border-radius:20px;

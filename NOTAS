@@ -37,3 +37,29 @@ Este es el paso que actualiza la web de GitHub Pages:
 Bash _____________________
 
 git push origin main
+
+_____________________
+
+// ...existing code...
+
+Abrir host 8000:
+
+Si es Django:
+python manage.py runserver 0.0.0.0:8000
+
+Si es servidor simple:
+python -m http.server 8000 --bind 0.0.0.0
+
+Ver IP local:
+ipconfig
+
+Abrir en PC:
+http://127.0.0.1:8000
+
+Abrir en emulador Android:
+http://10.0.2.2:8000
+
+Abrir en celular físico:
+http://TU_IP:8000
+
+// ...existing code...
