@@ -3001,6 +3001,19 @@
             const data = await res.json();
             return data.secure_url;
         }
+
+        async function subirRutaACloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_PRESET);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Error subiendo ruta a Cloudinary');
+            const data = await res.json();
+            return data.secure_url;
+        }
         // ────────────────────────────────────────────────────────────
 
         function comprimirImagen(imagenSrc, maxWidth = 600, quality = 0.6) {
@@ -4958,7 +4971,11 @@
                                 cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                                 imgSrc:  imgEl ? imgEl.src : '',
                                 cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
-                                        completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
+                                completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
+                                rutaCoords: card.dataset.rutaCoords ? JSON.parse(card.dataset.rutaCoords) : null,
+                                rutaNombre: card.dataset.rutaNombre || '',
+                                rutaUrl:    card.dataset.rutaUrl || '',
+                                rutaCsv:    card.dataset.rutaCsv || ''
                             };
                         });
                         totalCardsDOM += out[p].length;
@@ -5001,7 +5018,11 @@
                                     cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
                                     imgSrc:  imgEl ? imgEl.src : '',
                                     cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
-                                            completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card)
+                                    completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
+                                    rutaCoords: card.dataset.rutaCoords ? JSON.parse(card.dataset.rutaCoords) : null,
+                                    rutaNombre: card.dataset.rutaNombre || '',
+                                    rutaUrl:    card.dataset.rutaUrl || '',
+                                    rutaCsv:    card.dataset.rutaCsv || ''
                                 };
                             });
                         });
@@ -5755,6 +5776,12 @@
                                         label.textContent = h > 0 ? h + 'h ' + String(m).padStart(2,'0') + 'm' : String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
                                         badge.style.display = 'flex'; badge.removeAttribute('data-hidden');
                                     }
+                                }
+                                if (e.rutaCoords && Array.isArray(e.rutaCoords) && e.rutaCoords.length >= 2) {
+                                    newCard.dataset.rutaCoords = JSON.stringify(e.rutaCoords);
+                                    if (e.rutaNombre) newCard.dataset.rutaNombre = e.rutaNombre;
+                                    if (e.rutaUrl) newCard.dataset.rutaUrl = e.rutaUrl;
+                                    if (e.rutaCsv) newCard.dataset.rutaCsv = e.rutaCsv;
                                 }
                             }
                         });
@@ -6832,7 +6859,9 @@
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
                         rutaCoords: card.dataset.rutaCoords ? JSON.parse(card.dataset.rutaCoords) : null,
-                        rutaNombre: card.dataset.rutaNombre || ''
+                        rutaNombre: card.dataset.rutaNombre || '',
+                        rutaUrl:    card.dataset.rutaUrl || '',
+                        rutaCsv:    card.dataset.rutaCsv || ''
                     };
                 });
             });
@@ -6891,7 +6920,9 @@
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
                         rutaCoords: card.dataset.rutaCoords ? JSON.parse(card.dataset.rutaCoords) : null,
-                        rutaNombre: card.dataset.rutaNombre || ''
+                        rutaNombre: card.dataset.rutaNombre || '',
+                        rutaUrl:    card.dataset.rutaUrl || '',
+                        rutaCsv:    card.dataset.rutaCsv || ''
                     };
                 });
             });
@@ -6942,6 +6973,8 @@
                 if (newCard && e.rutaCoords && Array.isArray(e.rutaCoords) && e.rutaCoords.length >= 2) {
                     newCard.dataset.rutaCoords = JSON.stringify(e.rutaCoords);
                     if (e.rutaNombre) newCard.dataset.rutaNombre = e.rutaNombre;
+                    if (e.rutaUrl) newCard.dataset.rutaUrl = e.rutaUrl;
+                    if (e.rutaCsv) newCard.dataset.rutaCsv = e.rutaCsv;
                 }
             });
             _initGymSortable(grid);
@@ -7498,8 +7531,17 @@
                 coords = _gymSimplificarCoordenadas(coords, 500);
                 card.dataset.rutaCoords = JSON.stringify(coords);
                 card.dataset.rutaNombre = file.name;
+                card.dataset.rutaUrl = '';
                 _gymRenderRutaEnSeccion(section, coords, card, file.name);
-                if (typeof guardarDatos === 'function') guardarDatos();
+                if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+                else if (typeof guardarDatos === 'function') guardarDatos();
+                subirRutaACloudinary(file).then(function(url) {
+                    card.dataset.rutaUrl = url;
+                    if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+                    else if (typeof guardarDatos === 'function') guardarDatos();
+                }).catch(function() {
+                    // Cloudinary upload failed, data is still persisted locally via coords
+                });
             };
             reader.readAsText(file);
         }
@@ -7589,10 +7631,31 @@
             replaceInp.style.display = 'none';
             replaceInp.addEventListener('change', function() { _gymProcesarArchivosRuta(replaceInp); });
 
+            var csvInp = document.createElement('input');
+            csvInp.type = 'file'; csvInp.accept = '.csv,text/csv';
+            csvInp.style.display = 'none';
+            csvInp.addEventListener('change', function() { _gymProcesarCsvEstadisticas(csvInp, card, section); });
+
             var newBtn = document.createElement('button');
-            newBtn.style.cssText = 'background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:8px;color:#eab308;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;font-family:Manrope,sans-serif;';
-            newBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px;">upload_file</span>Nueva';
+            newBtn.style.cssText = 'background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:7px;color:#eab308;padding:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+            newBtn.title = 'Nueva ruta';
+            newBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:15px;">upload_file</span>';
             newBtn.addEventListener('click', function() { replaceInp.click(); });
+
+            var statsBtn = document.createElement('button');
+            statsBtn.style.cssText = 'background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:7px;color:#eab308;padding:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+            statsBtn.title = 'Estadísticas';
+            statsBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:15px;">bar_chart</span>';
+            statsBtn.addEventListener('click', function() {
+                var existingStats = section.querySelector('.gym-ruta-stats');
+                if (existingStats) {
+                    existingStats.style.display = existingStats.style.display === 'none' ? 'block' : 'none';
+                } else if (card.dataset.rutaCsv) {
+                    _gymRenderStatsCSV(section, card.dataset.rutaCsv);
+                } else {
+                    csvInp.click();
+                }
+            });
 
             var delBtn = document.createElement('button');
             delBtn.style.cssText = 'background:none;border:none;color:#64748b;cursor:pointer;padding:4px;display:flex;align-items:center;';
@@ -7600,7 +7663,9 @@
             delBtn.addEventListener('click', function() { _gymEliminarRuta(delBtn); });
 
             btns.appendChild(replaceInp);
+            btns.appendChild(csvInp);
             btns.appendChild(newBtn);
+            btns.appendChild(statsBtn);
             btns.appendChild(delBtn);
             header.appendChild(info);
             header.appendChild(btns);
@@ -7614,6 +7679,9 @@
             wrap.appendChild(mapDiv);
             section.appendChild(wrap);
             _gymCargarLeaflet(function() { _gymAnimarRutaMapa(mapDiv, coords, wrap); });
+            if (card.dataset.rutaCsv) {
+                _gymRenderStatsCSV(section, card.dataset.rutaCsv);
+            }
         }
 
         function _gymEliminarRuta(btn) {
@@ -7621,8 +7689,255 @@
             var section = btn.closest('.gym-ruta-section');
             delete card.dataset.rutaCoords;
             delete card.dataset.rutaNombre;
+            delete card.dataset.rutaUrl;
+            delete card.dataset.rutaCsv;
             _gymRutaEmptyState(section, card);
-            if (typeof guardarDatos === 'function') guardarDatos();
+            if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+            else if (typeof guardarDatos === 'function') guardarDatos();
+        }
+
+        function _gymProcesarCsvEstadisticas(input, card, section) {
+            if (!input.files || input.files.length === 0) return;
+            var file = input.files[0];
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                var text = ev.target.result;
+                card.dataset.rutaCsv = text;
+                if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+                else if (typeof guardarDatos === 'function') guardarDatos();
+                _gymRenderStatsCSV(section, text);
+            };
+            reader.readAsText(file, 'UTF-8');
+            input.value = '';
+        }
+
+        function _gymParsarCsvRuta(text) {
+            var lines = text.trim().split(/\r?\n/);
+            if (lines.length < 2) return null;
+            function parseRow(line) {
+                var result = [], inQ = false, val = '';
+                for (var i = 0; i < line.length; i++) {
+                    var c = line[i];
+                    if (c === '"') { inQ = !inQ; }
+                    else if (c === ',' && !inQ) { result.push(val.trim()); val = ''; }
+                    else { val += c; }
+                }
+                result.push(val.trim());
+                return result;
+            }
+            var headers = parseRow(lines[0]);
+            var laps = [], resumen = null;
+            for (var i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                var row = parseRow(lines[i]);
+                var obj = {};
+                headers.forEach(function(h, idx) { obj[h] = row[idx] || ''; });
+                if (obj['Vueltas'] === 'Resumen') resumen = obj;
+                else laps.push(obj);
+            }
+            return { laps: laps, resumen: resumen };
+        }
+
+        function _gymRenderStatsCSV(section, csvText) {
+            var existing = section.querySelector('.gym-ruta-stats');
+            if (existing) existing.remove();
+            var data = _gymParsarCsvRuta(csvText);
+            if (!data || data.laps.length === 0) return;
+            var laps = data.laps, resumen = data.resumen;
+            var statsDiv = document.createElement('div');
+            statsDiv.className = 'gym-ruta-stats';
+            statsDiv.style.cssText = 'margin-top:10px;';
+            if (resumen) {
+                var pills = document.createElement('div');
+                pills.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;';
+                [
+                    { icon:'route',                 label:'Distancia', value:(parseFloat(resumen['Distancia']||0)).toFixed(2)+' km', color:'#eab308' },
+                    { icon:'local_fire_department', label:'Calorías',   value:(resumen['Calorías']||'—')+' kcal',                  color:'#f97316' },
+                    { icon:'monitor_heart',         label:'FC media',   value:(resumen['Frecuencia cardiaca media']||'—')+' bpm',  color:'#ef4444' },
+                    { icon:'favorite',              label:'FC máx',     value:(resumen['FC máxima']||'—')+' bpm',                  color:'#f87171' },
+                    { icon:'speed',                 label:'Vel. media', value:(resumen['Velocidad media']||'—')+' km/h',           color:'#22c55e' },
+                    { icon:'north',                 label:'Ascenso',    value:'+'+(resumen['Ascenso total']||'0')+' m',            color:'#60a5fa' }
+                ].forEach(function(p) {
+                    var pill = document.createElement('div');
+                    pill.style.cssText = 'display:flex;align-items:center;gap:4px;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:4px 7px;flex-shrink:0;';
+                    pill.innerHTML = '<span class="material-symbols-rounded" style="font-size:11px;color:'+p.color+';">'+p.icon+'</span>'
+                        +'<span style="color:#64748b;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">'+p.label+'</span>'
+                        +'<span style="color:#f1f5f9;font-size:10px;font-weight:800;">'+p.value+'</span>';
+                    pills.appendChild(pill);
+                });
+                statsDiv.appendChild(pills);
+            }
+            var velValues  = laps.map(function(l){ return parseFloat(l['Velocidad media']||0); });
+            var fcValues   = laps.map(function(l){ return parseFloat(l['Frecuencia cardiaca media']||0); });
+            var tempValues = laps.map(function(l){ return parseFloat(l['Temperatura media']||0); });
+            var lapLabels  = laps.map(function(l){
+                var t = l['Tiempo acumulado'] || l['Tiempo'] || '';
+                t = t.replace(/\.\d+$/, '');
+                var parts = t.split(':');
+                if (parts.length === 3) return parts[0] + ':' + parts[1];
+                if (parts.length === 2) return parts[0] + ':00';
+                return t;
+            });
+            if (velValues.some(function(v){ return v > 0; }))
+                statsDiv.appendChild(_gymSvgAreaChart(lapLabels, velValues, 'Velocidad media', 'km/h', '#22d3ee'));
+            if (fcValues.some(function(v){ return v > 0; }))
+                statsDiv.appendChild(_gymSvgAreaChart(lapLabels, fcValues, 'Frecuencia cardíaca', 'ppm', '#f43f5e'));
+            if (tempValues.some(function(v){ return v > 0; }))
+                statsDiv.appendChild(_gymSvgAreaChart(lapLabels, tempValues, 'Temperatura', '°C', '#94a3b8'));
+            section.appendChild(statsDiv);
+        }
+
+        function _gymSvgAreaChart(labels, values, title, unit, color) {
+            var n = values.length;
+            var wrap = document.createElement('div');
+            wrap.style.cssText = 'margin-bottom:10px;';
+
+            // Title row
+            var titleRow = document.createElement('div');
+            titleRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;padding:0 2px;';
+            titleRow.innerHTML = '<div style="display:flex;align-items:center;gap:5px;">'
+                + '<span style="width:8px;height:8px;border-radius:50%;background:'+color+';display:inline-block;flex-shrink:0;"></span>'
+                + '<span style="color:#94a3b8;font-size:10px;font-weight:700;">'+title+'</span>'
+                + '</div>';
+            wrap.appendChild(titleRow);
+
+            var avg = values.reduce(function(a,b){ return a+b; },0) / n;
+            var maxVal = Math.max.apply(null, values);
+            var minVal = Math.min.apply(null, values);
+            var pad_v  = (maxVal - minVal) * 0.2 || maxVal * 0.1 || 1;
+            var yTop    = maxVal + pad_v;
+            var yBottom = Math.max(0, minVal - pad_v * 0.5);
+            var range   = yTop - yBottom || 1;
+
+            // Fixed viewBox — always fits container via width="100%"
+            var W = 320, H = 110;
+            var padL = 32, padR = 60, padT = 14, padB = 22;
+            var chartW = W - padL - padR;
+            var chartH = H - padT - padB;
+
+            // Density thresholds
+            var labelStep = Math.max(1, Math.ceil(n / 6));
+
+            var NS = 'http://www.w3.org/2000/svg';
+            var svg = document.createElementNS(NS, 'svg');
+            var gradId = 'gcg_' + Math.random().toString(36).slice(2,8);
+            svg.setAttribute('viewBox', '0 0 '+W+' '+H);
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('preserveAspectRatio', 'none');
+            svg.style.cssText = 'background:rgba(10,18,36,0.7);border-radius:10px;border:1px solid rgba(255,255,255,0.07);display:block;';
+
+            // Gradient
+            var defs = document.createElementNS(NS, 'defs');
+            var grad = document.createElementNS(NS, 'linearGradient');
+            grad.setAttribute('id', gradId); grad.setAttribute('x1','0'); grad.setAttribute('y1','0');
+            grad.setAttribute('x2','0'); grad.setAttribute('y2','1');
+            var s1 = document.createElementNS(NS,'stop'); s1.setAttribute('offset','0%'); s1.setAttribute('stop-color',color); s1.setAttribute('stop-opacity','0.4');
+            var s2 = document.createElementNS(NS,'stop'); s2.setAttribute('offset','100%'); s2.setAttribute('stop-color',color); s2.setAttribute('stop-opacity','0.02');
+            grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad); svg.appendChild(defs);
+
+            // Clip rect
+            var clipId = 'gclip_'+gradId;
+            var clipEl = document.createElementNS(NS,'clipPath'); clipEl.setAttribute('id',clipId);
+            var clipRect = document.createElementNS(NS,'rect');
+            clipRect.setAttribute('x',padL); clipRect.setAttribute('y',padT);
+            clipRect.setAttribute('width',chartW); clipRect.setAttribute('height',chartH);
+            clipEl.appendChild(clipRect); defs.appendChild(clipEl);
+
+            // Grid lines
+            [0, 0.5, 1].forEach(function(t) {
+                var y = padT + chartH * (1-t);
+                var gl = document.createElementNS(NS,'line');
+                gl.setAttribute('x1',padL); gl.setAttribute('x2',W-padR);
+                gl.setAttribute('y1',y); gl.setAttribute('y2',y);
+                gl.setAttribute('stroke','rgba(255,255,255,0.06)'); gl.setAttribute('stroke-width','1');
+                svg.appendChild(gl);
+                var lv = document.createElementNS(NS,'text');
+                lv.setAttribute('x',padL-5); lv.setAttribute('y',y+3.5);
+                lv.setAttribute('text-anchor','end'); lv.setAttribute('fill','#475569');
+                lv.setAttribute('font-size','8'); lv.setAttribute('font-family','Manrope,sans-serif');
+                lv.textContent = Math.round(yBottom + range*t);
+                svg.appendChild(lv);
+            });
+
+            // Point coords
+            var pts = values.map(function(v,i){
+                var x = padL + (n===1 ? chartW/2 : chartW*i/(n-1));
+                var y = padT + chartH*(1-(v-yBottom)/range);
+                return [x, Math.max(padT, Math.min(padT+chartH, y))];
+            });
+
+            // Average dashed line
+            var avgY = padT + chartH*(1-(avg-yBottom)/range);
+            avgY = Math.max(padT, Math.min(padT+chartH, avgY));
+            var avgLine = document.createElementNS(NS,'line');
+            avgLine.setAttribute('x1',padL); avgLine.setAttribute('x2',W-padR-2);
+            avgLine.setAttribute('y1',avgY); avgLine.setAttribute('y2',avgY);
+            avgLine.setAttribute('stroke','rgba(255,255,255,0.2)'); avgLine.setAttribute('stroke-width','1');
+            avgLine.setAttribute('stroke-dasharray','3 3');
+            svg.appendChild(avgLine);
+
+            // Catmull-Rom smooth bezier — always, for all n
+            function buildPath() {
+                if (n === 1) return 'M '+pts[0][0]+' '+pts[0][1];
+                var d = 'M '+pts[0][0]+' '+pts[0][1];
+                var tension = 0.3;
+                for (var i = 1; i < n; i++) {
+                    var p0 = pts[Math.max(0, i-2)];
+                    var p1 = pts[i-1];
+                    var p2 = pts[i];
+                    var p3 = pts[Math.min(n-1, i+1)];
+                    var cp1x = p1[0] + (p2[0] - p0[0]) * tension;
+                    var cp1y = p1[1] + (p2[1] - p0[1]) * tension;
+                    var cp2x = p2[0] - (p3[0] - p1[0]) * tension;
+                    var cp2y = p2[1] - (p3[1] - p1[1]) * tension;
+                    d += ' C '+cp1x+' '+cp1y+' '+cp2x+' '+cp2y+' '+p2[0]+' '+p2[1];
+                }
+                return d;
+            }
+            var linePath = buildPath();
+            var bottomY = padT + chartH;
+
+            // Area fill
+            var areaPath = document.createElementNS(NS,'path');
+            areaPath.setAttribute('d', linePath+' L '+pts[n-1][0]+' '+bottomY+' L '+pts[0][0]+' '+bottomY+' Z');
+            areaPath.setAttribute('fill','url(#'+gradId+')');
+            areaPath.setAttribute('clip-path','url(#'+clipId+')');
+            svg.appendChild(areaPath);
+
+            // Stroke line
+            var strokeEl = document.createElementNS(NS,'path');
+            strokeEl.setAttribute('d', linePath);
+            strokeEl.setAttribute('fill','none');
+            strokeEl.setAttribute('stroke',color);
+            strokeEl.setAttribute('stroke-width', n > 50 ? '1.5' : '2');
+            strokeEl.setAttribute('stroke-linejoin','round');
+            strokeEl.setAttribute('stroke-linecap','round');
+            svg.appendChild(strokeEl);
+
+
+
+            // X-axis labels — sparse for dense charts, always show first+last
+            pts.forEach(function(p,i){
+                if (i % labelStep !== 0 && i !== n-1) return;
+                var xl = document.createElementNS(NS,'text');
+                xl.setAttribute('x',p[0]); xl.setAttribute('y',H-5);
+                xl.setAttribute('text-anchor','middle'); xl.setAttribute('fill','#475569');
+                xl.setAttribute('font-size','6.5'); xl.setAttribute('font-family','Manrope,sans-serif');
+                xl.setAttribute('font-weight','600');
+                xl.textContent = labels[i];
+                svg.appendChild(xl);
+            });
+
+            // Average label (pinned right, inside padR)
+            var at = document.createElementNS(NS,'text');
+            at.setAttribute('x', W-padR+4); at.setAttribute('y', avgY+3);
+            at.setAttribute('text-anchor','start'); at.setAttribute('fill','rgba(255,255,255,0.3)');
+            at.setAttribute('font-size','7'); at.setAttribute('font-family','Manrope,sans-serif');
+            at.textContent = 'Med. '+avg.toFixed(1)+' '+unit;
+            svg.appendChild(at);
+
+            wrap.appendChild(svg);
+            return wrap;
         }
 
         function _gymCargarLeaflet(cb) {
