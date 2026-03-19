@@ -1,0 +1,12 @@
+{
+  "appId": "com.seniorplaza.app",
+  "appName": "seniorplazapp",
+  "webDir": "www",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "backgroundColor": "#00000000"
+    }
+  }
+}

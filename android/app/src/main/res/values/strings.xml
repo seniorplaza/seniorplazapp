@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">seniorplazapp</string>
+    <string name="title_activity_main">seniorplazapp</string>
+    <string name="package_name">com.seniorplaza.app</string>
+    <string name="custom_url_scheme">com.seniorplaza.app</string>
+</resources>
