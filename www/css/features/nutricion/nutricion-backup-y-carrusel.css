@@ -27,10 +27,19 @@
     border-bottom: none !important;
 }
 @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+@keyframes cloudSyncSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 @keyframes scanLine {
     0%   { top: 10%; opacity: 1; }
     50%  { top: 85%; opacity: 1; }
     100% { top: 10%; opacity: 1; }
+}
+.cloud-sync-status-icon {
+    display: block;
+    line-height: 1;
+    will-change: transform;
 }
 .backup-icon {
     width:44px;height:44px;border-radius:12px;border:1px solid;

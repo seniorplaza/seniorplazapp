@@ -172,7 +172,7 @@
         if (icon) {
             icon.textContent = variant.icon;
             icon.style.color = variant.iconColor;
-            icon.style.animation = mode === 'syncing' ? 'spin 1.1s linear infinite' : '';
+            icon.style.animation = mode === 'syncing' ? 'cloudSyncSpin 1.1s linear infinite' : '';
         }
         if (pill) {
             pill.textContent = mode === 'syncing' ? 'SYNC' : 'AUTO';
