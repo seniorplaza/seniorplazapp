@@ -143,7 +143,7 @@ function abrirEditarHabito(id) {
     window._editHabitoEtiqueta = habito.etiqueta || null;
 
     document.getElementById('editHabitoNombre').value = habito.nombre || '';
-    const _ehd = document.getElementById('editHabitoDesc'); _ehd.value = habito.desc || ''; setTimeout(()=>{ _ehd.style.height='auto'; _ehd.style.height=_ehd.scrollHeight+'px'; },0);
+    const _ehd = document.getElementById('editHabitoDesc'); _ehd.value = habito.nota || habito.desc || ''; setTimeout(()=>{ _ehd.style.height='auto'; _ehd.style.height=_ehd.scrollHeight+'px'; },0);
     document.getElementById('editHabitoFechaInicio').value = habito.fechaInicio || '';
     document.getElementById('editHabitoFechaFin').value = habito.fechaFin || '';
     _calAct2ActualizarDisp('editHabitoFechaInicio');
@@ -207,7 +207,9 @@ function guardarEditarHabito() {
     const nombre = document.getElementById('editHabitoNombre').value.trim();
     if (!nombre) { document.getElementById('editHabitoNombre').style.borderColor='#ef4444'; return; }
     habito.nombre = nombre;
-    habito.desc = document.getElementById('editHabitoDesc').value.trim();
+    const notaVal = document.getElementById('editHabitoDesc').value.trim();
+    habito.nota = notaVal;
+    habito.desc = notaVal;
     habito.frecuencia = window._editHabitoFrecSel;
     habito.diasSemana = window._editHabitoFrecSel === 'dias_semana' ? [...window._editHabitoDiasSel] : habito.diasSemana;
     habito.fechaInicio = document.getElementById('editHabitoFechaInicio').value || habito.fechaInicio;

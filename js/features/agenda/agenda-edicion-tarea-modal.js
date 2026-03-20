@@ -74,7 +74,7 @@ function abrirEditarTarea(id, tipo) {
     const color = esRecurrente ? '#60a5fa' : '#f59e0b';
     document.getElementById('editTareaTituloHeader').textContent = esRecurrente ? 'Editar tarea recurrente' : 'Editar tarea';
     document.getElementById('editTareaNombre').value = item.nombre || '';
-    const _etd = document.getElementById('editTareaDesc'); _etd.value = item.desc || ''; setTimeout(()=>{ _etd.style.height='auto'; _etd.style.height=_etd.scrollHeight+'px'; },0);
+    const _etd = document.getElementById('editTareaDesc'); _etd.value = item.nota || item.desc || ''; setTimeout(()=>{ _etd.style.height='auto'; _etd.style.height=_etd.scrollHeight+'px'; },0);
     window._editTareaSubitems = (item.subitems || []).map(s => ({ ...s }));
     _editTareaRenderSubitems();
     window._editTareaRecs = [...(item.recordatorios || (item.hora ? [item.hora] : []))];
@@ -149,7 +149,9 @@ function guardarEditarTarea() {
     if (!item) return;
 
     item.nombre = document.getElementById('editTareaNombre').value.trim() || item.nombre;
-    item.desc     = document.getElementById('editTareaDesc').value.trim();
+    const notaVal = document.getElementById('editTareaDesc').value.trim();
+    item.nota = notaVal;
+    item.desc = notaVal;
     item.subitems = window._editTareaSubitems.length ? window._editTareaSubitems : undefined;
 
     item.recordatorios = [...(window._editTareaRecs || [])];

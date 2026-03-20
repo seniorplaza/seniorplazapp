@@ -1,16 +1,40 @@
 ﻿
     window._diarioLongPressTimers = {};
+    window._diarioToggleTouchTs = 0;
     function _diarioLongPress(uid, e) {
         if (window.innerWidth >= 640) return;
         e.preventDefault();
     }
-    window._diarioToggleDesc = function(uid) {
-        if (window.innerWidth >= 640) return;
+    function _diarioDebeIgnorarClick(event) {
+        if (!event) return false;
+        if (event.type === 'touchend') {
+            window._diarioToggleTouchTs = Date.now();
+            return false;
+        }
+        return event.type === 'click' && (Date.now() - (window._diarioToggleTouchTs || 0)) < 450;
+    }
+    window._diarioToggleDesc = function(uid, event) {
+        if (_diarioDebeIgnorarClick(event)) return;
         const descEl = document.getElementById(uid + '_desc');
         if (!descEl) return;
+        const allowAnyWidth = descEl.getAttribute('data-desc-any-width') === '1';
+        if (window.innerWidth >= 640 && !allowAnyWidth) return;
         const isOpen = descEl.style.display !== 'none' && descEl.style.display !== '';
         descEl.style.display = isOpen ? 'none' : 'block';
 
+    };
+    window._diarioToggleDescCard = function(event, uid) {
+        if (!event) return;
+        const target = event.target;
+        if (!target) return;
+        if (target.closest('button, input, textarea, select, label, a')) return;
+        if (target.closest('[data-drag-handle-mobile], [data-drag-handle]')) return;
+        if (_diarioDebeIgnorarClick(event)) return;
+        const descEl = document.getElementById(uid + '_desc');
+        if (!descEl) return;
+        const allowAnyWidth = descEl.getAttribute('data-desc-any-width') === '1';
+        if (window.innerWidth >= 640 && !allowAnyWidth) return;
+        _diarioToggleDesc(uid);
     };
     function _lockShakeDiario(btn) {
         if (btn.classList.contains('lock-shake')) return;
