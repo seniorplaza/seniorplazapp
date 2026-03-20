@@ -1182,7 +1182,7 @@ function mostrarCelebracionRacha(dias, svgMedalla, nombreHabito) {
     overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);opacity:0;transition:opacity 0.3s;padding:24px;box-sizing:border-box;';
 
     overlay.innerHTML = `
-    <div id="_celebracionCard" style="background:rgba(15,23,42,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:320px;overflow:hidden;transform:scale(0.85) translateY(30px);transition:transform 0.35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 24px 60px rgba(0,0,0,0.5);">
+    <div id="_celebracionCard" style="background:linear-gradient(180deg,rgba(30,41,59,0.58) 0%,rgba(15,23,42,0.72) 100%);border:1px solid rgba(148,163,184,0.18);border-radius:28px;width:100%;max-width:320px;overflow:hidden;transform:scale(0.85) translateY(30px);transition:transform 0.35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 24px 60px rgba(0,0,0,0.42),inset 0 1px 0 rgba(255,255,255,0.08);backdrop-filter:blur(26px) saturate(165%);-webkit-backdrop-filter:blur(26px) saturate(165%);">
       <div style="padding:22px 24px 14px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
         <div style="font-size:16px;font-weight:700;color:white;letter-spacing:0.01em;">¡Bien hecho!</div>
       </div>
@@ -1775,6 +1775,10 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         ? `<svg viewBox="${_catSvgD.vb}" width="21" height="21" style="fill:white;display:block;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">${_catSvgD.svg}</svg>`
         : `<span class="material-symbols-rounded" style="color:white;font-size:21px;pointer-events:none;">${catIcono}</span>`;
 
+    const itemDesc = (item.nota && String(item.nota).trim())
+        ? String(item.nota).trim()
+        : ((item.desc && String(item.desc).trim()) ? String(item.desc).trim() : '');
+
     const _recs = (item.recordatorios && item.recordatorios.length) ? item.recordatorios : (item.hora ? [item.hora] : []);
     const horasBadges = _recs.map(r => {
         const [hh,mm] = r.split(':').map(Number);
@@ -1787,10 +1791,15 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         return `<span style="color:white;font-size:10px;font-weight:700;background:${bg};border:1.5px solid ${border};border-radius:6px;padding:2px 7px;white-space:nowrap;flex-shrink:0;">${r}</span>`;
     }).join('');
 
-    const subitemsStr = (item.subitems && item.subitems.length) ? `<div style="display:flex;flex-direction:column;gap:4px;">${item.subitems.map((s,i) => `<div style="display:inline-flex;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:50%;border:2px solid ${s.completado?catColor:catColor+'88'};background:${s.completado?catColor:'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;cursor:pointer;" onclick="event.stopPropagation();_tryToggleSubitem(event,'${item.id}','${tipo}',${i},${!s.completado},${esFechaFutura})">${s.completado?'<span class="material-symbols-rounded" style="color:white;font-size:13px;">check</span>':''}</div><span style="color:${s.completado?'#475569':'#cbd5e1'};font-size:12px;text-decoration:${s.completado?'line-through':'none'};">${s.texto}</span></div>`).join('')}</div>` : '';
+    const subitemsStr = (item.subitems && item.subitems.length) ? `<div style="display:flex;flex-direction:column;gap:4px;">${item.subitems.map((s,i) => `<div style="display:inline-flex;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:50%;border:2px solid ${s.completado?catColor:catColor+'88'};background:${s.completado?catColor:'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;cursor:pointer;" onclick="event.stopPropagation();_tryToggleSubitem(event,'${item.id}','${tipo}',${i},${!s.completado},${esFechaFutura})" ontouchend="event.stopPropagation();">${s.completado?'<span class="material-symbols-rounded" style="color:white;font-size:13px;">check</span>':''}</div><span style="color:${s.completado?'#475569':'#cbd5e1'};font-size:12px;text-decoration:${s.completado?'line-through':'none'};">${s.texto}</span></div>`).join('')}</div>` : '';
 
     const flagBadge = (prioridad !== undefined && totalItems !== undefined) ? _getPrioridadFlag(prioridad, totalItems) : '';
-    const uid = 'di_' + item.id + '_' + tipo;
+    const scopePrefix = viewDate ? 'di' : 'ta';
+    const uid = scopePrefix + '_' + item.id + '_' + tipo;
+    const descAnyWidth = viewDate ? '0' : '1';
+    const descAttrs = descAnyWidth === '1'
+        ? 'data-desc-any-width="1"'
+        : 'data-desc-any-width="0" data-mobile-only="1"';
     const checkOnclick = esFechaFutura ? '_lockShakeDiario(this)' : ('actToggleCompletado(\'' + item.id + '\',\'' + tipo + '\',this)');
     const checkBorder = esFechaFutura ? 'rgba(71,85,105,0.5)' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'#f59e0b':'rgba(71,85,105,0.5)') : (completado?'#10b981':'rgba(71,85,105,0.5)'));
     const checkBg = esFechaFutura ? 'transparent' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'rgba(245,158,11,0.15)':'transparent') : (completado?'#10b981':'transparent'));
@@ -1801,10 +1810,10 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
               : estadoTarea==='no_completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">close</span>'
               : estadoTarea==='pendiente' ? '<span class="material-symbols-rounded" style="color:#f59e0b;font-size:15px;">schedule</span>' : '')
             : (completado ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>' : ''));
-    const checkBtn = '<button onclick="' + checkOnclick + '" style="width:30px;height:30px;border-radius:50%;border:2px solid ' + checkBorder + ';background:' + checkBg + ';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:1;box-shadow:none;">' + checkInner + '</button>';
-    const moreBtn = '<button onclick="_abrirMenuDiarioItem(event,\'' + item.id + '\',\'' + tipo + '\')" style="background:none;border:none;color:#475569;cursor:pointer;padding:2px;display:flex;align-items:center;border-radius:6px;" onmouseover="this.style.color=\'#94a3b8\'" onmouseout="this.style.color=\'#475569\'"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button>';
+    const checkBtn = '<button onclick="event.stopPropagation();' + checkOnclick + '" ontouchend="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;border:2px solid ' + checkBorder + ';background:' + checkBg + ';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:1;box-shadow:none;">' + checkInner + '</button>';
+    const moreBtn = '<button onclick="event.stopPropagation();_abrirMenuDiarioItem(event,\'' + item.id + '\',\'' + tipo + '\')" ontouchend="event.stopPropagation();" style="background:none;border:none;color:#475569;cursor:pointer;padding:2px;display:flex;align-items:center;border-radius:6px;" onmouseover="this.style.color=\'#94a3b8\'" onmouseout="this.style.color=\'#475569\'"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button>';
 
-    return `<div data-drag-id="${item.id}" data-drag-tipo="${tipo}" id="${uid}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2);border-radius:14px;padding:13px 16px;margin-bottom:8px;transition:all 0.15s;" oncontextmenu="_diarioLongPress('${uid}',event)">
+    return `<div data-drag-id="${item.id}" data-drag-tipo="${tipo}" data-desc-any-width="${descAnyWidth}" id="${uid}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2);border-radius:14px;padding:13px 16px;margin-bottom:8px;transition:all 0.15s;" oncontextmenu="_diarioLongPress('${uid}',event)" onclick="_diarioToggleDescCard(event,'${uid}')" ontouchend="_diarioToggleDescCard(event,'${uid}')">
         <div style="display:flex;align-items:center;gap:12px;">
             <span data-drag-handle class="material-symbols-rounded diario-item-desktop" style="font-size:20px;color:#334155;cursor:grab;flex-shrink:0;touch-action:none;user-select:none;" id="${uid}_dh_desktop">drag_indicator</span>
             <div data-drag-handle-mobile style="width:42px;height:42px;border-radius:12px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
@@ -1817,7 +1826,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                             <span style="color:${completado?'#475569':'#f1f5f9'};font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:${completado?'line-through':'none'};">${item.nombre}</span>
                             ${item.etiqueta ? `<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;background:${catColor}22;color:${catColor};border:1px solid ${catColor}55;">${item.etiqueta}</span>` : ''}
                         </div>
-                        ${item.desc ? `<div style="color:#64748b;font-size:11px;font-style:italic;margin-top:2px;word-break:break-word;">${item.desc}</div>` : ''}
+                        ${itemDesc ? `<div style="color:#64748b;font-size:11px;font-style:italic;margin-top:2px;word-break:break-word;">${itemDesc}</div>` : ''}
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
                         ${flagBadge}
@@ -1828,7 +1837,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                     </div>
                 </div>
             </div>
-            <div class="diario-item-mobile" style="flex:1;min-width:0;display:none;flex-direction:column;gap:0;" onclick="_diarioToggleDesc('${uid}')">
+            <div class="diario-item-mobile" style="flex:1;min-width:0;display:none;flex-direction:column;gap:0;" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)">
                 <span style="color:${completado?'#475569':'#f1f5f9'};font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:${completado?'line-through':'none'};cursor:pointer;-webkit-tap-highlight-color:transparent;">${item.nombre}</span>
                 ${(horasBadges || item.etiqueta) ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin-top:2px;">${horasBadges}${item.etiqueta ? `<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;background:${catColor}22;color:${catColor};border:1px solid ${catColor}55;">${item.etiqueta}</span>` : ''}</div>` : ''}
             </div>
@@ -1839,7 +1848,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                 ${checkBtn}
             </div>
         </div>
-        ${(item.desc || (item.subitems && item.subitems.length)) ? `<div id="${uid}_desc" onclick="_diarioToggleDesc('${uid}')" data-mobile-only="1" style="display:none;margin-top:6px;margin-left:54px;">${item.desc ? `<span style="color:#64748b;font-size:11px;font-style:italic;display:block;word-break:break-word;">${item.desc}</span>` : ''}${subitemsStr ? `<div style="margin-top:${item.desc?'8px':'0'};">${subitemsStr}</div>` : ''}</div>` : ''}
+        ${(itemDesc || (item.subitems && item.subitems.length)) ? `<div id="${uid}_desc" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ${descAttrs} style="display:none;margin-top:6px;margin-left:54px;">${itemDesc ? `<span style="color:#64748b;font-size:11px;font-style:italic;display:block;word-break:break-word;">${itemDesc}</span>` : ''}${subitemsStr ? `<div style="margin-top:${itemDesc?'8px':'0'};">${subitemsStr}</div>` : ''}</div>` : ''}
         ${subitemsStr ? `<div class="diario-item-desktop" style="margin-top:16px;margin-left:32px;">${subitemsStr}</div>` : ''}
     </div>`;
 }

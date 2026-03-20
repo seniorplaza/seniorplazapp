@@ -1,5 +1,67 @@
 ﻿
     function _localDateStr(d) { const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; }
+
+    (function _initVibrationBridge() {
+        if (window.__vibrationBridgeInit) return;
+        window.__vibrationBridgeInit = true;
+
+        function normalizePattern(pattern) {
+            if (Array.isArray(pattern)) return pattern.map(function(n){ return Number(n) || 0; });
+            if (typeof pattern === 'number') return [Number(pattern) || 0];
+            return [20];
+        }
+
+        function nativeVibrate(pattern) {
+            try {
+                var bridge = window.AndroidNotificador;
+                if (!bridge) return false;
+                var p = normalizePattern(pattern);
+                if (typeof bridge.vibrarPatron === 'function') {
+                    bridge.vibrarPatron(JSON.stringify(p));
+                    return true;
+                }
+                if (typeof bridge.vibrar === 'function') {
+                    bridge.vibrar(Math.max(1, Number(p[0]) || 20));
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        var originalVibrate = null;
+        try {
+            if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+                originalVibrate = navigator.vibrate.bind(navigator);
+            }
+        } catch (e) {}
+
+        function vibrateBridge(pattern) {
+            var ok = false;
+            if (originalVibrate) {
+                try { ok = !!originalVibrate(pattern); } catch (e) { ok = false; }
+            }
+            if (ok) return true;
+            return nativeVibrate(pattern);
+        }
+
+        window._appVibrate = vibrateBridge;
+
+        try {
+            if (typeof Navigator !== 'undefined' && Navigator.prototype) {
+                Navigator.prototype.vibrate = function(pattern) {
+                    return vibrateBridge(pattern);
+                };
+            }
+        } catch (e) {}
+
+        try {
+            if (typeof navigator !== 'undefined') {
+                navigator.vibrate = function(pattern) {
+                    return vibrateBridge(pattern);
+                };
+            }
+        } catch (e) {}
+    })();
     function toggleFinanzasDropdown(button) {
         const dropdown = document.getElementById('finanzasDropdown');
         const isOpen = dropdown.classList.contains('show');
