@@ -8,8 +8,12 @@
   "plugins": {
     "StatusBar": {
       "overlaysWebView": true,
-      "style": "DARK",
+      "style": "LIGHT",
       "backgroundColor": "#00000000"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_notif_logo",
+      "iconColor": "#60a5fa"
     }
   }
 }

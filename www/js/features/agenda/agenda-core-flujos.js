@@ -2643,7 +2643,7 @@ window._timePickerHora = null;
 
 function abrirTimePickerRecordatorio() {
     const now = new Date();
-    let h = now.getHours(), m = Math.floor(now.getMinutes()/5)*5;
+    let h = now.getHours(), m = now.getMinutes();
     if (!document.getElementById('modalTimePicker')) {
         const el = document.createElement('div');
         el.id = 'modalTimePicker';
@@ -2679,11 +2679,11 @@ function abrirTimePickerRecordatorio() {
                 <div style="font-size:42px;font-weight:900;color:rgba(255,255,255,0.2);padding:24px 8px 0;line-height:1;align-self:center;">:</div>
                 <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
                     <div style="color:#475569;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Min</div>
-                    <button onclick="tpAjustar('m',5)" style="width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <button onclick="tpAjustar('m',1)" style="width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                         <span class="material-symbols-rounded" style="font-size:22px;">expand_less</span>
                     </button>
                     <div id="tpMin" style="font-size:32px;font-weight:900;color:white;width:70px;text-align:center;padding:8px 0;font-variant-numeric:tabular-nums;"></div>
-                    <button onclick="tpAjustar('m',-5)" style="width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <button onclick="tpAjustar('m',-1)" style="width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                         <span class="material-symbols-rounded" style="font-size:22px;">expand_more</span>
                     </button>
                 </div>
