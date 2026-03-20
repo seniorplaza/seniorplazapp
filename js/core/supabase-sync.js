@@ -729,7 +729,7 @@
         if (!activeUser || initialSyncRunning) return;
 
         initialSyncRunning = true;
-        setStatus('syncing', 'Preparando sincronizacion...', 'Comparando el dispositivo con GitHub Pages y Supabase.');
+        setStatus('syncing', 'Preparando sincronizacion...', 'Trayendo cambios de la nube.');
 
         try {
             const [remoteRow, localSnapshot] = await Promise.all([
@@ -740,27 +740,26 @@
             if (!remoteRow || !remoteRow.snapshot) {
                 initialSyncDone = true;
                 if (hasUsableSnapshot(localSnapshot)) {
-                    await pushLocalSnapshot('bootstrap-cloud');
+                    setStatus('synced', 'Sesion lista', 'La nube esta preparada. Usa el boton SUBIR para guardar tus cambios.');
                 } else {
                     setStatus('auth', 'Sesion lista', 'La nube esta preparada. Empezara a sincronizar cuando haya datos.');
                 }
                 return;
             }
 
+            // AL INICIAR: SIEMPRE descargar de la nube primero (NO subir automáticamente)
+            // Esto evita perder cambios que hiciste en la web
             const localStamp = getSnapshotStamp(localSnapshot);
             const remoteStamp = getSnapshotStamp(remoteRow.snapshot, remoteRow.updated_at);
 
-            if (!hasUsableSnapshot(localSnapshot) || remoteStamp > localStamp + 1000) {
+            if (!hasUsableSnapshot(localSnapshot) || remoteStamp >= localStamp) {
+                // Local está vacio o es más viejo: descargar de la nube
                 await applyRemoteRow(remoteRow, 'initial-remote-wins');
                 return;
             }
 
-            if (localStamp > remoteStamp + 1000) {
-                initialSyncDone = true;
-                await pushLocalSnapshot('initial-local-wins');
-                return;
-            }
-
+            // Si local es más nuevo, solo sincronizar hashes pero NO subir
+            // (el usuario manualmente puede usar el boton SUBIR si lo desea)
             lastSyncedHash = remoteRow.snapshot_hash || '';
             lastSeenRemoteHash = lastSyncedHash;
             if (hasUsableSnapshot(localSnapshot)) {
@@ -774,9 +773,9 @@
                 lastSyncedAt: remoteRow.updated_at || new Date().toISOString(),
                 lastDevice: remoteRow.updated_by || 'cloud',
                 lastSyncedHash: lastSyncedHash,
-                lastSyncMode: 'already-aligned'
+                lastSyncMode: 'ready-for-manual-sync'
             });
-            setStatus('synced', 'Sincronizacion activa', 'La web y este dispositivo ya estaban alineados.');
+            setStatus('synced', 'Listo para sincronizar', 'Tienes cambios locales. Usa SUBIR para enviarlos a la nube o bajar los cambios de la web.');
         } catch (error) {
             setStatus('error', 'No pude arrancar la sincronizacion', friendlyErrorMessage(error));
         } finally {
@@ -964,8 +963,10 @@
         const originalSave = window.guardarDatos;
         const wrappedSave = function () {
             const result = originalSave.apply(this, arguments);
+            // SYNC AUTOMÁTICA DESACTIVADA - Solo se sincroniza con botones manuales
+            // Los cambios se guardan en local pero no suben automáticamente
             if (!applyingRemote) {
-                scheduleSync('auto-local', CONFIG.syncDelayMs);
+                // scheduleSync('auto-local', CONFIG.syncDelayMs);
             }
             return result;
         };
@@ -1013,8 +1014,13 @@
 
         window.addEventListener('online', function () {
             if (activeUser) {
-                setStatus('syncing', 'Conexion recuperada', 'Reanudando la sincronizacion con Supabase...');
-                scheduleSync('online', 600);
+                setStatus('syncing', 'Conexion recuperada', 'Conectando con la nube...');
+                // Permite sync inicial cuando vuelve conexión - necesario para auth
+                if (initialSyncDone) {
+                    // Ya inicializado, no re-sincronizar automáticamente
+                } else {
+                    scheduleSync('online', 600);
+                }
             } else {
                 setStatus('auth', 'Login requerido', 'La conexion ha vuelto. Inicia sesion para sincronizar.');
             }
@@ -1027,7 +1033,8 @@
         document.addEventListener('visibilitychange', function () {
             if (!document.hidden && activeUser) {
                 hookSavePipeline();
-                scheduleSync('visibility-return', 900);
+                // No sincronizar automáticamente - solo manual
+                // scheduleSync('visibility-return', 900);
             }
         });
     }
