@@ -588,6 +588,7 @@
         /* Efecto glassmorphism para tarjetas grandes */
         .bg-slate-900\/50,
         [class*="bg-gradient-to"] {
+            backdrop-filter: blur(8px) saturate(120%) !important;
             position: relative;
             background-clip: padding-box !important;
             overflow: hidden;

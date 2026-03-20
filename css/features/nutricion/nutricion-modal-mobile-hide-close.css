@@ -1,5 +1,0 @@
-﻿
-                    @media (max-width: 639px) {
-                        button[onclick="cerrarModalComida()"]:not(.btn-add) { display: none !important; }
-                    }
-                

@@ -5,7 +5,8 @@
   "main": "sw.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "sync": "npx cap copy android"
+    "sync": "npx cap copy android",
+    "watch": "chokidar \"www/**/*\" -c \"npm run sync\""
   },
   "repository": {
     "type": "git",
@@ -25,5 +26,8 @@
     "@capacitor/core": "^8.2.0",
     "@capacitor/local-notifications": "^8.0.2",
     "@capacitor/status-bar": "^8.0.1"
+  },
+  "devDependencies": {
+    "chokidar-cli": "^3.0.0"
   }
 }
