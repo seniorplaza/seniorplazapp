@@ -32,6 +32,7 @@
     let applyingRemote = false;
     let lastSyncedHash = '';
     let lastSeenRemoteHash = '';
+    let lastLocalSnapshotHash = '';
     const uploadCache = new Map();
     const downloadCache = new Map();
 
@@ -386,6 +387,42 @@
         return sha256HexFromBytes(bytes);
     }
 
+    function stableDataUrlFingerprint(value) {
+        const raw = String(value || '');
+        return '__dataurl__:' + raw.length + ':' + raw.slice(0, 48) + ':' + raw.slice(-32);
+    }
+
+    function normalizeSnapshotForHash(value, isRoot) {
+        if (Array.isArray(value)) {
+            return value.map(function (entry) {
+                return normalizeSnapshotForHash(entry, false);
+            });
+        }
+
+        if (value && typeof value === 'object') {
+            const out = {};
+            const keys = Object.keys(value).sort();
+            for (let index = 0; index < keys.length; index += 1) {
+                const key = keys[index];
+                // "fecha" se genera en cada guardado local y no representa un cambio real de datos.
+                if (isRoot && key === 'fecha') continue;
+                out[key] = normalizeSnapshotForHash(value[key], false);
+            }
+            return out;
+        }
+
+        if (isDataUrl(value)) {
+            return stableDataUrlFingerprint(value);
+        }
+
+        return value;
+    }
+
+    async function computeLocalSnapshotHash(snapshot) {
+        const normalized = normalizeSnapshotForHash(snapshot, true);
+        return sha256HexFromText(JSON.stringify(normalized));
+    }
+
     function isDataUrl(value) {
         return typeof value === 'string' && /^data:[^;]+;base64,/i.test(value);
     }
@@ -550,6 +587,10 @@
             await applySnapshotLocally(restoredSnapshot);
             lastSyncedHash = row.snapshot_hash || await sha256HexFromText(JSON.stringify(row.snapshot));
             lastSeenRemoteHash = lastSyncedHash;
+            try {
+                lastLocalSnapshotHash = await computeLocalSnapshotHash(restoredSnapshot);
+            } catch (error) {
+            }
             initialSyncDone = true;
             saveMeta({
                 lastSyncedAt: row.updated_at || new Date().toISOString(),
@@ -591,9 +632,17 @@
                 return;
             }
 
+            const localHash = await computeLocalSnapshotHash(localSnapshot);
+            if (localHash && localHash === lastLocalSnapshotHash) {
+                initialSyncDone = true;
+                setStatus('synced', 'Sincronizacion activa', 'No habia cambios reales para subir.');
+                return;
+            }
+
             const cloudSnapshot = await serializeSnapshotForCloud(localSnapshot, activeUser.id);
             const cloudHash = await sha256HexFromText(JSON.stringify(cloudSnapshot));
             if (cloudHash === lastSyncedHash) {
+                lastLocalSnapshotHash = localHash;
                 initialSyncDone = true;
                 saveMeta({
                     lastSyncedAt: new Date().toISOString(),
@@ -626,6 +675,7 @@
 
             lastSyncedHash = result.data && result.data.snapshot_hash ? result.data.snapshot_hash : cloudHash;
             lastSeenRemoteHash = lastSyncedHash;
+            lastLocalSnapshotHash = localHash;
             initialSyncDone = true;
             saveMeta({
                 lastSyncedAt: result.data && result.data.updated_at ? result.data.updated_at : nowIso,
@@ -713,6 +763,12 @@
 
             lastSyncedHash = remoteRow.snapshot_hash || '';
             lastSeenRemoteHash = lastSyncedHash;
+            if (hasUsableSnapshot(localSnapshot)) {
+                try {
+                    lastLocalSnapshotHash = await computeLocalSnapshotHash(localSnapshot);
+                } catch (error) {
+                }
+            }
             initialSyncDone = true;
             saveMeta({
                 lastSyncedAt: remoteRow.updated_at || new Date().toISOString(),
@@ -783,6 +839,7 @@
             initialSyncDone = false;
             lastSyncedHash = '';
             lastSeenRemoteHash = '';
+            lastLocalSnapshotHash = '';
             if (realtimeChannel && supabaseClient) {
                 try {
                     await supabaseClient.removeChannel(realtimeChannel);
