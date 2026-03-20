@@ -1062,7 +1062,7 @@ const _MEDALLAS_PNG_B64 = {
 const _MEDALLAS_LABEL = {1:"¡Primer día!",7:"¡1 semana!",15:"¡15 días!",30:"¡1 mes!",60:"¡2 meses!",100:"¡100 días!",200:"¡200 días!",365:"¡1 año!"};
 (function() {
     if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
-    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+    navigator.serviceWorker.register('sw.js?v=20260320b').then(function(reg) {
         window._swReg = reg;
     }).catch(function() {});
 })();
