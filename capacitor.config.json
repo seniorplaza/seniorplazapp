@@ -1,7 +1,10 @@
 {
-  "appId": "com.seniorplaza.app",
+  "appId": "com.seniorplazapk",
   "appName": "seniorplazapp",
   "webDir": "www",
+  "android": {
+    "path": "../seniorplazapk"
+  },
   "plugins": {
     "StatusBar": {
       "overlaysWebView": true,

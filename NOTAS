@@ -1,15 +1,23 @@
+seniorplazapp to seniorplazapk -> npm run sync
+
 Abrir Terminal
 
 CTRL + Ñ
 ______________________________________
 
-Abrir emulador:
+Abrir emulador / LOCAL HOST e IP:
 
 emulator -list-avds
 
 emulator -avd Pixel_9_Pro_XL
 
 adb emu kill
+
+//////////////
+
+python -m http.server 8000 --bind 0.0.0.0
+
+ipconfig | Select-String "IPv4"
 
 ______________________________________
 
