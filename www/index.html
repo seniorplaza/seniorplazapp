@@ -4319,6 +4319,61 @@
         <div style="overflow-y:auto; flex:1;">
             <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
 
+                <div id="backup-cloud-box" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.24);border-radius:14px;padding:14px;position:relative;overflow:hidden;">
+                    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;">
+                        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(30,58,138,0.55),rgba(59,130,246,0.25));display:flex;align-items:center;justify-content:center;border:1px solid rgba(96,165,250,0.25);flex-shrink:0;">
+                            <span id="cloudSyncStatusIcon" class="material-symbols-rounded" style="color:#93c5fd;font-size:20px;">cloud_off</span>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+                                <span style="color:white;font-size:14px;font-weight:700;">Sincronizacion app + web</span>
+                                <span id="cloudSyncBadge" style="padding:4px 8px;border-radius:999px;background:rgba(30,41,59,0.8);border:1px solid rgba(148,163,184,0.2);color:#cbd5e1;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;">LOCAL</span>
+                            </div>
+                            <div id="cloudSyncStatusText" style="color:#cbd5e1;font-size:12px;font-weight:600;">Accede con tu email para activar la sincronizacion entre la app y GitHub Pages.</div>
+                            <div id="cloudSyncStatusDetail" style="color:#64748b;font-size:11px;margin-top:4px;">Tus datos seguiran guardandose en este dispositivo aunque no inicies sesion.</div>
+                        </div>
+                    </div>
+
+                    <div id="cloudSyncLoggedOut">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input id="cloudSyncEmail" type="email" value="seniorplazaml@gmail.com" placeholder="Tu email" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:white;font-size:13px;outline:none;">
+                            <button onclick="cloudSyncEnviarCodigo(this)" style="background:rgba(59,130,246,0.12);border:1px solid rgba(96,165,250,0.45);border-radius:8px;color:#93c5fd;font-size:13px;font-weight:700;padding:8px 14px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.12)'">Enviar codigo</button>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                            <input id="cloudSyncOtp" type="text" inputmode="numeric" maxlength="6" placeholder="Codigo OTP" style="flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:white;font-size:13px;outline:none;letter-spacing:0.2em;">
+                            <button onclick="cloudSyncVerificarCodigo(this)" style="background:rgba(16,185,129,0.12);border:1px solid rgba(52,211,153,0.45);border-radius:8px;color:#6ee7b7;font-size:13px;font-weight:700;padding:8px 16px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.12)'">Entrar</button>
+                        </div>
+                        <div style="color:#64748b;font-size:11px;margin-top:10px;line-height:1.45;">Usaremos OTP por email para que la misma cuenta funcione en tu movil y en la web, sin meter claves secretas dentro de GitHub Pages.</div>
+                    </div>
+
+                    <div id="cloudSyncLoggedIn" style="display:none;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
+                            <div>
+                                <div style="color:#e2e8f0;font-size:12px;font-weight:700;">Sesion activa</div>
+                                <div id="cloudSyncCurrentEmail" style="color:#93c5fd;font-size:12px;margin-top:2px;"></div>
+                            </div>
+                            <span id="cloudSyncLivePill" style="padding:4px 8px;border-radius:999px;background:rgba(30,64,175,0.14);border:1px solid rgba(96,165,250,0.24);color:#93c5fd;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;">AUTO</span>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <button onclick="cloudSyncForcePush(this)" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(96,165,250,0.3);background:rgba(59,130,246,0.12);color:#bfdbfe;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">Subir ahora</button>
+                            <button onclick="cloudSyncForcePull(this)" style="padding:10px 12px;border-radius:10px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.12);color:#a7f3d0;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">Traer nube</button>
+                            <button onclick="cloudSyncCerrarSesion()" style="grid-column:span 2;padding:10px 12px;border-radius:10px;border:1px solid rgba(148,163,184,0.2);background:rgba(15,23,42,0.5);color:#cbd5e1;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">Cerrar sesion cloud</button>
+                        </div>
+
+                        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);display:grid;grid-template-columns:1fr;gap:6px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;">
+                                <span style="color:#64748b;">Ultima sync</span>
+                                <span id="cloudSyncLastSync" style="color:#e2e8f0;font-weight:700;">Todavia sin sincronizar</span>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;">
+                                <span style="color:#64748b;">Dispositivo</span>
+                                <span id="cloudSyncLastDevice" style="color:#94a3b8;font-weight:700;">Sin dispositivo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- GUARDAR COPIA EN LA WEB -->
                 <div id="backup-guardar-box" style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:14px; padding:14px; position:relative; overflow:hidden;">
                     <div id="backup-sweep" style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.35) 50%,transparent 100%);transform:translateX(-100%);pointer-events:none;border-radius:14px;"></div>
@@ -4775,6 +4830,8 @@
 <script src="js/core/data-storage-indexeddb-core.js"></script>
 <script src="js/features/nutricion/nutricion-filterbar-sync.js"></script>
 <script src="js/core/notifications-agenda.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core/supabase-sync.js"></script>
 
 // Inicializar vista y botones de nutrición al cargar
 document.addEventListener('DOMContentLoaded', function() {
