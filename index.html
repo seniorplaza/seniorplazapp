@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js');
+                navigator.serviceWorker.register('sw.js?v=20260320b');
       }
     </script>
     <title>seniorplazapp.</title>
@@ -4830,9 +4830,9 @@
 <script src="js/core/data-storage-indexeddb-core.js"></script>
 <script src="js/features/nutricion/nutricion-filterbar-sync.js"></script>
 <script src="js/core/notifications-agenda.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/core/supabase-sync.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/core/supabase-sync.js?v=20260320b"></script>
+<script>
 // Inicializar vista y botones de nutrición al cargar
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
@@ -4840,6 +4840,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof _nutriActualizarVista === 'function') _nutriActualizarVista();
     }, 300);
 });
+</script>
 
 </body>
 
