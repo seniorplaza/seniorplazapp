@@ -102,11 +102,12 @@ function _ensureNuevoRecordatorioModal() {
                 </div>
                 <div>
                     <div style="color:white;font-size:16px;font-weight:800;line-height:1.2;">Nuevo recordatorio</div>
-                    <div style="color:#64748b;font-size:12px;margin-top:3px;">Escribe solo la nota del recordatorio</div>
+                    <div style="color:#64748b;font-size:12px;margin-top:3px;">Solo titulo y nota para este recordatorio</div>
                 </div>
             </div>
             <button onclick="cerrarNuevoRecordatorio()" style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;">close</span></button>
         </div>
+        <input id="_nuevoRecordatorioTitulo" type="text" rows="1" maxlength="80" placeholder="Titulo del recordatorio" style="width:100%;background:#0f172a;border:1px solid rgba(34,211,238,0.16);border-radius:16px;color:#f1f5f9;font-size:14px;line-height:1.2;padding:14px 16px;outline:none;box-sizing:border-box;margin-bottom:10px;">
         <textarea id="_nuevoRecordatorioTexto" rows="5" maxlength="280" placeholder="Ej: Comprar pilas para el mando" style="width:100%;background:#0f172a;border:1px solid rgba(34,211,238,0.16);border-radius:16px;color:#f1f5f9;font-size:14px;line-height:1.45;padding:14px 16px;outline:none;box-sizing:border-box;resize:none;"></textarea>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;">
             <span style="color:#475569;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Visible siempre en recordatorios</span>
@@ -121,11 +122,13 @@ function _ensureNuevoRecordatorioModal() {
 }
 function abrirNuevoRecordatorio() {
     const modal = _ensureNuevoRecordatorioModal();
+    const inputTitulo = modal.querySelector('#_nuevoRecordatorioTitulo');
     const textarea = modal.querySelector('#_nuevoRecordatorioTexto');
+    if (inputTitulo) inputTitulo.value = '';
     if (textarea) textarea.value = '';
     modal.style.display = 'flex';
     setTimeout(function() {
-        if (textarea) textarea.focus();
+        if (inputTitulo) inputTitulo.focus();
     }, 30);
 }
 function cerrarNuevoRecordatorio() {
@@ -133,25 +136,28 @@ function cerrarNuevoRecordatorio() {
     if (modal) modal.style.display = 'none';
 }
 function guardarNuevoRecordatorio() {
+    const inputTitulo = document.getElementById('_nuevoRecordatorioTitulo');
     const textarea = document.getElementById('_nuevoRecordatorioTexto');
+    const titulo = inputTitulo ? inputTitulo.value.trim() : '';
     const texto = textarea ? textarea.value.trim() : '';
-    if (!texto) {
-        if (textarea) {
-            textarea.focus();
-            textarea.style.borderColor = '#ef4444';
+    if (!titulo || !texto) {
+        const objetivo = !titulo ? inputTitulo : textarea;
+        if (objetivo) {
+            objetivo.focus();
+            objetivo.style.borderColor = '#ef4444';
             setTimeout(function() {
-                textarea.style.borderColor = 'rgba(34,211,238,0.16)';
+                objetivo.style.borderColor = 'rgba(34,211,238,0.16)';
             }, 1200);
         }
         return;
     }
     const recordatorio = {
         id: 'recordatorio_' + Date.now(),
-        nombre: texto,
+        nombre: titulo,
         fecha: '',
         hora: '',
-        nota: '',
-        subitems: [],
+        nota: texto,
+        desc: texto,
         completada: false,
         categoria: { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' },
         categoriaId: null,
@@ -1957,10 +1963,10 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
 
     const flagBadge = (!esRecordatorio && prioridad !== undefined && totalItems !== undefined) ? _getPrioridadFlag(prioridad, totalItems) : '';
     const typeBadgeDesktop = esRecordatorio
-        ? `<span style="width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:${c};color:white;border:1px solid ${c};font-size:11px;font-weight:900;flex-shrink:0;">R</span>`
+        ? `<span style="width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:${c};border:1.5px solid ${c};font-size:11px;font-weight:900;flex-shrink:0;">R</span>`
         : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;">${label}</span>`;
     const typeBadgeMobile = esRecordatorio
-        ? `<span style="width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:${c};color:white;border:1px solid ${c};font-size:10px;font-weight:900;flex-shrink:0;">R</span>`
+        ? `<span style="width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:${c};border:1.5px solid ${c};font-size:10px;font-weight:900;flex-shrink:0;">R</span>`
         : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;flex-shrink:0;">${labelMobile}</span>`;
     const scopePrefix = viewDate ? 'di' : 'ta';
     const uid = scopePrefix + '_' + item.id + '_' + tipo;
@@ -1993,7 +1999,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                             <span style="color:${completado?'#475569':'#f1f5f9'};font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:${completado?'line-through':'none'};">${item.nombre}</span>
                             ${item.etiqueta ? `<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;background:${catColor}22;color:${catColor};border:1px solid ${catColor}55;">${item.etiqueta}</span>` : ''}
                         </div>
-                        ${itemDesc ? `<div style="color:#64748b;font-size:11px;font-style:italic;margin-top:2px;word-break:break-word;">${itemDesc}</div>` : ''}
+                        ${itemDesc && !esRecordatorio ? `<div style="color:#64748b;font-size:11px;font-style:italic;margin-top:2px;word-break:break-word;">${itemDesc}</div>` : ''}
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
                         ${flagBadge}
@@ -2015,8 +2021,8 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                 ${checkBtn}
             </div>
         </div>
-        ${(itemDesc || (item.subitems && item.subitems.length)) ? `<div id="${uid}_desc" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ${descAttrs} style="display:none;margin-top:6px;margin-left:54px;">${itemDesc ? `<span style="color:#64748b;font-size:11px;font-style:italic;display:block;word-break:break-word;">${itemDesc}</span>` : ''}${subitemsStr ? `<div style="margin-top:${itemDesc?'8px':'0'};">${subitemsStr}</div>` : ''}</div>` : ''}
-        ${subitemsStr ? `<div class="diario-item-desktop" style="margin-top:16px;margin-left:32px;">${subitemsStr}</div>` : ''}
+        ${(itemDesc || (!esRecordatorio && item.subitems && item.subitems.length)) ? `<div id="${uid}_desc" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ${descAttrs} style="display:none;margin-top:6px;margin-left:54px;">${itemDesc ? `<span style="color:#64748b;font-size:11px;font-style:italic;display:block;word-break:break-word;">${itemDesc}</span>` : ''}${!esRecordatorio && subitemsStr ? `<div style="margin-top:${itemDesc?'8px':'0'};">${subitemsStr}</div>` : ''}</div>` : ''}
+        ${!esRecordatorio && subitemsStr ? `<div class="diario-item-desktop" style="margin-top:16px;margin-left:32px;">${subitemsStr}</div>` : ''}
     </div>`;
 }
 

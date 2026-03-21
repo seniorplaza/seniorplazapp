@@ -73,6 +73,9 @@ function abrirEditarTarea(id, tipo) {
     const esRecurrente = tipo === 'tareaRecurrente';
     const esRecordatorio = tipo === 'tarea' && !!item.esRecordatorio;
     const color = esRecurrente ? '#60a5fa' : '#f59e0b';
+    const subitemsWrap = document.getElementById('editTareaSubitemsWrap');
+    const recordatoriosWrap = document.getElementById('editTareaRecordatoriosWrap');
+    const categoriaWrap = document.getElementById('editTareaCatContainer');
     document.getElementById('editTareaTituloHeader').textContent = esRecurrente ? 'Editar tarea recurrente' : (esRecordatorio ? 'Editar recordatorio' : 'Editar tarea');
     document.getElementById('editTareaNombre').value = item.nombre || '';
     const _etd = document.getElementById('editTareaDesc'); _etd.value = item.nota || item.desc || ''; setTimeout(()=>{ _etd.style.height='auto'; _etd.style.height=_etd.scrollHeight+'px'; },0);
@@ -86,7 +89,10 @@ function abrirEditarTarea(id, tipo) {
     window._editTareaCatId = item.categoriaId || _editResolveCatId(item.categoria) || null;
     window._editTareaEtiqueta = item.etiqueta || null;
     _editRenderCatDropdown('tarea');
-    document.getElementById('editTareaFechaWrap').style.display = esRecurrente ? 'none' : 'block';
+    if (categoriaWrap) categoriaWrap.style.display = esRecordatorio ? 'none' : 'block';
+    if (subitemsWrap) subitemsWrap.style.display = esRecordatorio ? 'none' : 'block';
+    if (recordatoriosWrap) recordatoriosWrap.style.display = esRecordatorio ? 'none' : 'block';
+    document.getElementById('editTareaFechaWrap').style.display = esRecurrente || esRecordatorio ? 'none' : 'block';
     if (!esRecurrente) {
         document.getElementById('editTareaFecha').value = item.fecha || '';
         const fmt = item.fecha ? new Date(item.fecha + 'T00:00:00').toLocaleDateString('es-ES', {day:'numeric',month:'short',year:'numeric'}) : 'Sin fecha';
@@ -94,6 +100,7 @@ function abrirEditarTarea(id, tipo) {
     }
     document.getElementById('editTareaFrecWrap').style.display = esRecurrente ? 'block' : 'none';
     if (esRecurrente) { _renderEditTareaFrecGrid(); _renderEditTareaDiasSemana(); }
+    document.getElementById('editTareaDiasSemanaWrap').style.display = esRecurrente && window._editTareaFrecSel === 'dias_semana' ? 'block' : 'none';
 
     document.getElementById('modalEditarTarea').style.display = 'flex';
 }
@@ -153,21 +160,33 @@ function guardarEditarTarea() {
     const notaVal = document.getElementById('editTareaDesc').value.trim();
     item.nota = notaVal;
     item.desc = notaVal;
-    item.subitems = window._editTareaSubitems.length ? window._editTareaSubitems : undefined;
+    if (item.esRecordatorio) {
+        delete item.fecha;
+        delete item.hora;
+        delete item.recordatorios;
+        delete item.subitems;
+        delete item.categoriaId;
+        delete item.etiqueta;
+        item.categoria = { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' };
+    } else {
+        item.subitems = window._editTareaSubitems.length ? window._editTareaSubitems : undefined;
+    }
 
-    item.recordatorios = [...(window._editTareaRecs || [])];
-    item.hora = item.recordatorios[0] || '';
-    if (window._editTareaCatId) {
+    if (!item.esRecordatorio) {
+        item.recordatorios = [...(window._editTareaRecs || [])];
+        item.hora = item.recordatorios[0] || '';
+    }
+    if (!item.esRecordatorio && window._editTareaCatId) {
         const cats = (window.finanzasData && window.finanzasData.categorias) || [];
         const cat = cats.find(c => c.id === window._editTareaCatId);
         if (cat) { item.categoriaId = cat.id; item.categoria = { icono: cat.icon, color: cat.color, nombre: cat.name }; }
     }
-    if (window._editTareaEtiqueta !== undefined) item.etiqueta = window._editTareaEtiqueta;
+    if (!item.esRecordatorio && window._editTareaEtiqueta !== undefined) item.etiqueta = window._editTareaEtiqueta;
 
-    if (tipo === 'tarea') {
+    if (tipo === 'tarea' && !item.esRecordatorio) {
         const fechaVal = document.getElementById('editTareaFecha').value;
         if (fechaVal) item.fecha = fechaVal;
-    } else {
+    } else if (tipo === 'tareaRecurrente') {
         item.frecuencia = window._editTareaFrecSel;
         item.diasSemana = [...window._editTareaDiasSel];
     }
