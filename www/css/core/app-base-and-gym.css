@@ -1007,7 +1007,6 @@
         .card-drag-handle > * {
             pointer-events: none !important;
         }
-        }
         .sortable-chosen {
             opacity: 0 !important;
             background: transparent !important;
@@ -1085,6 +1084,12 @@
                 height: 36px !important;
                 padding: 0 !important;
                 border-radius: 10px !important;
+            }
+            #reformas #filtros-bar {
+                margin-bottom: 10px !important;
+            }
+            #reformas .reformas-mobiliario-container {
+                margin-top: 0 !important;
             }
             #filtros-bar .btn-add:not(.filtro-reforma-btn),
             #filtros-bar-nutri .btn-add:not(.filtro-reforma-btn) {
@@ -3806,12 +3811,12 @@
                 z-index: 90 !important;
             }
             
-            /* Espacio en la sección reformas para la barra fija */
+            /* Espacio justo bajo la barra fija, sin empujar el contenido demasiado */
             #reformas {
-                padding-top: calc(165px + env(safe-area-inset-top, 0px)) !important; /* mobile-header(80px) + filtros-bar(~75px) + status bar */
+                padding-top: 85px !important;
             }
             #fitness-nutricion {
-                padding-top: calc(165px + env(safe-area-inset-top, 0px)) !important;
+                padding-top: 85px !important;
             }
 
             /* Modal iconos: gestionado por inline styles del nuevo diseño */
