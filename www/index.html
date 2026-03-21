@@ -913,11 +913,11 @@
                         <!-- Lista PDFs bancos -->
                         <div class="pdf-lista-bancos flex flex-col gap-1"></div>
                         <!-- Botón añadir -->
-                        <label class="cursor-pointer px-4 py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-2 transition-all" style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border:1px solid #334155;color:#94a3b8;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">
+                        <div class="px-4 py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-2 transition-all" style="position:relative;overflow:hidden;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border:1px solid #334155;color:#94a3b8;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">
                             <span class="material-symbols-rounded" style="font-size:16px;">upload_file</span>
                             <span class="hidden sm:inline">Añadir documento</span>
-                            <input type="file" accept="application/pdf" multiple onchange="uploadDocBanco(this)" style="display:none;">
-                        </label>
+                            <input type="file" accept=".pdf,application/pdf" multiple onchange="uploadDocBanco(this)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;display:block;">
+                        </div>
                     </div>
                 </div>
 

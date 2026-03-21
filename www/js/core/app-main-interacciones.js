@@ -4019,9 +4019,197 @@
         }
         function deletePDF(button) { deletePDFItem(button); }
 
+        const _pdfViewerState = {
+            scriptPromise: null,
+            renderToken: 0,
+            lastDataUrl: '',
+            lastFileName: ''
+        };
+
+        function _ensurePdfViewerModal() {
+            let overlay = document.getElementById('pdfViewerModal');
+            if (overlay) return overlay;
+
+            overlay = document.createElement('div');
+            overlay.id = 'pdfViewerModal';
+            overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:999999;background:rgba(2,6,23,0.82);padding:18px;align-items:center;justify-content:center;';
+            overlay.innerHTML = ''
+                + '<div id="pdfViewerPanel" style="width:min(1100px,100%);height:min(92vh,100%);background:#0f172a;border:1px solid rgba(148,163,184,0.2);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,0.55);display:flex;flex-direction:column;overflow:hidden;">'
+                + '  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(148,163,184,0.12);background:rgba(15,23,42,0.96);">'
+                + '    <div style="min-width:0;display:flex;align-items:center;gap:10px;">'
+                + '      <span class="material-symbols-rounded" style="font-size:20px;color:#f87171;flex-shrink:0;">picture_as_pdf</span>'
+                + '      <div style="min-width:0;">'
+                + '        <div id="pdfViewerTitle" style="color:#f8fafc;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Documento PDF</div>'
+                + '        <div id="pdfViewerSubtitle" style="color:#64748b;font-size:11px;margin-top:2px;">Visor dentro de la app</div>'
+                + '      </div>'
+                + '    </div>'
+                + '    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">'
+                + '      <button id="pdfViewerDownloadBtn" style="padding:8px 12px;border-radius:10px;border:1px solid rgba(96,165,250,0.28);background:rgba(59,130,246,0.12);color:#bfdbfe;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">'
+                + '        <span class="material-symbols-rounded" style="font-size:16px;">download</span>Guardar'
+                + '      </button>'
+                + '      <button id="pdfViewerCloseBtn" style="width:36px;height:36px;border-radius:10px;border:1px solid rgba(148,163,184,0.18);background:rgba(15,23,42,0.7);color:#cbd5e1;cursor:pointer;display:flex;align-items:center;justify-content:center;">'
+                + '        <span class="material-symbols-rounded" style="font-size:18px;">close</span>'
+                + '      </button>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div id="pdfViewerBody" style="flex:1;overflow:auto;background:linear-gradient(180deg,rgba(15,23,42,0.98),rgba(2,6,23,0.98));padding:18px;">'
+                + '    <div id="pdfViewerContent" style="display:flex;flex-direction:column;align-items:center;gap:16px;min-height:100%;"></div>'
+                + '  </div>'
+                + '</div>';
+
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) {
+                    cerrarPdfViewerModal();
+                }
+            });
+
+            document.body.appendChild(overlay);
+
+            var closeBtn = document.getElementById('pdfViewerCloseBtn');
+            if (closeBtn) closeBtn.addEventListener('click', cerrarPdfViewerModal);
+
+            var downloadBtn = document.getElementById('pdfViewerDownloadBtn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', function () {
+                    if (!_pdfViewerState.lastDataUrl) return;
+                    const a = document.createElement('a');
+                    a.href = _pdfViewerState.lastDataUrl;
+                    a.download = _pdfViewerState.lastFileName || 'documento.pdf';
+                    a.click();
+                });
+            }
+
+            return overlay;
+        }
+
+        function _dataUrlToUint8Array(dataUrl) {
+            const parts = String(dataUrl || '').split(',');
+            const base64 = parts.length > 1 ? parts[1] : '';
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let index = 0; index < binary.length; index += 1) {
+                bytes[index] = binary.charCodeAt(index);
+            }
+            return bytes;
+        }
+
+        async function _ensurePdfJsLoaded() {
+            if (window.pdfjsLib) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                return window.pdfjsLib;
+            }
+            if (_pdfViewerState.scriptPromise) return _pdfViewerState.scriptPromise;
+
+            _pdfViewerState.scriptPromise = new Promise(function (resolve, reject) {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                script.async = true;
+                script.onload = function () {
+                    if (!window.pdfjsLib) {
+                        reject(new Error('PDF.js no ha quedado disponible.'));
+                        return;
+                    }
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    resolve(window.pdfjsLib);
+                };
+                script.onerror = function () {
+                    reject(new Error('No pude cargar el visor PDF dentro de la app.'));
+                };
+                document.head.appendChild(script);
+            });
+
+            return _pdfViewerState.scriptPromise;
+        }
+
+        function cerrarPdfViewerModal() {
+            const overlay = document.getElementById('pdfViewerModal');
+            const content = document.getElementById('pdfViewerContent');
+            if (content) content.innerHTML = '';
+            if (overlay) overlay.style.display = 'none';
+            document.body.style.overflow = '';
+            _pdfViewerState.renderToken += 1;
+        }
+
+        async function abrirPdfViewerModal(dataUrl, fileName) {
+            if (!dataUrl) return;
+
+            const overlay = _ensurePdfViewerModal();
+            const content = document.getElementById('pdfViewerContent');
+            const title = document.getElementById('pdfViewerTitle');
+            const subtitle = document.getElementById('pdfViewerSubtitle');
+            const body = document.getElementById('pdfViewerBody');
+            if (!overlay || !content || !body) return;
+
+            _pdfViewerState.lastDataUrl = dataUrl;
+            _pdfViewerState.lastFileName = fileName || 'documento.pdf';
+            const currentToken = ++_pdfViewerState.renderToken;
+
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            body.scrollTop = 0;
+            if (title) title.textContent = _pdfViewerState.lastFileName;
+            if (subtitle) subtitle.textContent = 'Cargando PDF...';
+            content.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:240px;color:#94a3b8;">'
+                + '<span class="material-symbols-rounded" style="font-size:34px;color:#60a5fa;animation:cloudSyncSpin 1.1s linear infinite;">progress_activity</span>'
+                + '<span style="font-size:13px;font-weight:700;">Preparando visor PDF</span>'
+                + '</div>';
+
+            try {
+                const pdfjsLib = await _ensurePdfJsLoaded();
+                if (currentToken !== _pdfViewerState.renderToken) return;
+
+                const pdfData = _dataUrlToUint8Array(dataUrl);
+                const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+                const pdf = await loadingTask.promise;
+                if (currentToken !== _pdfViewerState.renderToken) return;
+
+                content.innerHTML = '';
+                if (subtitle) subtitle.textContent = pdf.numPages + ' página' + (pdf.numPages === 1 ? '' : 's');
+
+                const targetWidth = Math.max(280, Math.min(body.clientWidth - 48, 920));
+
+                for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+                    const page = await pdf.getPage(pageNumber);
+                    if (currentToken !== _pdfViewerState.renderToken) return;
+
+                    const baseViewport = page.getViewport({ scale: 1 });
+                    const scale = targetWidth / baseViewport.width;
+                    const viewport = page.getViewport({ scale: scale });
+                    const wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;';
+
+                    const label = document.createElement('div');
+                    label.textContent = 'Página ' + pageNumber;
+                    label.style.cssText = 'color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;';
+
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d', { alpha: false });
+                    canvas.width = Math.ceil(viewport.width);
+                    canvas.height = Math.ceil(viewport.height);
+                    canvas.style.cssText = 'width:100%;max-width:' + Math.ceil(viewport.width) + 'px;height:auto;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.45);background:white;';
+
+                    wrapper.appendChild(label);
+                    wrapper.appendChild(canvas);
+                    content.appendChild(wrapper);
+
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                }
+            } catch (error) {
+                if (currentToken !== _pdfViewerState.renderToken) return;
+                if (subtitle) subtitle.textContent = 'No pude renderizar el PDF dentro de la app';
+                content.innerHTML = '<div style="width:min(820px,100%);margin:0 auto;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;min-height:240px;padding:18px;border:1px solid rgba(248,113,113,0.2);border-radius:18px;background:rgba(127,29,29,0.12);color:#fecaca;text-align:center;">'
+                    + '<span class="material-symbols-rounded" style="font-size:34px;color:#fca5a5;">error</span>'
+                    + '<div style="font-size:14px;font-weight:800;">No pude abrir el PDF en el visor interno</div>'
+                    + '<div style="font-size:12px;line-height:1.5;color:#fca5a5;max-width:560px;">' + ((error && error.message) ? error.message : 'Error desconocido') + '</div>'
+                    + '<iframe src="' + dataUrl + '" style="width:100%;min-height:70vh;border:none;border-radius:14px;background:white;"></iframe>'
+                    + '</div>';
+            }
+        }
+
         function viewPDFItem(button) {
             const data = button.closest('.pdf-item').dataset.pdfData;
-            if (data) { const w = window.open(); w.document.write('<iframe width="100%" height="100%" src="'+data+'"></iframe>'); }
+            const nombre = button.closest('.pdf-item').querySelector('span.truncate')?.textContent || 'nomina.pdf';
+            if (data) abrirPdfViewerModal(data, nombre);
         }
         function viewPDF(button) { viewPDFItem(button); }
         function togglePanelDocsBancos() {
@@ -7705,15 +7893,11 @@
             section.innerHTML = '<div style="text-align:center;padding:20px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;">'
                 + '<span class="material-symbols-rounded" style="font-size:44px;color:#334155;">route</span>'
                 + '<p style="color:#475569;font-size:12px;font-weight:600;margin:0;">Sin ruta importada</p>'
-                + '<button onclick="_gymAbrirImportRuta(this)" style="padding:9px 18px;border-radius:12px;border:1px solid rgba(234,179,8,0.4);background:rgba(234,179,8,0.1);color:#eab308;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">'
-                + '<span class="material-symbols-rounded" style="font-size:16px;">upload_file</span>Importar ruta</button>'
-                + '<input type="file" accept="*/*" multiple style="display:none;" onchange="_gymProcesarArchivosRuta(this)">'
+                + '<div style="position:relative;overflow:hidden;padding:9px 18px;border-radius:12px;border:1px solid rgba(234,179,8,0.4);background:rgba(234,179,8,0.1);color:#eab308;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">'
+                + '<span class="material-symbols-rounded" style="font-size:16px;">upload_file</span>Importar ruta'
+                + '<input type="file" accept=".gpx,.tcx,.kml,.geojson,.json,text/xml,application/gpx+xml,application/xml,application/json" multiple style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;display:block;" onchange="_gymProcesarArchivosRuta(this)">'
+                + '</div>'
                 + '</div>';
-        }
-
-        function _gymAbrirImportRuta(btn) {
-            var inp = btn.nextElementSibling;
-            if (inp) inp.click();
         }
 
         function _gymProcesarArchivosRuta(input) {
@@ -7852,9 +8036,12 @@
             var btns = document.createElement('div');
             btns.style.cssText = 'display:flex;gap:6px;align-items:center;flex-shrink:0;';
 
+            var replaceWrap = document.createElement('div');
+            replaceWrap.style.cssText = 'position:relative;overflow:hidden;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:7px;color:#eab308;padding:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+
             var replaceInp = document.createElement('input');
-            replaceInp.type = 'file'; replaceInp.accept = '*/*'; replaceInp.multiple = true;
-            replaceInp.style.display = 'none';
+            replaceInp.type = 'file'; replaceInp.accept = '.gpx,.tcx,.kml,.geojson,.json,text/xml,application/gpx+xml,application/xml,application/json'; replaceInp.multiple = true;
+            replaceInp.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;display:block;';
             replaceInp.addEventListener('change', function() { _gymProcesarArchivosRuta(replaceInp); });
 
             var csvInp = document.createElement('input');
@@ -7862,11 +8049,12 @@
             csvInp.style.display = 'none';
             csvInp.addEventListener('change', function() { _gymProcesarCsvEstadisticas(csvInp, card, section); });
 
-            var newBtn = document.createElement('button');
-            newBtn.style.cssText = 'background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:7px;color:#eab308;padding:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+            var newBtn = document.createElement('div');
+            newBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;';
             newBtn.title = 'Nueva ruta';
-            newBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:15px;">upload_file</span>';
-            newBtn.addEventListener('click', function() { replaceInp.click(); });
+            newBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:15px;pointer-events:none;">upload_file</span>';
+            replaceWrap.appendChild(newBtn);
+            replaceWrap.appendChild(replaceInp);
 
             var statsBtn = document.createElement('button');
             statsBtn.style.cssText = 'background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:7px;color:#eab308;padding:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
@@ -7890,7 +8078,7 @@
 
             btns.appendChild(replaceInp);
             btns.appendChild(csvInp);
-            btns.appendChild(newBtn);
+            btns.appendChild(replaceWrap);
             btns.appendChild(statsBtn);
             btns.appendChild(delBtn);
             header.appendChild(info);
@@ -10640,11 +10828,11 @@
                         <label class="text-[9px] text-slate-500 font-bold uppercase block mb-2">Documento del Banco</label>
                         <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700 flex flex-col gap-2">
                             <div class="pdf-lista-banco flex flex-col gap-1"></div>
-                            <label class="pdf-btn-add-banco cursor-pointer px-4 py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-2 transition-all" style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border:1px solid #334155;color:#94a3b8;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">
+                            <div class="pdf-btn-add-banco px-4 py-2 rounded-xl text-[11px] font-bold flex items-center justify-center gap-2 transition-all" style="position:relative;overflow:hidden;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);border:1px solid #334155;color:#94a3b8;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">
                                 <span class="material-symbols-rounded" style="font-size:16px;">upload_file</span>
                                 <span class="hidden sm:inline">Añadir PDF de Simulación</span>
-                                <input type="file" accept="application/pdf" multiple onchange="subirPDFBanco(this)" style="display:none;">
-                            </label>
+                                <input type="file" accept=".pdf,application/pdf" multiple onchange="subirPDFBanco(this)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;display:block;">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -10703,7 +10891,8 @@
         }
         function viewPDFItemBanco(button) {
             const data = button.closest('.pdf-item-banco').dataset.pdfData;
-            if (data) { const w = window.open(); w.document.write('<iframe width="100%" height="100%" src="' + data + '"></iframe>'); }
+            const nombre = button.closest('.pdf-item-banco').querySelector('span.truncate')?.textContent || 'simulacion.pdf';
+            if (data) abrirPdfViewerModal(data, nombre);
         }
         function downloadPDFItemBanco(button) {
             const item = button.closest('.pdf-item-banco');
