@@ -641,13 +641,29 @@
 
             const cloudSnapshot = await serializeSnapshotForCloud(localSnapshot, activeUser.id);
             const cloudHash = await sha256HexFromText(JSON.stringify(cloudSnapshot));
-            if (cloudHash === lastSyncedHash) {
+            let remoteRow = null;
+            let remoteHash = lastSyncedHash || '';
+
+            try {
+                remoteRow = await fetchRemoteSnapshotRow();
+                remoteHash = remoteRow && remoteRow.snapshot_hash
+                    ? remoteRow.snapshot_hash
+                    : (remoteRow && remoteRow.snapshot
+                        ? await sha256HexFromText(JSON.stringify(remoteRow.snapshot))
+                        : '');
+            } catch (remoteError) {
+                remoteHash = lastSyncedHash || '';
+            }
+
+            if (cloudHash === remoteHash) {
+                lastSyncedHash = remoteHash;
+                lastSeenRemoteHash = remoteHash;
                 lastLocalSnapshotHash = localHash;
                 initialSyncDone = true;
                 saveMeta({
-                    lastSyncedAt: new Date().toISOString(),
-                    lastDevice: getDeviceId(),
-                    lastSyncedHash: cloudHash,
+                    lastSyncedAt: remoteRow && remoteRow.updated_at ? remoteRow.updated_at : new Date().toISOString(),
+                    lastDevice: remoteRow && remoteRow.updated_by ? remoteRow.updated_by : getDeviceId(),
+                    lastSyncedHash: remoteHash,
                     lastPushReason: reason || 'noop'
                 });
                 setStatus('synced', 'Sincronizacion activa', 'No habia cambios pendientes.');
