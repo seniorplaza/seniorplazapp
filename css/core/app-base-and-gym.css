@@ -1477,6 +1477,56 @@
             border-radius: 24px;
             padding: 32px;
         }
+
+        .agenda-inline-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            min-width: 128px;
+            max-width: 148px;
+            flex-shrink: 0;
+        }
+
+        .agenda-inline-select {
+            width: 100%;
+            background: linear-gradient(135deg, rgba(30,41,59,0.98) 0%, rgba(15,23,42,0.96) 100%);
+            border: 1px solid rgba(59,130,246,0.24);
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 10px 36px 10px 12px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .agenda-inline-select:focus {
+            border-color: rgba(96,165,250,0.75);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.14);
+        }
+
+        .agenda-inline-select:hover {
+            border-color: rgba(96,165,250,0.42);
+        }
+
+        .agenda-inline-select::-ms-expand {
+            display: none;
+        }
+
+        .agenda-inline-select-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 18px;
+            pointer-events: none;
+        }
         /* ── PREVIEW CARD: imagen a pantalla completa + gradiente ── */
 
         /* La card es position:relative para que el contenido se superponga */
