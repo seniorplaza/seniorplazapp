@@ -702,6 +702,7 @@
 
         function cerrarModalIconos() {
             document.getElementById('modalIconos').style.display = 'none';
+            cerrarColorPickerPersonalizado();
             iconoTemporal = null;
             _svgDataTemporal = null;
             fontClassTemporal = null;
@@ -1078,6 +1079,235 @@
             const prev = document.getElementById('previewColorIcono');
             if (prev) prev.style.background = color;
             actualizarPrevisualizacionIcono();
+        }
+
+        const _customColorPickerState = {
+            target: 'icon',
+            h: 210,
+            s: 100,
+            l: 50,
+            dragging: false,
+            initialized: false
+        };
+
+        function _clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function _sanitizeHexColor(value) {
+            const raw = String(value || '').replace(/[^a-fA-F0-9]/g, '').toUpperCase();
+            return raw.slice(0, 6);
+        }
+
+        function _hslToHexPicker(h, s, l) {
+            h = ((Number(h) % 360) + 360) % 360;
+            s = _clamp(Number(s), 0, 100) / 100;
+            l = _clamp(Number(l), 0, 100) / 100;
+
+            const k = function (n) { return (n + h / 30) % 12; };
+            const a = s * Math.min(l, 1 - l);
+            const f = function (n) {
+                return l - a * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
+            };
+
+            const r = Math.round(255 * f(0));
+            const g = Math.round(255 * f(8));
+            const b = Math.round(255 * f(4));
+
+            const toHex = function (x) {
+                const hex = x.toString(16).toUpperCase();
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+
+            return '#' + toHex(r) + toHex(g) + toHex(b);
+        }
+
+        function _hexToHslPicker(hex) {
+            let clean = _sanitizeHexColor(hex);
+            if (clean.length === 3) {
+                clean = clean.split('').map(function (ch) { return ch + ch; }).join('');
+            }
+            while (clean.length < 6) clean += '0';
+
+            let r = parseInt(clean.slice(0, 2), 16) / 255;
+            let g = parseInt(clean.slice(2, 4), 16) / 255;
+            let b = parseInt(clean.slice(4, 6), 16) / 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const d = max - min;
+
+            let h = 0;
+            let s = 0;
+            const l = (max + min) / 2;
+
+            if (d !== 0) {
+                s = d / (1 - Math.abs(2 * l - 1));
+                switch (max) {
+                    case r:
+                        h = ((g - b) / d) % 6;
+                        break;
+                    case g:
+                        h = (b - r) / d + 2;
+                        break;
+                    default:
+                        h = (r - g) / d + 4;
+                        break;
+                }
+                h *= 60;
+                if (h < 0) h += 360;
+            }
+
+            return {
+                h: Math.round(h),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function _getCustomPickerRefs() {
+            return {
+                panel: document.getElementById('customColorPickerPanel'),
+                title: document.getElementById('customColorPickerTitle'),
+                area: document.getElementById('customColorPickerArea'),
+                thumb: document.getElementById('customColorPickerThumb'),
+                hue: document.getElementById('customColorPickerHue'),
+                hex: document.getElementById('customColorPickerHex'),
+                preview: document.getElementById('customColorPickerPreview')
+            };
+        }
+
+        function _aplicarColorDesdePicker() {
+            const colorHex = _hslToHexPicker(_customColorPickerState.h, _customColorPickerState.s, _customColorPickerState.l);
+            if (_customColorPickerState.target === 'bg') {
+                seleccionarColorFondo(colorHex);
+                bgColorTemporal = colorHex;
+            } else {
+                seleccionarColorIcono(colorHex);
+                colorTemporal = colorHex;
+            }
+        }
+
+        function _renderCustomColorPicker() {
+            const refs = _getCustomPickerRefs();
+            if (!refs.panel || !refs.area || !refs.thumb || !refs.hue || !refs.hex || !refs.preview) return;
+
+            const hex = _hslToHexPicker(_customColorPickerState.h, _customColorPickerState.s, _customColorPickerState.l);
+            refs.area.style.background = 'linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(' + _customColorPickerState.h + ',100%,50%))';
+            refs.thumb.style.left = _customColorPickerState.s + '%';
+            refs.thumb.style.top = (100 - _customColorPickerState.l) + '%';
+            refs.thumb.style.background = hex;
+            refs.hue.value = String(_customColorPickerState.h);
+            refs.preview.style.background = hex;
+            refs.hex.value = hex.replace('#', '');
+        }
+
+        function _updatePickerFromPoint(clientX, clientY) {
+            const refs = _getCustomPickerRefs();
+            if (!refs.area) return;
+
+            const rect = refs.area.getBoundingClientRect();
+            const x = _clamp(clientX - rect.left, 0, rect.width);
+            const y = _clamp(clientY - rect.top, 0, rect.height);
+
+            _customColorPickerState.s = Math.round((x / rect.width) * 100);
+            _customColorPickerState.l = 100 - Math.round((y / rect.height) * 100);
+
+            _aplicarColorDesdePicker();
+            _renderCustomColorPicker();
+        }
+
+        function _initCustomColorPickerEvents() {
+            if (_customColorPickerState.initialized) return;
+            const refs = _getCustomPickerRefs();
+            if (!refs.area || !refs.hue || !refs.hex) return;
+
+            refs.area.addEventListener('mousedown', function (e) {
+                _customColorPickerState.dragging = true;
+                _updatePickerFromPoint(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mousemove', function (e) {
+                if (!_customColorPickerState.dragging) return;
+                _updatePickerFromPoint(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mouseup', function () {
+                _customColorPickerState.dragging = false;
+            });
+
+            refs.area.addEventListener('touchstart', function (e) {
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                _customColorPickerState.dragging = true;
+                _updatePickerFromPoint(t.clientX, t.clientY);
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchmove', function (e) {
+                if (!_customColorPickerState.dragging) return;
+                const t = e.touches && e.touches[0];
+                if (!t) return;
+                _updatePickerFromPoint(t.clientX, t.clientY);
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchend', function () {
+                _customColorPickerState.dragging = false;
+            });
+
+            refs.hue.addEventListener('input', function () {
+                _customColorPickerState.h = _clamp(Number(refs.hue.value || 0), 0, 360);
+                _aplicarColorDesdePicker();
+                _renderCustomColorPicker();
+            });
+
+            refs.hex.addEventListener('input', function () {
+                const clean = _sanitizeHexColor(refs.hex.value);
+                refs.hex.value = clean;
+                if (clean.length === 6) {
+                    const hsl = _hexToHslPicker(clean);
+                    _customColorPickerState.h = hsl.h;
+                    _customColorPickerState.s = hsl.s;
+                    _customColorPickerState.l = hsl.l;
+                    _aplicarColorDesdePicker();
+                    _renderCustomColorPicker();
+                }
+            });
+
+            _customColorPickerState.initialized = true;
+        }
+
+        function abrirColorPickerPersonalizado(target) {
+            const refs = _getCustomPickerRefs();
+            if (!refs.panel) return;
+
+            _initCustomColorPickerEvents();
+            _customColorPickerState.target = target === 'bg' ? 'bg' : 'icon';
+
+            const currentColor = _customColorPickerState.target === 'bg'
+                ? (bgColorTemporal || '#1e293b')
+                : (colorTemporal || '#ffffff');
+
+            const hsl = _hexToHslPicker(currentColor);
+            _customColorPickerState.h = hsl.h;
+            _customColorPickerState.s = hsl.s;
+            _customColorPickerState.l = hsl.l;
+
+            if (refs.title) {
+                refs.title.textContent = _customColorPickerState.target === 'bg'
+                    ? 'Color fondo personalizado'
+                    : 'Color icono personalizado';
+            }
+
+            refs.panel.style.display = 'block';
+            _renderCustomColorPicker();
+        }
+
+        function cerrarColorPickerPersonalizado() {
+            const refs = _getCustomPickerRefs();
+            if (refs.panel) refs.panel.style.display = 'none';
+            _customColorPickerState.dragging = false;
         }
         
         function _hexToRgb(hex) {
