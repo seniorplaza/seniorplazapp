@@ -414,13 +414,14 @@ function _actHTMLDefinicion(tipo, subtipo) {
         extraFields = `
         <div style="margin-bottom:16px;">
             <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Objetivo</label>
-            <div style="display:flex;gap:8px;align-items:center;overflow:hidden;">
-                <select id="actDefCondicion" style="background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:10px;color:#f1f5f9;font-size:13px;font-weight:700;padding:10px 12px;outline:none;flex-shrink:0;cursor:pointer;max-width:120px;">
-                    <option value="al_menos">Al menos</option>
-                    <option value="menos_de">Menos de</option>
-                    <option value="exactamente">Exactamente</option>
-                    <option value="sin_objetivo">Sin objetivo</option>
-                </select>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;overflow:hidden;">
+                <input type="hidden" id="actDefCondicion" value="${window._actState.datos.condicion || 'al_menos'}">
+                <div class="agenda-choice-chip-row">${[
+                    ['al_menos','Al menos'],
+                    ['menos_de','Menos de'],
+                    ['exactamente','Exactamente'],
+                    ['sin_objetivo','Sin objetivo']
+                ].map(([val,label]) => `<button type="button" onclick="actSetObjetivoCondicion('${val}')" class="agenda-choice-chip ${((window._actState.datos.condicion || 'al_menos') === val) ? 'is-active' : ''}">${label}</button>`).join('')}</div>
                 <input type="number" id="actDefObjetivo" min="0" placeholder="0" style="width:70px;flex-shrink:0;background:#0f172a;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px 8px;outline:none;box-sizing:border-box;text-align:center;">
                 <input type="text" id="actDefUnidad" placeholder="Unidad" maxlength="15" style="flex:1;min-width:0;background:#1e293b;border:1px solid rgba(59,130,246,0.15);border-radius:10px;color:#f1f5f9;font-size:13px;padding:10px 12px;outline:none;box-sizing:border-box;">
             </div>
@@ -466,6 +467,17 @@ function _actHTMLDefinicion(tipo, subtipo) {
         <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Descripción <span style="color:#475569;font-weight:500;text-transform:none;">(opcional)</span></label>
         <textarea id="actDefDesc" rows="2" placeholder="Añade una descripción..." onkeydown="if(event.key==='Enter'){event.stopPropagation();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="width:100%;background:#1e293b;border:1px solid rgba(59,130,246,0.15);border-radius:12px;color:#f1f5f9;font-size:14px;padding:11px 14px;outline:none;box-sizing:border-box;resize:none;overflow:hidden;min-height:48px;"></textarea>
     </div>`;
+}
+
+function actSetObjetivoCondicion(v) {
+    if (!window._actState) return;
+    window._actState.datos.condicion = v;
+    const input = document.getElementById('actDefCondicion');
+    if (input) input.value = v;
+    document.querySelectorAll('.agenda-choice-chip-row .agenda-choice-chip').forEach(function(btn) {
+        const isActive = btn.getAttribute('onclick') === `actSetObjetivoCondicion('${v}')`;
+        btn.classList.toggle('is-active', isActive);
+    });
 }
 
 function actAddSubitem() {
