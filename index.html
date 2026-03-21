@@ -695,6 +695,7 @@
 
         <!-- PESTAÑA: HIPOTECA / COMPRA -->
         <section id="hipoteca" class="tab-content">
+            <div style="display:flex;flex-direction:column;gap:24px;">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 <!-- PRECIO VIVIENDA -->
@@ -858,7 +859,7 @@
             <!-- Separador móvil -->
 
             <!-- SIMULACIONES DE HIPOTECA -->
-            <div class="mt-6 space-y-5 bg-slate-900/50 p-6 rounded-3xl border-2 border-slate-800">
+            <div class="space-y-5 bg-slate-900/50 p-6 rounded-3xl border-2 border-slate-800">
                 <div class="section-header-box" style="background:rgba(168,85,247,0.07);border:2px solid rgba(168,85,247,0.2);">
                     <div class="flex flex-row items-center gap-3">
                         <div class="flex items-center justify-center shrink-0 cursor-pointer hover:bg-purple-500/10 rounded-xl transition-all" 
@@ -957,7 +958,7 @@
             </div>
 
             <!-- CATASTRO -->
-            <div class="mt-6">
+            <div>
                 <div class="flex justify-between items-center mb-6 px-2">
                     <div class="section-header-box" style="background:rgba(234,179,8,0.07);border:2px solid rgba(234,179,8,0.2);">
                         <h2 class="text-2xl font-black text-white flex items-center gap-3">
@@ -1069,6 +1070,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </section>
 
@@ -4629,6 +4631,10 @@
                 <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Días de la semana</label>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;" id="editHabitoDiasSemana"></div>
             </div>
+            <div id="editHabitoFrecDetalleWrap" style="margin-bottom:16px;display:none;">
+                <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Detalle de frecuencia</label>
+                <div id="editHabitoFrecDetalle"></div>
+            </div>
             <!-- Recordatorios múltiples -->
             <div style="margin-bottom:16px;">
                 <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Recordatorios</label>
@@ -4704,7 +4710,7 @@
                 <textarea id="editTareaDesc" rows="2" onkeydown="if(event.key==='Enter'){event.stopPropagation();}" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;color:white;font-size:14px;outline:none;box-sizing:border-box;resize:none;overflow:hidden;min-height:44px;font-family:inherit;"></textarea>
             </div>
             <!-- Subitems -->
-            <div style="margin-bottom:16px;">
+            <div style="margin-bottom:16px;" id="editTareaSubitemsWrap">
                 <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Lista de subtareas <span style="color:#475569;font-weight:400;">(opcional)</span></label>
                 <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
                     <input id="editTareaSubitemInput" type="text" placeholder="Nueva subtarea..." onkeydown="if(event.key==='Enter')_editTareaAddSubitem()" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:11px 14px;color:white;font-size:13px;outline:none;box-sizing:border-box;">
@@ -4733,8 +4739,12 @@
                 <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Días de la semana</label>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;" id="editTareaDiasSemana"></div>
             </div>
+            <div id="editTareaFrecDetalleWrap" style="margin-bottom:16px;display:none;">
+                <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Detalle de frecuencia</label>
+                <div id="editTareaFrecDetalle"></div>
+            </div>
             <!-- Recordatorios múltiples -->
-            <div style="margin-bottom:24px;">
+            <div style="margin-bottom:24px;" id="editTareaRecordatoriosWrap">
                 <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">Recordatorios</label>
                 <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
                     <button onclick="_editAbrirTimePicker('tarea')" style="flex:1;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:12px;color:#64748b;font-size:13px;font-weight:600;padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;text-align:left;">

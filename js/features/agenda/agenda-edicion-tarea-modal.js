@@ -3,6 +3,9 @@ window._editTareaId   = null;
 window._editTareaTipo = null;
 window._editTareaFrecSel  = 'todos_dias';
 window._editTareaDiasSel  = [];
+window._editTareaCadaXDias = 2;
+window._editTareaVecesPeriodo = 3;
+window._editTareaVecesPeriodoPer = 'semana';
 window._editTareaSubitems = [];
 
 function _editTareaAddSubitem() {
@@ -101,6 +104,17 @@ function abrirEditarTarea(id, tipo) {
     document.getElementById('editTareaFrecWrap').style.display = esRecurrente ? 'block' : 'none';
     if (esRecurrente) { _renderEditTareaFrecGrid(); _renderEditTareaDiasSemana(); }
     document.getElementById('editTareaDiasSemanaWrap').style.display = esRecurrente && window._editTareaFrecSel === 'dias_semana' ? 'block' : 'none';
+    if (esRecurrente) {
+        window._editTareaCadaXDias = item.cadaXDias || 2;
+        window._editTareaVecesPeriodo = item.vecesPeriodo || 3;
+        window._editTareaVecesPeriodoPer = item.vecesPeriodoPer || 'semana';
+        _renderEditTareaFrecDetalle();
+    } else {
+        const detailWrap = document.getElementById('editTareaFrecDetalleWrap');
+        const detail = document.getElementById('editTareaFrecDetalle');
+        if (detailWrap) detailWrap.style.display = 'none';
+        if (detail) detail.innerHTML = '';
+    }
 
     document.getElementById('modalEditarTarea').style.display = 'flex';
 }
@@ -131,6 +145,24 @@ function editTareaSelFrec(v) {
     window._editTareaFrecSel = v;
     _renderEditTareaFrecGrid();
     _renderEditTareaDiasSemana();
+    _renderEditTareaFrecDetalle();
+}
+
+function _renderEditTareaFrecDetalle() {
+    const wrap = document.getElementById('editTareaFrecDetalleWrap');
+    const detalle = document.getElementById('editTareaFrecDetalle');
+    if (!wrap || !detalle) return;
+    const frec = window._editTareaFrecSel;
+    if (frec === 'cada_x_dias') {
+        wrap.style.display = 'block';
+        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:13px;">Cada</span><input type="number" id="editTareaCadaXDias" min="2" max="365" value="${window._editTareaCadaXDias || 2}" oninput="window._editTareaCadaXDias=Math.max(2, +this.value || 2)" style="width:72px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">días</span></div>`;
+    } else if (frec === 'veces_periodo') {
+        wrap.style.display = 'block';
+        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input type="number" id="editTareaVecesPeriodo" min="1" max="30" value="${window._editTareaVecesPeriodo || 3}" oninput="window._editTareaVecesPeriodo=Math.max(1, +this.value || 1)" style="width:64px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">veces por</span><select id="editTareaVecesPeriodoPer" onchange="window._editTareaVecesPeriodoPer=this.value" style="background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:10px;color:#f1f5f9;font-size:13px;padding:10px;outline:none;"><option value="semana" ${(window._editTareaVecesPeriodoPer||'semana')==='semana'?'selected':''}>semana</option><option value="mes" ${(window._editTareaVecesPeriodoPer||'semana')==='mes'?'selected':''}>mes</option><option value="anio" ${(window._editTareaVecesPeriodoPer||'semana')==='anio'?'selected':''}>año</option></select></div>`;
+    } else {
+        wrap.style.display = 'none';
+        detalle.innerHTML = '';
+    }
 }
 
 function _renderEditTareaDiasSemana() {
@@ -188,7 +220,10 @@ function guardarEditarTarea() {
         if (fechaVal) item.fecha = fechaVal;
     } else if (tipo === 'tareaRecurrente') {
         item.frecuencia = window._editTareaFrecSel;
-        item.diasSemana = [...window._editTareaDiasSel];
+        item.diasSemana = window._editTareaFrecSel === 'dias_semana' ? [...window._editTareaDiasSel] : [];
+        item.cadaXDias = window._editTareaFrecSel === 'cada_x_dias' ? Math.max(2, Number(window._editTareaCadaXDias) || 2) : null;
+        item.vecesPeriodo = window._editTareaFrecSel === 'veces_periodo' ? Math.max(1, Number(window._editTareaVecesPeriodo) || 1) : null;
+        item.vecesPeriodoPer = window._editTareaFrecSel === 'veces_periodo' ? (window._editTareaVecesPeriodoPer || 'semana') : null;
     }
 
     guardarAgendaData();
