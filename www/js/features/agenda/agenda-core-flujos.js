@@ -571,12 +571,17 @@ function _actRenderFrecDetalle(v) {
     } else if (v === 'cada_x_dias') {
         detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:13px;">Cada</span><input type="number" id="actCadaXDias" min="2" max="365" value="${d.cadaXDias||2}" oninput="window._actState.datos.cadaXDias=+this.value" style="width:70px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">días</span></div>`;
     } else if (v === 'veces_periodo') {
-        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><input type="number" id="actVecesPeriodo" min="1" max="30" value="${d.vecesPeriodo||3}" oninput="window._actState.datos.vecesPeriodo=+this.value" style="width:60px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">veces por</span><select id="actVecesPer" onchange="window._actState.datos.vecesPeriodoPer=this.value" style="background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:10px;color:#f1f5f9;font-size:13px;padding:10px;outline:none;"><option value="semana" ${d.vecesPeriodoPer==='semana'?'selected':''}>semana</option><option value="mes" ${d.vecesPeriodoPer==='mes'?'selected':''}>mes</option><option value="anio" ${d.vecesPeriodoPer==='anio'?'selected':''}>año</option></select></div>`;
+        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input type="number" id="actVecesPeriodo" min="1" max="30" value="${d.vecesPeriodo||3}" oninput="window._actState.datos.vecesPeriodo=+this.value" style="width:60px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">veces por</span><div class="agenda-period-chip-row">${['semana','mes','anio'].map(per => `<button type="button" onclick="actSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(d.vecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per}</button>`).join('')}</div></div>`;
     } else if (v === 'dias_mes') {
         const sel = d.diasMes || [];
         const nums = Array.from({length:31},(_,i)=>i+1);
         detalle.innerHTML = `<div style="display:flex;gap:5px;flex-wrap:wrap;">${nums.map(n=>`<button onclick="actToggleDiaMes(${n})" style="width:36px;height:36px;border-radius:8px;border:1.5px solid ${sel.includes(n)?'#3b82f6':'rgba(255,255,255,0.1)'};background:${sel.includes(n)?'rgba(59,130,246,0.2)':'transparent'};color:${sel.includes(n)?'white':'#64748b'};font-size:12px;font-weight:700;cursor:pointer;">${n}</button>`).join('')}</div>`;
     }
+}
+
+function actSetVecesPeriodoPer(v) {
+    window._actState.datos.vecesPeriodoPer = v;
+    _actRenderFrecDetalle('veces_periodo');
 }
 
 function actToggleDiaSemana(i) {
