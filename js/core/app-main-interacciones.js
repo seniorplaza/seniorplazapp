@@ -7358,66 +7358,14 @@
             if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
         }
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
-        window._gymReposoNotifState = window._gymReposoNotifState || { id: 910041 };
-        function _gymNotifPlugin() {
-            return window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.LocalNotifications;
-        }
         async function _gymCancelarNotifReposo() {
-            var ln = _gymNotifPlugin();
-            if (!ln) return;
-            var notifId = window._gymReposoNotifState.id;
-            try {
-                if (typeof ln.cancel === 'function') {
-                    await ln.cancel({ notifications: [{ id: notifId }] });
-                }
-                if (typeof ln.removeDeliveredNotifications === 'function') {
-                    await ln.removeDeliveredNotifications({ notifications: [{ id: notifId }] });
-                }
-            } catch (e) {
-                console.warn('[GymReposoNotif] cancel:', e);
-            }
+            return Promise.resolve();
         }
         async function _gymProgramarNotifReposo() {
-            if (!_gymReposoRunning()) return;
-            var ln = _gymNotifPlugin();
-            if (!ln) return;
-            try {
-                var perm = typeof ln.requestPermissions === 'function' ? await ln.requestPermissions() : null;
-                if (perm && perm.display === 'denied') return;
-                var elapsed = Math.max(0, Math.floor((Date.now() - (window._gymReposoState.startAt || Date.now())) / 1000));
-                var label = _gymSecsToLabel(elapsed);
-                await _gymCancelarNotifReposo();
-                await ln.schedule({
-                    notifications: [{
-                        id: window._gymReposoNotifState.id,
-                        title: 'SeniorPlazApp · Reposo activo',
-                        body: 'El temporizador lleva ' + label + '. Vuelve a la app para seguirlo en directo.',
-                        schedule: { at: new Date(Date.now() + 350) },
-                        ongoing: true,
-                        autoCancel: false,
-                        extra: { scope: 'gym-reposo', elapsed: elapsed }
-                    }]
-                });
-            } catch (e) {
-                console.warn('[GymReposoNotif] schedule:', e);
-            }
+            return Promise.resolve();
         }
         function _gymSyncNotifReposoConVisibilidad() {
-            if (_gymReposoRunning() && document.hidden) {
-                _gymProgramarNotifReposo();
-                return;
-            }
-            _gymCancelarNotifReposo();
         }
-        document.addEventListener('visibilitychange', function() {
-            setTimeout(_gymSyncNotifReposoConVisibilidad, 120);
-        });
-        document.addEventListener('pause', function() {
-            setTimeout(_gymSyncNotifReposoConVisibilidad, 120);
-        });
-        document.addEventListener('resume', function() {
-            setTimeout(_gymSyncNotifReposoConVisibilidad, 180);
-        });
         function _gymReposoRunning() {
             return window._gymReposoState.running;
         }
@@ -7485,9 +7433,7 @@
                         var rh = Math.floor(elapsed/3600), rm = Math.floor((elapsed%3600)/60), rs = elapsed%60;
                         rEl.textContent = rh > 0 ? rh+'h '+String(rm).padStart(2,'0')+'m' : String(rm).padStart(2,'0')+':'+String(rs).padStart(2,'0');
                     }
-                    if (document.hidden && elapsed > 0 && elapsed % 30 === 0) _gymProgramarNotifReposo();
                 }, 1000);
-                _gymSyncNotifReposoConVisibilidad();
             }
         }
         function gymRecalcularCalorias() {
@@ -7601,6 +7547,25 @@
         function _gymFilterText(v) {
             return String(v || '').trim().toLowerCase();
         }
+        window._gymFilterUiState = window._gymFilterUiState || { active: null };
+        function _gymEsModoFiltrosMovil() {
+            return window.innerWidth <= 768;
+        }
+        function _gymSetFiltroMovilActivo(filterName) {
+            var bar = document.getElementById('filtros-bar-gym');
+            if (!bar) return;
+            var next = filterName || null;
+            if (!_gymEsModoFiltrosMovil()) next = null;
+            bar.querySelectorAll('.gym-filter-slot').forEach(function(slot) {
+                var isOpen = !!next && slot.dataset.filter === next;
+                slot.classList.toggle('is-open', isOpen);
+            });
+            window._gymFilterUiState.active = next;
+            if (next) {
+                var input = bar.querySelector('.gym-filter-input-wrap[data-filter="' + next + '"] input');
+                if (input) setTimeout(function() { try { input.focus(); input.select(); } catch (e) {} }, 120);
+            }
+        }
         function _gymLeerFiltrosActivos() {
             return {
                 badge: _gymFilterText(document.getElementById('gym-filter-badge')?.value),
@@ -7642,15 +7607,43 @@
             });
         }
         function _gymInitFilterBar() {
+            var bar = document.getElementById('filtros-bar-gym');
+            if (!bar) return;
             var badgeInp = document.getElementById('gym-filter-badge');
             var maqInp = document.getElementById('gym-filter-maquina');
             if (badgeInp && badgeInp.dataset.filterInit !== '1') {
                 badgeInp.dataset.filterInit = '1';
                 badgeInp.addEventListener('input', _gymAplicarFiltrosActivos);
+                badgeInp.addEventListener('focus', function() { _gymSetFiltroMovilActivo('badge'); });
             }
             if (maqInp && maqInp.dataset.filterInit !== '1') {
                 maqInp.dataset.filterInit = '1';
                 maqInp.addEventListener('input', _gymAplicarFiltrosActivos);
+                maqInp.addEventListener('focus', function() { _gymSetFiltroMovilActivo('maquina'); });
+            }
+            if (bar.dataset.filterUiInit !== '1') {
+                bar.dataset.filterUiInit = '1';
+                bar.querySelectorAll('.gym-filter-toggle').forEach(function(btn) {
+                    btn.addEventListener('click', function(ev) {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        var filter = btn.dataset.filter || null;
+                        if (!_gymEsModoFiltrosMovil()) {
+                            var target = document.getElementById(filter === 'badge' ? 'gym-filter-badge' : 'gym-filter-maquina');
+                            if (target) target.focus();
+                            return;
+                        }
+                        _gymSetFiltroMovilActivo(window._gymFilterUiState.active === filter ? null : filter);
+                    });
+                });
+                document.addEventListener('click', function(ev) {
+                    if (!_gymEsModoFiltrosMovil()) return;
+                    var activeBar = document.getElementById('filtros-bar-gym');
+                    if (activeBar && !activeBar.contains(ev.target)) _gymSetFiltroMovilActivo(null);
+                });
+                window.addEventListener('resize', function() {
+                    if (!_gymEsModoFiltrosMovil()) _gymSetFiltroMovilActivo(null);
+                });
             }
         }
         function _gymCalcularKmCardioDesdeCards(cardsPorPanel) {

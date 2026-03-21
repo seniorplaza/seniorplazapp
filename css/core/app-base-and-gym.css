@@ -1132,7 +1132,7 @@
             width: 100%;
             box-sizing: border-box;
             min-height: 68.67px;
-            overflow: hidden;
+            overflow: visible;
             background: rgba(30,41,59,0.45) !important;
             border: 1px solid rgba(51,65,85,0.6) !important;
             backdrop-filter: blur(12px);
@@ -1151,6 +1151,27 @@
             position: sticky !important;
             top: 210px !important;
             z-index: 90;
+        }
+        #filtros-bar-gym .gym-filter-slot {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 0 1 auto;
+        }
+        #filtros-bar-gym .gym-filter-toggle {
+            height: 36px !important;
+            min-width: 36px;
+            flex-shrink: 0;
+        }
+        #filtros-bar-gym .gym-filter-input-wrap {
+            width: 184px;
+            min-width: 184px;
+            transition: width 0.22s ease, min-width 0.22s ease, opacity 0.18s ease, margin 0.22s ease;
+        }
+        #filtros-bar-gym .gym-filter-bar-spacer {
+            flex: 1 1 auto;
+            min-width: 0;
         }
         .gym-filter-input {
             height: 40px;
@@ -1173,6 +1194,19 @@
             border-color: rgba(234,179,8,0.5);
             box-shadow: 0 0 0 3px rgba(234,179,8,0.12);
             background: rgba(15,23,42,0.88);
+        }
+        .finanzas-scroll-modal {
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+        .finanzas-scroll-modal-card {
+            box-sizing: border-box;
+            max-height: min(calc(100vh - 32px - var(--nav-offset, 0px)), 92dvh) !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
         }
         
         @media (max-width: 768px) {
@@ -1209,15 +1243,43 @@
             }
             #filtros-bar-gym {
                 gap: 8px !important;
+                flex-wrap: nowrap !important;
+                align-items: center !important;
+            }
+            #filtros-bar-gym .gym-filter-slot {
+                gap: 8px !important;
+                flex: 0 1 auto !important;
             }
             #filtros-bar-gym .gym-filter-input-wrap {
-                flex: 1 1 calc(50% - 4px) !important;
+                width: 0 !important;
                 min-width: 0 !important;
+                opacity: 0;
+                overflow: hidden;
+                margin-left: 0 !important;
+            }
+            #filtros-bar-gym .gym-filter-slot.is-open .gym-filter-input-wrap {
+                width: min(44vw, 168px) !important;
+                min-width: min(44vw, 168px) !important;
+                opacity: 1;
             }
             #filtros-bar-gym .gym-filter-input {
                 height: 36px;
                 padding: 0 12px;
                 font-size: 11px;
+            }
+            #filtros-bar-gym .gym-filter-bar-spacer {
+                flex: 1 1 auto;
+                min-width: 6px;
+            }
+            .finanzas-scroll-modal {
+                align-items: flex-start !important;
+                justify-content: center !important;
+                padding-top: 16px !important;
+                padding-bottom: calc(16px + var(--nav-offset, 0px)) !important;
+            }
+            .finanzas-scroll-modal-card {
+                max-height: calc(100dvh - 32px - var(--nav-offset, 0px)) !important;
+                min-height: min-content;
             }
         }
         @media (min-width: 769px) {
@@ -1230,6 +1292,9 @@
                 padding: 0 12px !important;
                 height: 34px !important;
                 gap: 6px !important;
+            }
+            #filtros-bar-gym .gym-filter-toggle .material-symbols-outlined {
+                font-size: 16px !important;
             }
         }
 
