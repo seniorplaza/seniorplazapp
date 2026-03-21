@@ -531,6 +531,8 @@
             .diario-item-desktop { display: flex !important; }
             .diario-item-mobile  { display: none !important; }
             [data-drag-handle-mobile] { display: flex !important; cursor: default !important; }
+            .agenda-drag-thumb { display: flex !important; cursor: grab !important; touch-action: none !important; }
+            .agenda-drag-thumb * { pointer-events: none !important; }
             [data-mobile-only] { display: none !important; }
         }
         @media (max-width: 639px) {
@@ -539,6 +541,8 @@
             [id$="_dh_desktop"] { display: none !important; }
             [data-drag-handle-mobile] { display: flex !important; touch-action: none !important; cursor: grab !important; }
             [data-drag-handle-mobile] * { pointer-events: none !important; }
+            .agenda-drag-thumb { display: flex !important; touch-action: none !important; cursor: grab !important; }
+            .agenda-drag-thumb * { pointer-events: none !important; }
         }
         .diario-desc-visible {
             display: block !important;
@@ -820,14 +824,34 @@
         .container.drag-ending {
             overflow-x: visible !important;
         }
-        .sortable-drag:not(.gym-card),
-        .sortable-fallback:not(.gym-card),
-        .sortable-chosen.sortable-drag:not(.gym-card),
-        .sortable-chosen.sortable-fallback:not(.gym-card) {
+        .sortable-drag:not(.gym-card):not(.agenda-sortable-card),
+        .sortable-fallback:not(.gym-card):not(.agenda-sortable-card),
+        .sortable-chosen.sortable-drag:not(.gym-card):not(.agenda-sortable-card),
+        .sortable-chosen.sortable-fallback:not(.gym-card):not(.agenda-sortable-card) {
             opacity: 0 !important;
             visibility: hidden !important;
             box-shadow: none !important;
             border: none !important;
+            outline: none !important;
+        }
+
+        .sortable-drag.agenda-sortable-card,
+        .sortable-chosen.sortable-drag.agenda-sortable-card {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            background: transparent !important;
+            border: 1px solid transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        .sortable-fallback.agenda-sortable-card,
+        .sortable-chosen.sortable-fallback.agenda-sortable-card {
+            opacity: 1 !important;
+            visibility: visible !important;
+            background: rgba(15, 23, 42, 0.96) !important;
+            border: 2px solid rgba(16,185,129,0.7) !important;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.2), 0 20px 60px rgba(0,0,0,0.5) !important;
             outline: none !important;
         }
         
@@ -3813,10 +3837,10 @@
             
             /* Espacio justo bajo la barra fija, sin empujar el contenido demasiado */
             #reformas {
-                padding-top: 85px !important;
+                padding-top: 80px !important;
             }
             #fitness-nutricion {
-                padding-top: 85px !important;
+                padding-top: 80px !important;
             }
 
             /* Modal iconos: gestionado por inline styles del nuevo diseño */

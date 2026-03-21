@@ -15,7 +15,7 @@ adb emu kill
 
 //////////////
 
-python -m http.server 8000 --bind 0.0.0.0
+python -m http.server 8000 --bind 0.0.0.0 /// py -m http.server 8080 --directory www
 
 ipconfig | Select-String "IPv4"
 

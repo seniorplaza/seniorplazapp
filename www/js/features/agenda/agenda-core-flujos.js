@@ -76,6 +76,95 @@ function _abrirActividadDirecta(tipo) {
 function abrirNuevoHabito()          { _abrirActividadDirecta('habito'); }
 function abrirNuevaTareaRecurrente() { _abrirActividadDirecta('tareaRecurrente'); }
 function abrirNuevaTarea()           { _abrirActividadDirecta('tarea'); }
+function abrirNuevaEntradaTareasActiva() {
+    const vista = window._vistaTareasActiva || 'tarea';
+    if (vista === 'recurrente') {
+        abrirNuevaTareaRecurrente();
+        return;
+    }
+    if (vista === 'recordatorio') {
+        abrirNuevoRecordatorio();
+        return;
+    }
+    abrirNuevaTarea();
+}
+function _ensureNuevoRecordatorioModal() {
+    let modal = document.getElementById('_nuevoRecordatorioModal');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = '_nuevoRecordatorioModal';
+    modal.style.cssText = 'display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);z-index:10026;align-items:center;justify-content:center;padding:18px;';
+    modal.innerHTML = `<div style="width:min(100%,460px);background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:1px solid rgba(34,211,238,0.18);border-radius:28px;padding:24px 22px 22px;box-shadow:0 28px 80px rgba(0,0,0,0.55);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;">
+            <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                <div style="width:44px;height:44px;border-radius:14px;background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span class="material-symbols-rounded" style="font-size:22px;color:#22d3ee;">notifications</span>
+                </div>
+                <div>
+                    <div style="color:white;font-size:16px;font-weight:800;line-height:1.2;">Nuevo recordatorio</div>
+                    <div style="color:#64748b;font-size:12px;margin-top:3px;">Escribe solo la nota del recordatorio</div>
+                </div>
+            </div>
+            <button onclick="cerrarNuevoRecordatorio()" style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;">close</span></button>
+        </div>
+        <textarea id="_nuevoRecordatorioTexto" rows="5" maxlength="280" placeholder="Ej: Comprar pilas para el mando" style="width:100%;background:#0f172a;border:1px solid rgba(34,211,238,0.16);border-radius:16px;color:#f1f5f9;font-size:14px;line-height:1.45;padding:14px 16px;outline:none;box-sizing:border-box;resize:none;"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;">
+            <span style="color:#475569;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Visible siempre en recordatorios</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="cerrarNuevoRecordatorio()" style="height:40px;padding:0 16px;border-radius:12px;background:transparent;border:1px solid rgba(71,85,105,0.45);color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;">Cancelar</button>
+                <button onclick="guardarNuevoRecordatorio()" style="height:40px;padding:0 16px;border-radius:12px;background:linear-gradient(135deg,rgba(8,47,73,0.95) 0%,rgba(14,116,144,0.9) 55%,rgba(34,211,238,0.92) 100%);border:1px solid rgba(34,211,238,0.3);color:white;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 0 18px rgba(34,211,238,0.18);">Guardar</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.appendChild(modal);
+    return modal;
+}
+function abrirNuevoRecordatorio() {
+    const modal = _ensureNuevoRecordatorioModal();
+    const textarea = modal.querySelector('#_nuevoRecordatorioTexto');
+    if (textarea) textarea.value = '';
+    modal.style.display = 'flex';
+    setTimeout(function() {
+        if (textarea) textarea.focus();
+    }, 30);
+}
+function cerrarNuevoRecordatorio() {
+    const modal = document.getElementById('_nuevoRecordatorioModal');
+    if (modal) modal.style.display = 'none';
+}
+function guardarNuevoRecordatorio() {
+    const textarea = document.getElementById('_nuevoRecordatorioTexto');
+    const texto = textarea ? textarea.value.trim() : '';
+    if (!texto) {
+        if (textarea) {
+            textarea.focus();
+            textarea.style.borderColor = '#ef4444';
+            setTimeout(function() {
+                textarea.style.borderColor = 'rgba(34,211,238,0.16)';
+            }, 1200);
+        }
+        return;
+    }
+    const recordatorio = {
+        id: 'recordatorio_' + Date.now(),
+        nombre: texto,
+        fecha: '',
+        hora: '',
+        nota: '',
+        subitems: [],
+        completada: false,
+        categoria: { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' },
+        categoriaId: null,
+        creadoEn: new Date().toISOString(),
+        esRecordatorio: true
+    };
+    window.agendaData.tareas.push(recordatorio);
+    guardarAgendaData();
+    cerrarNuevoRecordatorio();
+    if (typeof renderDiario === 'function') renderDiario();
+    if (typeof renderTareasSection === 'function') renderTareasSection();
+    if (typeof _mostrarToast === 'function') _mostrarToast('notifications', '#22d3ee', 'Recordatorio añadido');
+}
 function abrirNuevaTareaDiario()     {
     _mostrarSelectorTipoAgenda(['habito','tareaRecurrente','tarea']);
 }
@@ -876,10 +965,9 @@ function _renderHabitoCard(habito) {
         </div>`;
     }).join('');
 
-    return `<div data-drag-id="${habito.id}" style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px;margin-bottom:0;transition:box-shadow 0.15s;">
+    return `<div class="agenda-sortable-card" data-drag-id="${habito.id}" style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px;margin-bottom:0;transition:box-shadow 0.15s;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <span data-drag-handle class="material-symbols-rounded" style="font-size:18px;color:#334155;cursor:grab;padding:2px 4px 2px 0;flex-shrink:0;touch-action:none;user-select:none;" id="${habito.id}_dh_desktop">drag_indicator</span>
-            <div data-drag-handle-mobile style="width:34px;height:34px;border-radius:10px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
+            <div class="agenda-drag-thumb" data-drag-handle data-drag-handle-mobile style="width:34px;height:34px;border-radius:10px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
                 ${catMiniatura}
             </div>
             <div style="flex:1;min-width:0;">
@@ -1317,7 +1405,7 @@ function habitoToggleDia(id, fechaStr) {
         var _isMobile = window.innerWidth < 640;
 
         containerEl._sortableInstance = new Sortable(containerEl, {
-            animation: 150,
+            animation: 200,
             easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -1325,13 +1413,13 @@ function habitoToggleDia(id, fechaStr) {
             fallbackClass: 'sortable-fallback',
             fallbackOnBody: true,
             swapThreshold: 0.65,
-            handle: _isMobile ? '[data-drag-handle-mobile]' : '[data-drag-handle]',
+            handle: '.agenda-drag-thumb',
             filter: 'button, input, a',
             preventOnFilter: true,
             forceFallback: true,
-            fallbackTolerance: 3,
-            touchStartThreshold: 3,
-            delay: _isMobile ? 300 : 0,
+            fallbackTolerance: 0,
+            touchStartThreshold: 5,
+            delay: _isMobile ? 100 : 0,
             delayOnTouchOnly: true,
             onChoose: function(evt) {
                 if (navigator.vibrate) navigator.vibrate(30);
@@ -1344,6 +1432,7 @@ function habitoToggleDia(id, fechaStr) {
                 setTimeout(() => {
                     const fallback = document.querySelector('.sortable-fallback');
                     if (fallback) {
+                        fallback.classList.add('agenda-sortable-card');
                         fallback.style.width = rect.width + 'px';
                         fallback.style.height = rect.height + 'px';
                         fallback.style.opacity = '1';
@@ -1371,7 +1460,17 @@ function habitoToggleDia(id, fechaStr) {
                 evt.item.style.width = '';
                 evt.item.style.height = '';
                 document.body.classList.add('drag-ending');
-                setTimeout(() => document.body.classList.remove('drag-ending'), 100);
+                document.documentElement.classList.add('drag-ending');
+                const mainEl = document.querySelector('main');
+                const shellContainerEl = document.querySelector('.container');
+                if (mainEl) mainEl.classList.add('drag-ending');
+                if (shellContainerEl) shellContainerEl.classList.add('drag-ending');
+                setTimeout(() => {
+                    document.body.classList.remove('drag-ending');
+                    document.documentElement.classList.remove('drag-ending');
+                    if (mainEl) mainEl.classList.remove('drag-ending');
+                    if (shellContainerEl) shellContainerEl.classList.remove('drag-ending');
+                }, 100);
                 const items = _getItems(listKey);
                 const domIds = Array.from(containerEl.children).map(c => c.dataset.dragId);
                 const newArr = domIds.map(id => items.find(x => x.id === id)).filter(Boolean);
@@ -1433,13 +1532,16 @@ function renderTareasSection() {
     const hoyIso = hoy.toISOString().split('T')[0];
     const recurrentes = (window.agendaData && window.agendaData.tareasRecurrentes) ? window.agendaData.tareasRecurrentes.filter(t => _actAplicaHoy(t, hoy)) : [];
     const todasTareas = (window.agendaData && window.agendaData.tareas) || [];
-    const tareas = filtro === 'todo' ? todasTareas : todasTareas.filter(t => {
+    const tareasFiltradas = filtro === 'todo' ? todasTareas : todasTareas.filter(t => {
         const f = t.fecha || hoyIso;
         return (!desdeIso || f >= desdeIso) && (!hastaIso || f <= hastaIso);
     });
+    const tareas = tareasFiltradas.filter(t => !t.esRecordatorio);
+    const recordatorios = todasTareas.filter(t => t.esRecordatorio);
     const vistaActiva = window._vistaTareasActiva || 'tarea';
     const mostrarRecurrentes = vistaActiva === 'recurrente';
     const mostrarTareas = vistaActiva === 'tarea';
+    const mostrarRecordatorios = vistaActiva === 'recordatorio';
 
     if (mostrarRecurrentes && recurrentes.length === 0) {
         container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">event_repeat</span><p style="color:#475569;font-size:14px;margin:0;">No hay tareas recurrentes para hoy</p></div>`;
@@ -1449,7 +1551,11 @@ function renderTareasSection() {
         container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">task_alt</span><p style="color:#475569;font-size:14px;margin:0;">No hay tareas en este periodo</p></div>`;
         return;
     }
-    if (!mostrarRecurrentes && !mostrarTareas) { container.innerHTML = ''; return; }
+    if (mostrarRecordatorios && recordatorios.length === 0) {
+        container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">notifications</span><p style="color:#475569;font-size:14px;margin:0 0 4px 0;">No hay recordatorios en este periodo</p><p style="color:#334155;font-size:12px;margin:0;">Añade una nota rápida para verla aquí</p></div>`;
+        return;
+    }
+    if (!mostrarRecurrentes && !mostrarTareas && !mostrarRecordatorios) { container.innerHTML = ''; return; }
 
     let html = '';
     let tareasListFlat = []; // para contar total y asignar prioridad
@@ -1475,6 +1581,12 @@ function renderTareasSection() {
         });
         tareasListFlat = tareas;
     }
+    if (mostrarRecordatorios && recordatorios.length > 0) {
+        const ordenados = [...recordatorios].sort((a,b) => (b.creadoEn||'').localeCompare(a.creadoEn||''));
+        const grupoTotal = ordenados.length;
+        html += ordenados.map((t, idxGrupo) => _renderDiarioItem(t, 'tarea', null, idxGrupo, grupoTotal)).join('');
+        tareasListFlat = recordatorios;
+    }
     container.innerHTML = html;
     setTimeout(() => {
         if (!window._initDragSortList) return;
@@ -1487,7 +1599,17 @@ function renderTareasSection() {
             evt.item.style.width = '';
             evt.item.style.height = '';
             document.body.classList.add('drag-ending');
-            setTimeout(() => document.body.classList.remove('drag-ending'), 100);
+            document.documentElement.classList.add('drag-ending');
+            const mainEl = document.querySelector('main');
+            const shellContainerEl = document.querySelector('.container');
+            if (mainEl) mainEl.classList.add('drag-ending');
+            if (shellContainerEl) shellContainerEl.classList.add('drag-ending');
+            setTimeout(() => {
+                document.body.classList.remove('drag-ending');
+                document.documentElement.classList.remove('drag-ending');
+                if (mainEl) mainEl.classList.remove('drag-ending');
+                if (shellContainerEl) shellContainerEl.classList.remove('drag-ending');
+            }, 100);
             const items = (window.agendaData[listKey] || []);
             const domIds = Array.from(cont.children)
                 .filter(c => c.dataset.dragId)
@@ -1502,7 +1624,7 @@ function renderTareasSection() {
             setTimeout(() => renderTareasSection(), 0);
         };
         cont._sortableInstance = new Sortable(cont, {
-            animation: 150,
+            animation: 200,
             easing: 'cubic-bezier(0.4,0,0.2,1)',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -1510,11 +1632,11 @@ function renderTareasSection() {
             fallbackClass: 'sortable-fallback',
             fallbackOnBody: true,
             swapThreshold: 0.65,
-            handle: window.innerWidth < 640 ? '[data-drag-handle-mobile]' : '[data-drag-handle]',
+            handle: '.agenda-drag-thumb',
             forceFallback: true,
-            fallbackTolerance: 3,
-            touchStartThreshold: 3,
-            delay: window.innerWidth < 640 ? 300 : 0,
+            fallbackTolerance: 0,
+            touchStartThreshold: 5,
+            delay: window.innerWidth < 640 ? 100 : 0,
             delayOnTouchOnly: true,
             filter: '.op-date-header',
             onChoose: function() { if (navigator.vibrate) navigator.vibrate(30); },
@@ -1526,15 +1648,17 @@ function renderTareasSection() {
                 setTimeout(() => {
                     const fb = document.querySelector('.sortable-fallback');
                     if (fb) {
+                        fb.classList.add('agenda-sortable-card');
                         fb.style.width = rect.width + 'px';
+                        fb.style.height = rect.height + 'px';
                         fb.style.opacity = '1';
                         fb.style.visibility = 'visible';
                         fb.style.background = 'rgba(15,23,42,0.95)';
                         fb.style.backdropFilter = 'blur(8px)';
-                        fb.style.border = '2px solid rgba(245,158,11,0.4)';
+                        fb.style.border = '2px solid rgba(16,185,129,0.7)';
                         fb.style.borderRadius = '14px';
-                        fb.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
-                        fb.style.transform = 'scale(1.02)';
+                        fb.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.2), 0 20px 60px rgba(0,0,0,0.5)';
+                        fb.style.transform = 'scale(1.03)';
                         fb.style.transition = 'none';
                         fb.style.cursor = 'grabbing';
                         fb.style.zIndex = '100000';
@@ -1577,6 +1701,7 @@ function renderDiario() {
         _fechaHdr.textContent = _fStr.charAt(0).toUpperCase() + _fStr.slice(1).toUpperCase();
     }
     const tareasHoy = (window.agendaData.tareas || []).filter(t => {
+        if (t.esRecordatorio) return false;
         if (!t.fecha) return false;
         if (_dFiltro === 'dia') return t.fecha === hoy;
         if (_dFiltro === 'mes') return t.fecha.startsWith(hoy.substring(0,7));
@@ -1627,7 +1752,7 @@ function renderDiario() {
         if (!container || typeof Sortable === 'undefined') return;
         if (container._sortableDiario) { try { container._sortableDiario.destroy(); } catch(e) {} }
         container._sortableDiario = new Sortable(container, {
-            animation: 150,
+            animation: 200,
             easing: 'cubic-bezier(0.4,0,0.2,1)',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -1635,29 +1760,32 @@ function renderDiario() {
             fallbackClass: 'sortable-fallback',
             fallbackOnBody: true,
             swapThreshold: 0.65,
-            handle: window.innerWidth < 640 ? '[data-drag-handle-mobile]' : '[data-drag-handle]',
+            handle: '.agenda-drag-thumb',
             forceFallback: true,
-            fallbackTolerance: 3,
-            touchStartThreshold: 3,
-            delay: window.innerWidth < 640 ? 300 : 0,
+            fallbackTolerance: 0,
+            touchStartThreshold: 5,
+            delay: window.innerWidth < 640 ? 100 : 0,
             delayOnTouchOnly: true,
             onChoose: function() { if (navigator.vibrate) navigator.vibrate(30); },
             onStart: function(evt) {
                 if (navigator.vibrate) navigator.vibrate(30);
                 const rect = evt.item.getBoundingClientRect();
                 evt.item.style.width = rect.width + 'px';
+                evt.item.style.height = rect.height + 'px';
                 setTimeout(() => {
                     const fb = document.querySelector('.sortable-fallback');
                     if (fb) {
+                        fb.classList.add('agenda-sortable-card');
                         fb.style.width = rect.width + 'px';
+                        fb.style.height = rect.height + 'px';
                         fb.style.opacity = '1';
                         fb.style.visibility = 'visible';
                         fb.style.background = 'rgba(15,23,42,0.95)';
                         fb.style.backdropFilter = 'blur(8px)';
-                        fb.style.border = '2px solid rgba(16,185,129,0.4)';
+                        fb.style.border = '2px solid rgba(16,185,129,0.7)';
                         fb.style.borderRadius = '14px';
-                        fb.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
-                        fb.style.transform = 'scale(1.02)';
+                        fb.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.2), 0 20px 60px rgba(0,0,0,0.5)';
+                        fb.style.transform = 'scale(1.03)';
                         fb.style.transition = 'none';
                         fb.style.cursor = 'grabbing';
                         fb.style.zIndex = '100000';
@@ -1666,6 +1794,19 @@ function renderDiario() {
             },
             onEnd: function(evt) {
                 evt.item.style.width = '';
+                evt.item.style.height = '';
+                document.body.classList.add('drag-ending');
+                document.documentElement.classList.add('drag-ending');
+                const mainEl = document.querySelector('main');
+                const shellContainerEl = document.querySelector('.container');
+                if (mainEl) mainEl.classList.add('drag-ending');
+                if (shellContainerEl) shellContainerEl.classList.add('drag-ending');
+                setTimeout(() => {
+                    document.body.classList.remove('drag-ending');
+                    document.documentElement.classList.remove('drag-ending');
+                    if (mainEl) mainEl.classList.remove('drag-ending');
+                    if (shellContainerEl) shellContainerEl.classList.remove('drag-ending');
+                }, 100);
                 const newOrden = Array.from(container.children).map(el => ({
                     id: el.dataset.dragId,
                     tipo: el.dataset.dragTipo
@@ -1746,9 +1887,10 @@ function _getPrioridadFlag(prioridad, total) {
 }
 
 function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
-    const colores = { habito:'#10b981', tareaRecurrente:'#60a5fa', tarea:'#f59e0b' };
-    const labels        = { habito:'Hábito', tareaRecurrente:'Tarea Recurrente', tarea:'Tarea' };
-    const labelsMobile  = { habito:'Hábito', tareaRecurrente:'Recurrente', tarea:'Tarea' };
+    const esRecordatorio = tipo === 'tarea' && !!item.esRecordatorio;
+    const colores = { habito:'#10b981', tareaRecurrente:'#60a5fa', tarea: esRecordatorio ? '#22d3ee' : '#f59e0b' };
+    const labels        = { habito:'Hábito', tareaRecurrente:'Tarea Recurrente', tarea: esRecordatorio ? 'Recordatorio' : 'Tarea' };
+    const labelsMobile  = { habito:'Hábito', tareaRecurrente:'Recurrente', tarea: esRecordatorio ? 'Recordatorio' : 'Tarea' };
     const c = colores[tipo] || '#64748b';
     const label       = labels[tipo] || tipo;
     const labelMobile = labelsMobile[tipo] || tipo;
@@ -1756,16 +1898,16 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
     const esFechaFutura = viewDate ? _localDateStr(viewDate) > hoy : false;
     const registroHoy = (item.registros || []).find(r => r.fecha === hoy);
     let estadoTarea = null;
-    if (tipo === 'tarea') {
+    if (tipo === 'tarea' && !esRecordatorio) {
         const hoyStr = _localDateStr(new Date());
         if (item.estado === 'completada') estadoTarea = 'completada';
         else if (item.estado === 'no_completada') estadoTarea = 'no_completada';
         else if (item.fecha && item.fecha < hoyStr) estadoTarea = 'pendiente';
         else estadoTarea = null;
     }
-    const completado = tipo === 'tarea' ? (estadoTarea === 'completada') : (registroHoy && registroHoy.completado);
+    const completado = esRecordatorio ? false : (tipo === 'tarea' ? (estadoTarea === 'completada') : (registroHoy && registroHoy.completado));
 
-    const catIcono = item.categoria?.icono || (tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':'task_alt');
+    const catIcono = item.categoria?.icono || (tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':(esRecordatorio?'notifications':'task_alt'));
     const catColor = item.categoria?.color || c;
     const _allCatsD = (window.finanzasData?.categorias||[]);
     const _catFullD = item.categoriaId ? _allCatsD.find(c => c.id === item.categoriaId)
@@ -1793,30 +1935,35 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
 
     const subitemsStr = (item.subitems && item.subitems.length) ? `<div style="display:flex;flex-direction:column;gap:4px;">${item.subitems.map((s,i) => `<div style="display:inline-flex;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:50%;border:2px solid ${s.completado?catColor:catColor+'88'};background:${s.completado?catColor:'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;cursor:pointer;" onclick="event.stopPropagation();_tryToggleSubitem(event,'${item.id}','${tipo}',${i},${!s.completado},${esFechaFutura})" ontouchend="event.stopPropagation();">${s.completado?'<span class="material-symbols-rounded" style="color:white;font-size:13px;">check</span>':''}</div><span style="color:${s.completado?'#475569':'#cbd5e1'};font-size:12px;text-decoration:${s.completado?'line-through':'none'};">${s.texto}</span></div>`).join('')}</div>` : '';
 
-    const flagBadge = (prioridad !== undefined && totalItems !== undefined) ? _getPrioridadFlag(prioridad, totalItems) : '';
+    const flagBadge = (!esRecordatorio && prioridad !== undefined && totalItems !== undefined) ? _getPrioridadFlag(prioridad, totalItems) : '';
+    const typeBadgeDesktop = esRecordatorio
+        ? `<span style="width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:${c};color:white;border:1px solid ${c};font-size:11px;font-weight:900;flex-shrink:0;">R</span>`
+        : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;">${label}</span>`;
+    const typeBadgeMobile = esRecordatorio
+        ? `<span style="width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:${c};color:white;border:1px solid ${c};font-size:10px;font-weight:900;flex-shrink:0;">R</span>`
+        : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;flex-shrink:0;">${labelMobile}</span>`;
     const scopePrefix = viewDate ? 'di' : 'ta';
     const uid = scopePrefix + '_' + item.id + '_' + tipo;
     const descAnyWidth = viewDate ? '0' : '1';
     const descAttrs = descAnyWidth === '1'
         ? 'data-desc-any-width="1"'
         : 'data-desc-any-width="0" data-mobile-only="1"';
-    const checkOnclick = esFechaFutura ? '_lockShakeDiario(this)' : ('actToggleCompletado(\'' + item.id + '\',\'' + tipo + '\',this)');
-    const checkBorder = esFechaFutura ? 'rgba(71,85,105,0.5)' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'#f59e0b':'rgba(71,85,105,0.5)') : (completado?'#10b981':'rgba(71,85,105,0.5)'));
-    const checkBg = esFechaFutura ? 'transparent' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'rgba(245,158,11,0.15)':'transparent') : (completado?'#10b981':'transparent'));
-    const checkInner = esFechaFutura
-        ? '<span class="material-symbols-rounded" style="color:#64748b;font-size:14px;">lock_clock</span>'
-        : (tipo==='tarea'
-            ? (estadoTarea==='completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>'
-              : estadoTarea==='no_completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">close</span>'
-              : estadoTarea==='pendiente' ? '<span class="material-symbols-rounded" style="color:#f59e0b;font-size:15px;">schedule</span>' : '')
-            : (completado ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>' : ''));
-    const checkBtn = '<button onclick="event.stopPropagation();' + checkOnclick + '" ontouchend="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;border:2px solid ' + checkBorder + ';background:' + checkBg + ';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:1;box-shadow:none;">' + checkInner + '</button>';
+        const checkOnclick = esFechaFutura ? '_lockShakeDiario(this)' : ('actToggleCompletado(\'' + item.id + '\',\'' + tipo + '\',this)');
+        const checkBorder = esFechaFutura ? 'rgba(71,85,105,0.5)' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'#f59e0b':'rgba(71,85,105,0.5)') : (completado?'#10b981':'rgba(71,85,105,0.5)'));
+        const checkBg = esFechaFutura ? 'transparent' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'rgba(245,158,11,0.15)':'transparent') : (completado?'#10b981':'transparent'));
+        const checkInner = esFechaFutura
+                ? '<span class="material-symbols-rounded" style="color:#64748b;font-size:14px;">lock_clock</span>'
+                : (tipo==='tarea'
+                        ? (estadoTarea==='completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>'
+                            : estadoTarea==='no_completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">close</span>'
+                            : estadoTarea==='pendiente' ? '<span class="material-symbols-rounded" style="color:#f59e0b;font-size:15px;">schedule</span>' : '')
+                        : (completado ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>' : ''));
+        const checkBtn = esRecordatorio ? '' : ('<button onclick="event.stopPropagation();' + checkOnclick + '" ontouchend="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;border:2px solid ' + checkBorder + ';background:' + checkBg + ';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:1;box-shadow:none;">' + checkInner + '</button>');
     const moreBtn = '<button onclick="event.stopPropagation();_abrirMenuDiarioItem(event,\'' + item.id + '\',\'' + tipo + '\')" ontouchend="event.stopPropagation();" style="background:none;border:none;color:#475569;cursor:pointer;padding:2px;display:flex;align-items:center;border-radius:6px;" onmouseover="this.style.color=\'#94a3b8\'" onmouseout="this.style.color=\'#475569\'"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button>';
 
-    return `<div data-drag-id="${item.id}" data-drag-tipo="${tipo}" data-desc-any-width="${descAnyWidth}" id="${uid}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2);border-radius:14px;padding:13px 16px;margin-bottom:8px;transition:all 0.15s;" oncontextmenu="_diarioLongPress('${uid}',event)" onclick="_diarioToggleDescCard(event,'${uid}')" ontouchend="_diarioToggleDescCard(event,'${uid}')">
+    return `<div class="agenda-sortable-card" data-drag-id="${item.id}" data-drag-tipo="${tipo}" data-desc-any-width="${descAnyWidth}" id="${uid}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2);border-radius:14px;padding:13px 16px;margin-bottom:8px;transition:all 0.15s;" oncontextmenu="_diarioLongPress('${uid}',event)" onclick="_diarioToggleDescCard(event,'${uid}')" ontouchend="_diarioToggleDescCard(event,'${uid}')">
         <div style="display:flex;align-items:center;gap:12px;">
-            <span data-drag-handle class="material-symbols-rounded diario-item-desktop" style="font-size:20px;color:#334155;cursor:grab;flex-shrink:0;touch-action:none;user-select:none;" id="${uid}_dh_desktop">drag_indicator</span>
-            <div data-drag-handle-mobile style="width:42px;height:42px;border-radius:12px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
+            <div class="agenda-drag-thumb" data-drag-handle data-drag-handle-mobile style="width:42px;height:42px;border-radius:12px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
                 ${catMiniaturaD}
             </div>
             <div class="diario-item-desktop" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:0;justify-content:center;">
@@ -1830,7 +1977,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
                         ${flagBadge}
-                        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;">${label}</span>
+                        ${typeBadgeDesktop}
                         ${horasBadges ? `<div style="display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0;">${horasBadges}</div>` : ''}
                         ${moreBtn}
                         ${checkBtn}
@@ -1843,7 +1990,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
             </div>
             <div class="diario-item-mobile" style="display:none;align-items:center;gap:6px;flex-shrink:0;">
                 ${flagBadge}
-                <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;flex-shrink:0;">${labelMobile}</span>
+                ${typeBadgeMobile}
                 ${moreBtn}
                 ${checkBtn}
             </div>
