@@ -7327,6 +7327,7 @@
                 var sesiones = window._gymSesionesHistorial || {};
                 if (sesiones[fechaKey]) { sesiones[fechaKey].reposo = totalSecs; if (typeof guardarDatos === 'function') guardarDatos(); }
             }
+            _gymSyncBurbujaReposoConVisibilidad();
         }
         function gymAbrirModalPeso() {
             var modal = document.getElementById('modal-gym-peso');
@@ -7370,6 +7371,41 @@
             if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
         }
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
+        function _gymBubbleBridgeDisponible() {
+            return !!(window.AndroidNotificador && typeof window.AndroidNotificador.showReposoBubble === 'function');
+        }
+        function _gymMostrarBurbujaReposo() {
+            if (!_gymBubbleBridgeDisponible() || !_gymReposoRunning()) return;
+            try {
+                window.AndroidNotificador.showReposoBubble(String(window._gymReposoState.startAt || Date.now()));
+            } catch (e) {}
+        }
+        function _gymOcultarBurbujaReposo() {
+            if (!_gymBubbleBridgeDisponible() || !window.AndroidNotificador || typeof window.AndroidNotificador.hideReposoBubble !== 'function') return;
+            try {
+                window.AndroidNotificador.hideReposoBubble();
+            } catch (e) {}
+        }
+        function _gymSyncBurbujaReposoConVisibilidad() {
+            if (!_gymReposoRunning()) {
+                _gymOcultarBurbujaReposo();
+                return;
+            }
+            if (document.hidden) {
+                _gymMostrarBurbujaReposo();
+                return;
+            }
+            _gymOcultarBurbujaReposo();
+        }
+        document.addEventListener('visibilitychange', function() {
+            setTimeout(_gymSyncBurbujaReposoConVisibilidad, 120);
+        });
+        document.addEventListener('pause', function() {
+            setTimeout(_gymSyncBurbujaReposoConVisibilidad, 120);
+        });
+        document.addEventListener('resume', function() {
+            setTimeout(_gymSyncBurbujaReposoConVisibilidad, 180);
+        });
         async function _gymCancelarNotifReposo() {
             return Promise.resolve();
         }
@@ -7427,6 +7463,7 @@
                 window._gymReposoState.activeBtn = null;
                 _gymReposoSetAllIcons(false);
                 _gymCancelarNotifReposo();
+                _gymOcultarBurbujaReposo();
                 gymGuardarSesionHoy();
             } else {
                 var reposoEl = document.getElementById('gym-stat-reposo');
@@ -7446,6 +7483,7 @@
                         rEl.textContent = rh > 0 ? rh+'h '+String(rm).padStart(2,'0')+'m' : String(rm).padStart(2,'0')+':'+String(rs).padStart(2,'0');
                     }
                 }, 1000);
+                _gymSyncBurbujaReposoConVisibilidad();
             }
         }
         function gymRecalcularCalorias() {
