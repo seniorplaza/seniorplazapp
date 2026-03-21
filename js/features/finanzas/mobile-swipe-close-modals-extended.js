@@ -25,6 +25,7 @@
     function attachSwipe(overlayId, closeFn) {
         const overlay = document.getElementById(overlayId);
         if (!overlay) return;
+        if (overlay.classList.contains('finanzas-scroll-modal')) return;
 
         function getInner() {
             for (let i = 0; i < overlay.children.length; i++) {
