@@ -608,6 +608,36 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .tab-content.pre-restore { display: none !important; }
+
+        /* Mantener visibles los bloques superiores de Analisis en todos los layouts */
+        #analisis > .space-y-6 {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        #analisis > .space-y-6 > div {
+            margin: 0;
+        }
+
+        #analisis #analisis-dinero-disponible-card {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: none !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        #analisis #analisis-gasto-inicial-card,
+        #analisis #analisis-resumen-hipoteca-card {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: none !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
         .tab-button { 
             outline: none !important;
             -webkit-tap-highlight-color: transparent !important;
@@ -854,6 +884,7 @@
             box-shadow: 0 0 0 3px rgba(16,185,129,0.2), 0 20px 60px rgba(0,0,0,0.5) !important;
             outline: none !important;
         }
+
         
         /* Forzar que el contenido interno también tenga fondo y sea visible */
         .sortable-drag > *,
@@ -2902,8 +2933,6 @@
 
             /* Fix Análisis en Android: forzar visibilidad de bloques clave */
             #analisis > .space-y-6 {
-                display: flex !important;
-                flex-direction: column !important;
                 gap: 16px !important;
                 margin-top: 0 !important;
                 padding-top: 0 !important;
@@ -2915,7 +2944,14 @@
                 gap: 16px !important;
                 margin: 0 !important;
             }
-            #analisis #analisis-dinero-disponible-card,
+            #analisis #analisis-dinero-disponible-card {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                transform: none !important;
+                position: relative !important;
+                z-index: 2 !important;
+            }
             #analisis #analisis-gasto-inicial-card,
             #analisis #analisis-resumen-hipoteca-card {
                 display: block !important;

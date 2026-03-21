@@ -965,7 +965,7 @@ function _renderHabitoCard(habito) {
         </div>`;
     }).join('');
 
-    return `<div class="agenda-sortable-card" data-drag-id="${habito.id}" style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px;margin-bottom:0;transition:box-shadow 0.15s;">
+    return `<div class="card-input-group agenda-sortable-card" data-drag-id="${habito.id}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px;margin-bottom:0;transition:box-shadow 0.15s;cursor:grab;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <div class="agenda-drag-thumb" data-drag-handle data-drag-handle-mobile style="width:34px;height:34px;border-radius:10px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
                 ${catMiniatura}
@@ -1402,10 +1402,8 @@ function habitoToggleDia(id, fechaStr) {
             try { containerEl._sortableInstance.destroy(); } catch(e) {}
         }
 
-        var _isMobile = window.innerWidth < 640;
-
         containerEl._sortableInstance = new Sortable(containerEl, {
-            animation: 200,
+            animation: 150,
             easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -1416,15 +1414,19 @@ function habitoToggleDia(id, fechaStr) {
             handle: '.agenda-drag-thumb',
             filter: 'button, input, a',
             preventOnFilter: true,
+            delay: 0,
+            delayOnTouchOnly: false,
+            touchStartThreshold: 3,
             forceFallback: true,
             fallbackTolerance: 0,
-            touchStartThreshold: 5,
-            delay: _isMobile ? 100 : 0,
-            delayOnTouchOnly: true,
             onChoose: function(evt) {
                 if (navigator.vibrate) navigator.vibrate(30);
             },
+            onUnchoose: function(evt) {
+                evt.item.classList.remove('long-press-active');
+            },
             onStart: function(evt) {
+                evt.item.classList.add('long-press-ready');
                 if (navigator.vibrate) navigator.vibrate(30);
                 const rect = evt.item.getBoundingClientRect();
                 evt.item.style.width = rect.width + 'px';
@@ -1433,16 +1435,18 @@ function habitoToggleDia(id, fechaStr) {
                     const fallback = document.querySelector('.sortable-fallback');
                     if (fallback) {
                         fallback.classList.add('agenda-sortable-card');
+                        fallback.classList.add('card-input-group');
                         fallback.style.width = rect.width + 'px';
                         fallback.style.height = rect.height + 'px';
                         fallback.style.opacity = '1';
                         fallback.style.visibility = 'visible';
                         fallback.style.background = 'rgba(15,23,42,0.95)';
                         fallback.style.backdropFilter = 'blur(8px)';
-                        fallback.style.border = '2px solid rgba(16,185,129,0.5)';
-                        fallback.style.borderRadius = '16px';
+                        fallback.style.webkitBackdropFilter = 'blur(8px)';
+                        fallback.style.border = '2px solid rgba(99, 102, 241, 0.5)';
+                        fallback.style.borderRadius = '12px';
                         fallback.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
-                        fallback.style.transform = 'scale(1.03)';
+                        fallback.style.transform = 'scale(1.05)';
                         fallback.style.transition = 'none';
                         fallback.style.cursor = 'grabbing';
                         fallback.style.zIndex = '100000';
@@ -1457,6 +1461,7 @@ function habitoToggleDia(id, fechaStr) {
                 }
             },
             onEnd: function(evt) {
+                evt.item.classList.remove('long-press-active', 'long-press-ready');
                 evt.item.style.width = '';
                 evt.item.style.height = '';
                 document.body.classList.add('drag-ending');
@@ -1596,6 +1601,7 @@ function renderTareasSection() {
         if (!cont || typeof Sortable === 'undefined') return;
         if (cont._sortableInstance) { try { cont._sortableInstance.destroy(); } catch(e) {} }
         const origOnEnd = function(evt) {
+            evt.item.classList.remove('long-press-active', 'long-press-ready');
             evt.item.style.width = '';
             evt.item.style.height = '';
             document.body.classList.add('drag-ending');
@@ -1624,7 +1630,7 @@ function renderTareasSection() {
             setTimeout(() => renderTareasSection(), 0);
         };
         cont._sortableInstance = new Sortable(cont, {
-            animation: 200,
+            animation: 150,
             easing: 'cubic-bezier(0.4,0,0.2,1)',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -1633,14 +1639,19 @@ function renderTareasSection() {
             fallbackOnBody: true,
             swapThreshold: 0.65,
             handle: '.agenda-drag-thumb',
+            preventOnFilter: true,
             forceFallback: true,
             fallbackTolerance: 0,
-            touchStartThreshold: 5,
-            delay: window.innerWidth < 640 ? 100 : 0,
-            delayOnTouchOnly: true,
+            touchStartThreshold: 3,
+            delay: 0,
+            delayOnTouchOnly: false,
             filter: '.op-date-header',
             onChoose: function() { if (navigator.vibrate) navigator.vibrate(30); },
+            onUnchoose: function(evt) {
+                evt.item.classList.remove('long-press-active');
+            },
             onStart: function(evt) {
+                evt.item.classList.add('long-press-ready');
                 if (navigator.vibrate) navigator.vibrate(30);
                 const rect = evt.item.getBoundingClientRect();
                 evt.item.style.width = rect.width + 'px';
@@ -1649,16 +1660,18 @@ function renderTareasSection() {
                     const fb = document.querySelector('.sortable-fallback');
                     if (fb) {
                         fb.classList.add('agenda-sortable-card');
+                        fb.classList.add('card-input-group');
                         fb.style.width = rect.width + 'px';
                         fb.style.height = rect.height + 'px';
                         fb.style.opacity = '1';
                         fb.style.visibility = 'visible';
                         fb.style.background = 'rgba(15,23,42,0.95)';
                         fb.style.backdropFilter = 'blur(8px)';
-                        fb.style.border = '2px solid rgba(16,185,129,0.7)';
-                        fb.style.borderRadius = '14px';
-                        fb.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.2), 0 20px 60px rgba(0,0,0,0.5)';
-                        fb.style.transform = 'scale(1.03)';
+                        fb.style.webkitBackdropFilter = 'blur(8px)';
+                        fb.style.border = '2px solid rgba(99, 102, 241, 0.5)';
+                        fb.style.borderRadius = '12px';
+                        fb.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
+                        fb.style.transform = 'scale(1.05)';
                         fb.style.transition = 'none';
                         fb.style.cursor = 'grabbing';
                         fb.style.zIndex = '100000';
@@ -1752,7 +1765,7 @@ function renderDiario() {
         if (!container || typeof Sortable === 'undefined') return;
         if (container._sortableDiario) { try { container._sortableDiario.destroy(); } catch(e) {} }
         container._sortableDiario = new Sortable(container, {
-            animation: 200,
+            animation: 150,
             easing: 'cubic-bezier(0.4,0,0.2,1)',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -1763,11 +1776,15 @@ function renderDiario() {
             handle: '.agenda-drag-thumb',
             forceFallback: true,
             fallbackTolerance: 0,
-            touchStartThreshold: 5,
-            delay: window.innerWidth < 640 ? 100 : 0,
-            delayOnTouchOnly: true,
+            touchStartThreshold: 3,
+            delay: 0,
+            delayOnTouchOnly: false,
             onChoose: function() { if (navigator.vibrate) navigator.vibrate(30); },
+            onUnchoose: function(evt) {
+                evt.item.classList.remove('long-press-active');
+            },
             onStart: function(evt) {
+                evt.item.classList.add('long-press-ready');
                 if (navigator.vibrate) navigator.vibrate(30);
                 const rect = evt.item.getBoundingClientRect();
                 evt.item.style.width = rect.width + 'px';
@@ -1776,16 +1793,18 @@ function renderDiario() {
                     const fb = document.querySelector('.sortable-fallback');
                     if (fb) {
                         fb.classList.add('agenda-sortable-card');
+                        fb.classList.add('card-input-group');
                         fb.style.width = rect.width + 'px';
                         fb.style.height = rect.height + 'px';
                         fb.style.opacity = '1';
                         fb.style.visibility = 'visible';
                         fb.style.background = 'rgba(15,23,42,0.95)';
                         fb.style.backdropFilter = 'blur(8px)';
-                        fb.style.border = '2px solid rgba(16,185,129,0.7)';
-                        fb.style.borderRadius = '14px';
-                        fb.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.2), 0 20px 60px rgba(0,0,0,0.5)';
-                        fb.style.transform = 'scale(1.03)';
+                        fb.style.webkitBackdropFilter = 'blur(8px)';
+                        fb.style.border = '2px solid rgba(99, 102, 241, 0.5)';
+                        fb.style.borderRadius = '12px';
+                        fb.style.boxShadow = '0 20px 60px rgba(0,0,0,0.5)';
+                        fb.style.transform = 'scale(1.05)';
                         fb.style.transition = 'none';
                         fb.style.cursor = 'grabbing';
                         fb.style.zIndex = '100000';
@@ -1793,6 +1812,7 @@ function renderDiario() {
                 }, 0);
             },
             onEnd: function(evt) {
+                evt.item.classList.remove('long-press-active', 'long-press-ready');
                 evt.item.style.width = '';
                 evt.item.style.height = '';
                 document.body.classList.add('drag-ending');
@@ -1961,7 +1981,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         const checkBtn = esRecordatorio ? '' : ('<button onclick="event.stopPropagation();' + checkOnclick + '" ontouchend="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;border:2px solid ' + checkBorder + ';background:' + checkBg + ';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:1;box-shadow:none;">' + checkInner + '</button>');
     const moreBtn = '<button onclick="event.stopPropagation();_abrirMenuDiarioItem(event,\'' + item.id + '\',\'' + tipo + '\')" ontouchend="event.stopPropagation();" style="background:none;border:none;color:#475569;cursor:pointer;padding:2px;display:flex;align-items:center;border-radius:6px;" onmouseover="this.style.color=\'#94a3b8\'" onmouseout="this.style.color=\'#475569\'"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button>';
 
-    return `<div class="agenda-sortable-card" data-drag-id="${item.id}" data-drag-tipo="${tipo}" data-desc-any-width="${descAnyWidth}" id="${uid}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2);border-radius:14px;padding:13px 16px;margin-bottom:8px;transition:all 0.15s;" oncontextmenu="_diarioLongPress('${uid}',event)" onclick="_diarioToggleDescCard(event,'${uid}')" ontouchend="_diarioToggleDescCard(event,'${uid}')">
+    return `<div class="card-input-group agenda-sortable-card" data-drag-id="${item.id}" data-drag-tipo="${tipo}" data-desc-any-width="${descAnyWidth}" id="${uid}" style="display:flex;flex-direction:column;background:rgba(15,23,42,0.5);border:1px solid rgba(71,85,105,0.2);border-radius:14px;padding:13px 16px;margin-bottom:8px;transition:all 0.15s;cursor:grab;" oncontextmenu="_diarioLongPress('${uid}',event)" onclick="_diarioToggleDescCard(event,'${uid}')" ontouchend="_diarioToggleDescCard(event,'${uid}')">
         <div style="display:flex;align-items:center;gap:12px;">
             <div class="agenda-drag-thumb" data-drag-handle data-drag-handle-mobile style="width:42px;height:42px;border-radius:12px;background:${catColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:none;user-select:none;cursor:grab;overflow:hidden;">
                 ${catMiniaturaD}

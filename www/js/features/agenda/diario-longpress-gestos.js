@@ -27,6 +27,8 @@
         if (!event) return;
         const target = event.target;
         if (!target) return;
+        if (document.body.classList.contains('drag-ending')) return;
+        if (target.closest('.sortable-chosen, .sortable-drag, .sortable-fallback, .long-press-ready, .long-press-active')) return;
         if (target.closest('button, input, textarea, select, label, a')) return;
         if (target.closest('[data-drag-handle-mobile], [data-drag-handle], .agenda-drag-thumb')) return;
         if (_diarioDebeIgnorarClick(event)) return;
