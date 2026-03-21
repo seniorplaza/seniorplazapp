@@ -1587,11 +1587,12 @@
             }
             const fmtEuro = v => v.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
             const toast = document.createElement('div');
-            toast.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+            const bottomOffset = (typeof window._toastBottomOffsetPx === 'function') ? window._toastBottomOffsetPx() : 28;
+            toast.style.cssText = `position:fixed;bottom:${bottomOffset}px;left:50%;transform:translateX(-50%);
                 background:#0f172a;border:1px solid rgba(16,185,129,0.4);border-radius:14px;
                 padding:12px 20px;display:flex;align-items:center;gap:10px;
                 color:#f1f5f9;font-size:14px;font-weight:600;z-index:99999;
-                box-shadow:0 8px 30px rgba(0,0,0,0.4);white-space:nowrap;
+                box-shadow:0 8px 30px rgba(0,0,0,0.4);white-space:nowrap;max-width:min(calc(100vw - 32px), 420px);
                 opacity:0;transition:opacity 0.25s ease;`;
             toast.innerHTML = `<span class="material-symbols-rounded" style="color:#10b981;font-size:20px;">check_circle</span>
                 Traspaso de <strong style="color:#10b981;margin:0 3px;">${fmtEuro(importe)}</strong> realizado correctamente`;

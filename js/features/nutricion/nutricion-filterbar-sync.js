@@ -9,7 +9,7 @@
         // 12px padding del main + 4px del border del container = 16px cada lado
         const left  = Math.round(rect.left + 16);
         const right = Math.round(window.innerWidth - rect.right + 16);
-        ['filtros-bar', 'filtros-bar-nutri'].forEach(id => {
+        ['filtros-bar', 'filtros-bar-gym', 'filtros-bar-nutri'].forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
             el.style.left  = left + 'px';

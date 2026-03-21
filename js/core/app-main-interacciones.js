@@ -1739,13 +1739,25 @@
             });
         }
 
+        function _toastBottomOffsetPx() {
+            var base = 28;
+            var nav = document.getElementById('mobileBottomNav');
+            if (!nav) return base;
+            var styles = window.getComputedStyle ? window.getComputedStyle(nav) : null;
+            if (styles && (styles.display === 'none' || styles.visibility === 'hidden')) return base;
+            var rect = nav.getBoundingClientRect();
+            if (!rect || !rect.height || !rect.width) return base;
+            return Math.max(base, Math.round(window.innerHeight - rect.top + 14));
+        }
+        window._toastBottomOffsetPx = _toastBottomOffsetPx;
+
         function _mostrarToast(icono, color, texto) {
             const t = document.createElement('div');
-            t.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);
+            t.style.cssText = `position:fixed;bottom:${_toastBottomOffsetPx()}px;left:50%;transform:translateX(-50%) translateY(60px);
                 background:#0f172a;border:1px solid ${color}66;border-radius:14px;
                 padding:12px 20px;display:flex;align-items:center;gap:10px;
                 color:#f1f5f9;font-size:14px;font-weight:600;z-index:99999;
-                box-shadow:0 8px 30px rgba(0,0,0,0.4);white-space:nowrap;
+                box-shadow:0 8px 30px rgba(0,0,0,0.4);white-space:nowrap;max-width:min(calc(100vw - 32px), 420px);
                 opacity:0;transition:opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);`;
             t.innerHTML = `<span class="material-symbols-rounded" style="color:${color};font-size:20px;">${icono}</span>${texto}`;
             document.body.appendChild(t);
@@ -5770,6 +5782,7 @@
 
         let _ultimosDatos = null;
         let _cargando = false; // Bloquea guardarDatos durante cargarDatos // Referencia para forzar guardado en beforeunload
+        var _ultimoGuardadoForzadoTs = 0;
         async function guardarDatosAhora() {
             clearTimeout(saveTimeout);
             if (_cargando) return;
@@ -5959,8 +5972,20 @@
                 }
                 };
                 doSave();
-            }, 50);
+            }, 180);
         }
+        function _forzarGuardadoSalida() {
+            if (_cargando) return;
+            var ahora = Date.now();
+            if ((ahora - _ultimoGuardadoForzadoTs) < 500) return;
+            _ultimoGuardadoForzadoTs = ahora;
+            guardarDatosAhora().catch(function() {});
+        }
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) _forzarGuardadoSalida();
+        });
+        document.addEventListener('pause', _forzarGuardadoSalida);
+        window.addEventListener('pagehide', _forzarGuardadoSalida);
         window.addEventListener('beforeunload', function() {
             clearTimeout(saveTimeout);
             if (!db) return;
@@ -6667,6 +6692,7 @@
             });
             setTimeout(function(){
                 _initAllGymCards();
+                _gymAplicarFiltrosActivos();
                 // SYNC VISUAL STATE WITH STORED DATA
                 var el_intervalo = document.getElementById('gym-intervalo-label');
                 var offset = el_intervalo ? parseInt(el_intervalo.dataset.offset || 0) : 0;
@@ -7332,6 +7358,66 @@
             if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
         }
         window._gymReposoState = window._gymReposoState || { running: false, startAt: 0, intervalId: null };
+        window._gymReposoNotifState = window._gymReposoNotifState || { id: 910041 };
+        function _gymNotifPlugin() {
+            return window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.LocalNotifications;
+        }
+        async function _gymCancelarNotifReposo() {
+            var ln = _gymNotifPlugin();
+            if (!ln) return;
+            var notifId = window._gymReposoNotifState.id;
+            try {
+                if (typeof ln.cancel === 'function') {
+                    await ln.cancel({ notifications: [{ id: notifId }] });
+                }
+                if (typeof ln.removeDeliveredNotifications === 'function') {
+                    await ln.removeDeliveredNotifications({ notifications: [{ id: notifId }] });
+                }
+            } catch (e) {
+                console.warn('[GymReposoNotif] cancel:', e);
+            }
+        }
+        async function _gymProgramarNotifReposo() {
+            if (!_gymReposoRunning()) return;
+            var ln = _gymNotifPlugin();
+            if (!ln) return;
+            try {
+                var perm = typeof ln.requestPermissions === 'function' ? await ln.requestPermissions() : null;
+                if (perm && perm.display === 'denied') return;
+                var elapsed = Math.max(0, Math.floor((Date.now() - (window._gymReposoState.startAt || Date.now())) / 1000));
+                var label = _gymSecsToLabel(elapsed);
+                await _gymCancelarNotifReposo();
+                await ln.schedule({
+                    notifications: [{
+                        id: window._gymReposoNotifState.id,
+                        title: 'SeniorPlazApp · Reposo activo',
+                        body: 'El temporizador lleva ' + label + '. Vuelve a la app para seguirlo en directo.',
+                        schedule: { at: new Date(Date.now() + 350) },
+                        ongoing: true,
+                        autoCancel: false,
+                        extra: { scope: 'gym-reposo', elapsed: elapsed }
+                    }]
+                });
+            } catch (e) {
+                console.warn('[GymReposoNotif] schedule:', e);
+            }
+        }
+        function _gymSyncNotifReposoConVisibilidad() {
+            if (_gymReposoRunning() && document.hidden) {
+                _gymProgramarNotifReposo();
+                return;
+            }
+            _gymCancelarNotifReposo();
+        }
+        document.addEventListener('visibilitychange', function() {
+            setTimeout(_gymSyncNotifReposoConVisibilidad, 120);
+        });
+        document.addEventListener('pause', function() {
+            setTimeout(_gymSyncNotifReposoConVisibilidad, 120);
+        });
+        document.addEventListener('resume', function() {
+            setTimeout(_gymSyncNotifReposoConVisibilidad, 180);
+        });
         function _gymReposoRunning() {
             return window._gymReposoState.running;
         }
@@ -7380,6 +7466,7 @@
                 window._gymReposoState.intervalId = null;
                 window._gymReposoState.activeBtn = null;
                 _gymReposoSetAllIcons(false);
+                _gymCancelarNotifReposo();
                 gymGuardarSesionHoy();
             } else {
                 var reposoEl = document.getElementById('gym-stat-reposo');
@@ -7398,7 +7485,9 @@
                         var rh = Math.floor(elapsed/3600), rm = Math.floor((elapsed%3600)/60), rs = elapsed%60;
                         rEl.textContent = rh > 0 ? rh+'h '+String(rm).padStart(2,'0')+'m' : String(rm).padStart(2,'0')+':'+String(rs).padStart(2,'0');
                     }
+                    if (document.hidden && elapsed > 0 && elapsed % 30 === 0) _gymProgramarNotifReposo();
                 }, 1000);
+                _gymSyncNotifReposoConVisibilidad();
             }
         }
         function gymRecalcularCalorias() {
@@ -7434,10 +7523,41 @@
             var local = new Date(d.getTime() - off * 60000);
             return local.toISOString().slice(0,10);
         }
+        function _gymDateFromKey(fechaKey) {
+            var parts = String(fechaKey || '').split('-');
+            if (parts.length !== 3) return new Date();
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 12, 0, 0, 0);
+        }
+        function _gymFechaLargaDesdeKey(fechaKey) {
+            var txt = _gymDateFromKey(fechaKey).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+            return txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
+        }
+        function _gymFechaCortaDesdeKey(fechaKey) {
+            if (fechaKey === _gymFechaKey(0)) return 'Hoy';
+            var txt = _gymDateFromKey(fechaKey).toLocaleDateString('es-ES', { day:'numeric', month:'short' });
+            return txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : 'Día';
+        }
+        function _gymOffsetDesdeFechaKey(fechaKey) {
+            var hoy = _gymDateFromKey(_gymFechaKey(0));
+            var fecha = _gymDateFromKey(fechaKey);
+            return Math.round((fecha.getTime() - hoy.getTime()) / 86400000);
+        }
         function _gymFechaKey(offsetDias) {
             var d = new Date();
             d.setDate(d.getDate() + (offsetDias || 0));
             return _gymISODateLocal(d);
+        }
+        function _gymIrAFechaKey(fechaKey) {
+            if (!fechaKey) return;
+            var el = document.getElementById('gym-intervalo-label');
+            if (el) {
+                el.dataset.filtro = 'dia';
+                el.dataset.offset = String(_gymOffsetDesdeFechaKey(fechaKey));
+                el.textContent = _gymFechaCortaDesdeKey(fechaKey);
+            }
+            var fechaEl = document.getElementById('gym-fecha-hoy');
+            if (fechaEl) fechaEl.textContent = _gymFechaLargaDesdeKey(fechaKey);
+            if (typeof gymCargarStatsParaIntervalo === 'function') gymCargarStatsParaIntervalo();
         }
         function _gymContextoActivo() {
             var el = document.getElementById('gym-intervalo-label');
@@ -7477,6 +7597,61 @@
             if (typeof v === 'string') v = v.replace(',', '.');
             var n = parseFloat(v);
             return isNaN(n) ? 0 : n;
+        }
+        function _gymFilterText(v) {
+            return String(v || '').trim().toLowerCase();
+        }
+        function _gymLeerFiltrosActivos() {
+            return {
+                badge: _gymFilterText(document.getElementById('gym-filter-badge')?.value),
+                maquina: _gymFilterText(document.getElementById('gym-filter-maquina')?.value)
+            };
+        }
+        function _gymCardPasaFiltros(card, filtros) {
+            if (!card) return true;
+            var badge = _gymFilterText(card.querySelector('.gym-card-badge-cat')?.textContent);
+            var maquina = _gymFilterText(card.querySelector('.gym-card-badge-maq')?.textContent);
+            if (filtros.badge && badge.indexOf(filtros.badge) === -1) return false;
+            if (filtros.maquina && maquina.indexOf(filtros.maquina) === -1) return false;
+            return true;
+        }
+        function _gymAplicarFiltrosEnGrid(grid, filtros) {
+            if (!grid) return;
+            var cards = Array.from(grid.querySelectorAll(':scope > .gym-card'));
+            var visibles = 0;
+            cards.forEach(function(card) {
+                var visible = _gymCardPasaFiltros(card, filtros);
+                card.style.display = visible ? '' : 'none';
+                if (visible) visibles++;
+            });
+            var emptyEl = grid._gymFilterEmptyEl;
+            if (!emptyEl) {
+                emptyEl = document.createElement('div');
+                emptyEl.className = 'gym-filter-empty-state';
+                emptyEl.style.cssText = 'display:none;background:rgba(15,23,42,0.45);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:18px 16px;text-align:center;color:#64748b;font-size:12px;font-weight:700;margin-top:10px;';
+                emptyEl.textContent = 'No hay ejercicios que coincidan con esos filtros.';
+                grid.insertAdjacentElement('afterend', emptyEl);
+                grid._gymFilterEmptyEl = emptyEl;
+            }
+            emptyEl.style.display = (cards.length > 0 && visibles === 0) ? '' : 'none';
+        }
+        function _gymAplicarFiltrosActivos() {
+            var filtros = _gymLeerFiltrosActivos();
+            document.querySelectorAll('.gym-panel-grid').forEach(function(grid) {
+                _gymAplicarFiltrosEnGrid(grid, filtros);
+            });
+        }
+        function _gymInitFilterBar() {
+            var badgeInp = document.getElementById('gym-filter-badge');
+            var maqInp = document.getElementById('gym-filter-maquina');
+            if (badgeInp && badgeInp.dataset.filterInit !== '1') {
+                badgeInp.dataset.filterInit = '1';
+                badgeInp.addEventListener('input', _gymAplicarFiltrosActivos);
+            }
+            if (maqInp && maqInp.dataset.filterInit !== '1') {
+                maqInp.dataset.filterInit = '1';
+                maqInp.addEventListener('input', _gymAplicarFiltrosActivos);
+            }
         }
         function _gymCalcularKmCardioDesdeCards(cardsPorPanel) {
             var total = 0;
@@ -7680,6 +7855,7 @@
             _initGymSortable(grid);
             if (readonly) grid.dataset.historico = '1';
             if (typeof _gymUpdateBolts === 'function') setTimeout(function(){ _gymUpdateBolts(grid); }, 50);
+            setTimeout(_gymAplicarFiltrosActivos, 0);
         }
 
         function gymCargarStatsParaIntervalo() {
@@ -9034,12 +9210,12 @@
                             </div>
                             <div>
                                 <label style="color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:6px;">KG</label>
-                                <input id="_nuevo_kg" type="number" placeholder="" min="0" max="999" step="0.5" onfocus="this.select()" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:10px;padding:10px 12px;color:#eab308;font-size:13px;font-weight:600;outline:none;font-family:Manrope,sans-serif;text-align:center;">
+                                <input id="_nuevo_kg" type="number" inputmode="decimal" placeholder="" min="0" max="999" step="0.5" onfocus="this.select()" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:10px;padding:10px 12px;color:#eab308;font-size:13px;font-weight:600;outline:none;font-family:Manrope,sans-serif;text-align:center;">
                             </div>
                         </div>
                         <div id="_nuevo_fila_km" style="display:none;">
                             <label style="color:#fb923c;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:6px;">KM objetivo</label>
-                            <input id="_nuevo_km" type="number" placeholder="Ej: 5" min="0" max="999" step="0.1" onfocus="this.select()" style="width:100%;box-sizing:border-box;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.4);border-radius:10px;padding:10px 12px;color:#fb923c;font-size:13px;font-weight:700;outline:none;font-family:Manrope,sans-serif;text-align:center;">
+                            <input id="_nuevo_km" type="number" inputmode="decimal" placeholder="Ej: 5" min="0" max="999" step="0.1" onfocus="this.select()" style="width:100%;box-sizing:border-box;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.4);border-radius:10px;padding:10px 12px;color:#fb923c;font-size:13px;font-weight:700;outline:none;font-family:Manrope,sans-serif;text-align:center;">
                         </div>
                         <div id="_nuevo_metricas_cardio_wrap" style="display:none;"></div>
                         <div style="height:6px;"></div>
@@ -9211,7 +9387,7 @@
          + '<div class="gym-stat-cell" style="flex:1;border:1px solid rgba(255,255,255,0.07);border-radius:16px;' + cellS + '">' + lblRPE + '<button onclick="_gymStep(this,-1)" class="gym-step-btn gym-step-minus desktop-only" style="position:absolute;left:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:8px 0 0 8px;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">remove</span></button><input type="number" min="1" max="10" value="' + rpe + '" class="gym-card-rpe gym-stat-inp" ' + focusBlur + ' style="color:#f1f5f9;' + inpS + '"><button onclick="_gymStep(this,1)" class="gym-step-btn gym-step-plus desktop-only" style="position:absolute;right:0;top:0;bottom:0;width:42px;background:rgba(255,255,255,0.04);border:none;border-left:1px solid rgba(255,255,255,0.08);color:#64748b;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;border-radius:0 8px 8px 0;"><span class="material-symbols-rounded" style="font-size:18px;line-height:1;">add</span></button></div>'
          + '</div>'
          + '<div class="gym-col-kg" style="flex-shrink:0;width:150px;height:150px;display:flex;flex-direction:column;gap:6px;">'
-         + '<div style="flex:1;border:1px solid rgba(234,179,8,0.4);' + cellKG + '"><span class="gym-stat-lbl" style="' + lblS + '">KG</span><input type="number" value="' + kg + '" class="gym-card-kg gym-stat-inp gym-stat-kg" ' + focusBlur + ' style="color:#eab308;font-size:25px;font-weight:900;width:auto;background:transparent;border:none;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;"></div>'
+         + '<div style="flex:1;border:1px solid rgba(234,179,8,0.4);' + cellKG + '"><span class="gym-stat-lbl" style="' + lblS + '">KG</span><input type="number" inputmode="decimal" step="0.5" value="' + kg + '" class="gym-card-kg gym-stat-inp gym-stat-kg" ' + focusBlur + ' style="color:#eab308;font-size:25px;font-weight:900;width:auto;background:transparent;border:none;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;"></div>'
          + '<div class="gym-card-time-badge" style="display:none;align-items:center;justify-content:center;gap:4px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);border-radius:9px;padding:8px 6px;flex-shrink:0;transition:background 0.2s;touch-action:none;user-select:none;" data-hidden="1">'
          + '<span class="material-symbols-rounded" style="font-size:14px;color:#60a5fa;line-height:1;display:flex;align-items:center;">schedule</span>'
          // --- CAMBIO AQUÍ ---
@@ -9308,6 +9484,92 @@
 
             var offsetActual = parseInt((document.getElementById('gym-intervalo-label') || {}).dataset && document.getElementById('gym-intervalo-label').dataset.offset || 0);
             var e = _extraerDatosCard(card);
+            function _panelNameDesdeGrid() {
+                var panelKey = panelGrid ? (panelGrid.id || '').replace('gym-panel-','').replace('-grid','') : 'pecho';
+                if (panelKey && ['pecho','espalda','brazo','pierna','cardio'].includes(panelKey)) return panelKey;
+                var parentPanel = panelGrid ? panelGrid.closest('[id^="gym-panel-"]') : null;
+                return parentPanel ? parentPanel.id.replace('gym-panel-','') : 'pecho';
+            }
+            function _capturarUndoDuplicado() {
+                var histBackup = JSON.parse(JSON.stringify(window._gymSesionesHistorial || {}));
+                var labelEl = document.getElementById('gym-intervalo-label');
+                var offsetBak = labelEl ? labelEl.dataset.offset : '0';
+                var filtroBak = labelEl ? labelEl.dataset.filtro : 'dia';
+                if (labelEl) { labelEl.dataset.offset = '0'; labelEl.dataset.filtro = 'dia'; }
+                var snapAntes = (typeof _serializarDatos === 'function') ? _serializarDatos() : null;
+                if (labelEl) { labelEl.dataset.offset = offsetBak; labelEl.dataset.filtro = filtroBak; }
+                window._gymSesionesHistorial = histBackup;
+                if (snapAntes && typeof _undoCapturarEstadoActual === 'function') {
+                    window._snapshotActual = snapAntes;
+                    _undoCapturarEstadoActual();
+                } else if (typeof _undoPushInmediato === 'function') {
+                    _undoPushInmediato();
+                }
+            }
+            function _duplicarEnFechaObjetivo(fechaKey, mensajeUndo) {
+                var targetKey = fechaKey || _gymFechaKey(0);
+                _capturarUndoDuplicado();
+                if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(_gymFechaKey(offsetActual));
+                var panelName = _panelNameDesdeGrid();
+                var hist = window._gymSesionesHistorial;
+                if (!hist) hist = window._gymSesionesHistorial = {};
+                if (!hist[targetKey]) hist[targetKey] = {};
+                if (!hist[targetKey].cards) hist[targetKey].cards = {};
+                if (!hist[targetKey].cards[panelName]) hist[targetKey].cards[panelName] = [];
+                hist[targetKey].cards[panelName].push({
+                    nombre: e.nombre, desc: e.desc, badge: e.badge,
+                    badgeMaquina: e.badgeMaquina, series: e.series,
+                    reps: e.reps, kg: e.kg, rir: e.rir, rpe: e.rpe,
+                    cardioSeriesLabel: e.cardioSeriesLabel || '', cardioRepsLabel: e.cardioRepsLabel || '',
+                    cardioRirLabel: e.cardioRirLabel || '', cardioRpeLabel: e.cardioRpeLabel || '',
+                    imgHTML: e.imgHTML, completado: false, cardTimeSecs: 0
+                });
+                _gymIrAFechaKey(targetKey);
+                setTimeout(function() {
+                    if (typeof _serializarDatos === 'function' && typeof guardarEnDB === 'function') {
+                        var snap = _serializarDatos();
+                        window._snapshotActual = snap;
+                        guardarEnDB('seniorPlazAppData', snap);
+                        if (typeof mostrarIndicadorGuardado === 'function') mostrarIndicadorGuardado();
+                    }
+                    if (mensajeUndo && typeof _gymMostrarUndo === 'function') {
+                        _gymMostrarUndo(mensajeUndo, function() { undoEstado(); });
+                    }
+                }, 200);
+            }
+            function _abrirModalFechaObjetivo() {
+                var previo = document.getElementById('_gymDupDateModal');
+                if (previo) previo.remove();
+                var fechaActual = _gymFechaKey(offsetActual);
+                var modalFecha = document.createElement('div');
+                modalFecha.id = '_gymDupDateModal';
+                modalFecha.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:10055;display:flex;align-items:center;justify-content:center;padding:20px;';
+                modalFecha.innerHTML = `
+                    <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:24px;width:100%;max-width:360px;padding:20px 20px 24px;box-shadow:0 25px 60px rgba(0,0,0,0.6);">
+                        <div style="color:#f1f5f9;font-size:15px;font-weight:800;margin-bottom:6px;">Enviar ejercicio a otro día</div>
+                        <div style="color:#64748b;font-size:12px;margin-bottom:18px;">Selecciona la fecha destino en el calendario.</div>
+                        <input id="_gymDupDateInput" type="date" value="${fechaActual}" style="width:100%;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(15,23,42,0.8);color:#f8fafc;padding:0 14px;font-size:14px;outline:none;">
+                        <div style="display:flex;gap:10px;margin-top:18px;">
+                            <button id="_gymDupDateCancel" style="flex:1;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748b;font-size:13px;font-weight:700;cursor:pointer;">Cancelar</button>
+                            <button id="_gymDupDateConfirm" style="flex:1;height:44px;border-radius:14px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.16);color:#dbeafe;font-size:13px;font-weight:800;cursor:pointer;">Enviar</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modalFecha);
+                var inputFecha = modalFecha.querySelector('#_gymDupDateInput');
+                if (inputFecha && typeof inputFecha.showPicker === 'function') {
+                    setTimeout(function() {
+                        try { inputFecha.showPicker(); } catch (e) {}
+                    }, 80);
+                }
+                modalFecha.querySelector('#_gymDupDateCancel').onclick = function() { modalFecha.remove(); };
+                modalFecha.addEventListener('click', function(ev) { if (ev.target === modalFecha) modalFecha.remove(); });
+                modalFecha.querySelector('#_gymDupDateConfirm').onclick = function() {
+                    var valor = inputFecha ? inputFecha.value : '';
+                    if (!valor) return;
+                    modalFecha.remove();
+                    _duplicarEnFechaObjetivo(valor, 'Ejercicio enviado al ' + _gymFechaCortaDesdeKey(valor));
+                };
+            }
 
             if (offsetActual === 0) {
                 var _snapAntesDeDuplicar = (typeof _serializarDatos === 'function') ? _serializarDatos() : null;
@@ -9349,13 +9611,13 @@
                                 <div style="color:#64748b;font-size:11px;margin-top:2px;">Se añade al panel de hoy y te lleva allí</div>
                             </div>
                         </button>
-                        <button id="_gymDupEseDia" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);cursor:pointer;text-align:left;">
+                        <button id="_gymDupOtroDia" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);cursor:pointer;text-align:left;">
                             <div style="width:40px;height:40px;border-radius:12px;background:rgba(148,163,184,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <span class="material-symbols-rounded" style="font-size:20px;color:#94a3b8;">content_copy</span>
+                                <span class="material-symbols-rounded" style="font-size:20px;color:#94a3b8;">calendar_month</span>
                             </div>
                             <div>
-                                <div style="color:#f1f5f9;font-size:13px;font-weight:800;">Duplicar en este día</div>
-                                <div style="color:#64748b;font-size:11px;margin-top:2px;">Se añade en la sesión que estás viendo</div>
+                                <div style="color:#f1f5f9;font-size:13px;font-weight:800;">Enviar a otro día</div>
+                                <div style="color:#64748b;font-size:11px;margin-top:2px;">Abre el calendario y lo manda a la fecha que elijas</div>
                             </div>
                         </button>
                         <button id="_gymDupCancelar" style="width:100%;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#64748b;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;">Cancelar</button>
@@ -9364,89 +9626,13 @@
             document.body.appendChild(modal);
             modal.querySelector('#_gymDupCancelar').onclick = function() { modal.remove(); };
             modal.addEventListener('click', function(ev) { if (ev.target === modal) modal.remove(); });
-            if (typeof _GYM_ALLOW_ADD_HISTORIAL !== 'undefined' && !_GYM_ALLOW_ADD_HISTORIAL) {
-                var btnEseDia = modal.querySelector('#_gymDupEseDia');
-                if (btnEseDia) btnEseDia.style.display = 'none';
-            }
             modal.querySelector('#_gymDupHoy').onclick = function() {
                 modal.remove();
-                var _histBackup = JSON.parse(JSON.stringify(window._gymSesionesHistorial || {}));
-                var _labelEl0 = document.getElementById('gym-intervalo-label');
-                var _offsetBak = _labelEl0 ? _labelEl0.dataset.offset : '0';
-                var _filtroBak = _labelEl0 ? _labelEl0.dataset.filtro : 'dia';
-                if (_labelEl0) { _labelEl0.dataset.offset = '0'; _labelEl0.dataset.filtro = 'dia'; }
-                var _snapAntes = (typeof _serializarDatos === 'function') ? _serializarDatos() : null;
-                if (_labelEl0) { _labelEl0.dataset.offset = _offsetBak; _labelEl0.dataset.filtro = _filtroBak; }
-                window._gymSesionesHistorial = _histBackup;
-                if (_snapAntes && typeof _undoCapturarEstadoActual === 'function') {
-                    window._snapshotActual = _snapAntes;
-                    _undoCapturarEstadoActual();
-                } else if (typeof _undoPushInmediato === 'function') {
-                    _undoPushInmediato();
-                }
-                if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(_gymFechaKey(offsetActual));
-                var panelKey = panelGrid ? (panelGrid.id || '').replace('gym-panel-','').replace('-grid','') : 'pecho';
-                var panelName = panelKey;
-                if (!panelName || !['pecho','espalda','brazo','pierna','cardio'].includes(panelName)) {
-                    var parentPanel = panelGrid ? panelGrid.closest('[id^="gym-panel-"]') : null;
-                    panelName = parentPanel ? parentPanel.id.replace('gym-panel-','') : 'pecho';
-                }
-                var hoy = _gymFechaKey(0);
-                var hist = window._gymSesionesHistorial;
-                if (!hist) hist = window._gymSesionesHistorial = {};
-                if (!hist[hoy]) hist[hoy] = {};
-                if (!hist[hoy].cards) hist[hoy].cards = {};
-                if (!hist[hoy].cards[panelName]) hist[hoy].cards[panelName] = [];
-                hist[hoy].cards[panelName].push({
-                    nombre: e.nombre, desc: e.desc, badge: e.badge,
-                    badgeMaquina: e.badgeMaquina, series: e.series,
-                    reps: e.reps, kg: e.kg, rir: e.rir, rpe: e.rpe,
-                    cardioSeriesLabel: e.cardioSeriesLabel || '', cardioRepsLabel: e.cardioRepsLabel || '',
-                    cardioRirLabel: e.cardioRirLabel || '', cardioRpeLabel: e.cardioRpeLabel || '',
-                    imgHTML: e.imgHTML, completado: false, cardTimeSecs: 0
-                });
-                var labelEl = document.getElementById('gym-intervalo-label');
-                if (labelEl) { labelEl.dataset.offset = '0'; labelEl.dataset.filtro = 'dia'; labelEl.textContent = 'Hoy'; }
-                var fechaHoyEl = document.getElementById('gym-fecha-hoy');
-                if (fechaHoyEl) { var _hoyFmt = new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' }); fechaHoyEl.textContent = _hoyFmt.charAt(0).toUpperCase() + _hoyFmt.slice(1); }
-                if (typeof gymCargarStatsParaIntervalo === 'function') gymCargarStatsParaIntervalo();
-                setTimeout(function() {
-                    if (typeof _serializarDatos === 'function' && typeof guardarEnDB === 'function') {
-                        var snap = _serializarDatos();
-                        window._snapshotActual = snap;
-                        guardarEnDB('seniorPlazAppData', snap);
-                        if (typeof mostrarIndicadorGuardado === 'function') mostrarIndicadorGuardado();
-                    }
-                    if (typeof _gymMostrarUndo === 'function') {
-                        _gymMostrarUndo('Ejercicio enviado a hoy', function() { undoEstado(); });
-                    }
-                }, 200);
+                _duplicarEnFechaObjetivo(_gymFechaKey(0), 'Ejercicio enviado a hoy');
             };
-            modal.querySelector('#_gymDupEseDia').onclick = function() {
+            modal.querySelector('#_gymDupOtroDia').onclick = function() {
                 modal.remove();
-                var _histBackupB = JSON.parse(JSON.stringify(window._gymSesionesHistorial || {}));
-                var _labelElB = document.getElementById('gym-intervalo-label');
-                var _offsetBakB = _labelElB ? _labelElB.dataset.offset : '0';
-                var _filtroBakB = _labelElB ? _labelElB.dataset.filtro : 'dia';
-                if (_labelElB) { _labelElB.dataset.offset = '0'; _labelElB.dataset.filtro = 'dia'; }
-                var _snapAntesB = (typeof _serializarDatos === 'function') ? _serializarDatos() : null;
-                if (_labelElB) { _labelElB.dataset.offset = _offsetBakB; _labelElB.dataset.filtro = _filtroBakB; }
-                window._gymSesionesHistorial = _histBackupB;
-                if (_snapAntesB && typeof _undoCapturarEstadoActual === 'function') {
-                    window._snapshotActual = _snapAntesB;
-                    _undoCapturarEstadoActual();
-                } else if (typeof _undoPushInmediato === 'function') {
-                    _undoPushInmediato();
-                }
-                _crearEInsertar(e, card, true);
-                setTimeout(function() {
-                    if (typeof _serializarDatos === 'function' && typeof guardarEnDB === 'function') {
-                        var snap = _serializarDatos();
-                        window._snapshotActual = snap;
-                        guardarEnDB('seniorPlazAppData', snap);
-                        if (typeof mostrarIndicadorGuardado === 'function') mostrarIndicadorGuardado();
-                    }
-                }, 100);
+                _abrirModalFechaObjetivo();
             };
         }
         function _gymModalConfirm(titulo, mensaje, onConfirm) {
@@ -9481,7 +9667,7 @@
             if (prev) { clearTimeout(prev._timer); prev.remove(); }
             var snack = document.createElement('div');
             snack.id = '_gymUndoSnack';
-            snack.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(234,179,8,0.35);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;z-index:10060;box-shadow:0 8px 32px rgba(0,0,0,0.5);white-space:nowrap;';
+            snack.style.cssText = 'position:fixed;bottom:' + Math.max(24, _toastBottomOffsetPx()) + 'px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(234,179,8,0.35);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;z-index:10060;box-shadow:0 8px 32px rgba(0,0,0,0.5);white-space:nowrap;max-width:min(calc(100vw - 32px), 420px);';
             snack.innerHTML = `<span style="color:#f1f5f9;font-size:13px;font-weight:600;">${mensaje}</span>
                 <button id="_gymUndoBtn" style="background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:9px;color:#eab308;font-size:12px;font-weight:800;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
                     <span class="material-symbols-rounded" style="font-size:15px;">undo</span>Deshacer
@@ -9670,7 +9856,7 @@
                             <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.reps : 'Reps'}</label><input id="_edit_reps" type="number" value="${curReps}" min="${esCardioEdit ? '0' : '1'}" max="${esCardioEdit ? '250' : '999'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(71,85,105,0.4);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
                             <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.rir : 'RIR'}</label><input id="_edit_rir" type="number" value="${curRir}" min="0" max="${esCardioEdit ? '250' : '10'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
                             <div><label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? curMetricasCardio.rpe : 'RPE'}</label><input id="_edit_rpe" type="number" value="${curRpe}" min="${esCardioEdit ? '0' : '1'}" max="${esCardioEdit ? '250' : '10'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:9px;padding:8px 6px;color:#f1f5f9;font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
-                            <div><label style="color:${esCardioEdit ? '#fb923c' : '#94a3b8'};font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? 'KM' : 'KG'}</label><input id="_edit_kg" type="number" value="${curKg}" min="0" step="${esCardioEdit ? '0.1' : '0.5'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid ${esCardioEdit ? 'rgba(249,115,22,0.35)' : 'rgba(234,179,8,0.3)'};border-radius:9px;padding:8px 6px;color:${esCardioEdit ? '#fb923c' : '#eab308'};font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
+                            <div><label style="color:${esCardioEdit ? '#fb923c' : '#94a3b8'};font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? 'KM' : 'KG'}</label><input id="_edit_kg" type="number" inputmode="decimal" value="${curKg}" min="0" step="${esCardioEdit ? '0.1' : '0.5'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid ${esCardioEdit ? 'rgba(249,115,22,0.35)' : 'rgba(234,179,8,0.3)'};border-radius:9px;padding:8px 6px;color:${esCardioEdit ? '#fb923c' : '#eab308'};font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
                         </div>
                         <div id="_edit_metricas_cardio_wrap" style="display:${esCardioEdit ? 'block' : 'none'};"></div>
                         <button id="_edit_save_btn" style="width:100%;height:40px;border-radius:12px;border:1px solid rgba(59,130,246,0.5);background:rgba(59,130,246,0.15);color:#60a5fa;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;margin-top:4px;">Guardar cambios</button>
@@ -9851,7 +10037,8 @@
             }
             if (inpKg) {
                 inpKg.min = '0';
-                inpKg.step = isCardio ? '0.1' : '1';
+                inpKg.step = isCardio ? '0.1' : '0.5';
+                inpKg.inputMode = 'decimal';
                 inpKg.style.color = isCardio ? '#fb923c' : '#eab308';
             }
             if (inpKg && inpKg.parentElement) {
@@ -10069,7 +10256,9 @@
             if (typeof _gymUpdateBolts === 'function') _gymUpdateBolts();
         }
         document.addEventListener('DOMContentLoaded', function() {
+            _gymInitFilterBar();
             _initAllGymCards();
+            _gymAplicarFiltrosActivos();
             var p = document.getElementById('gym-panel-pecho');
             if (p && typeof _gymEmptyState === 'function') _gymEmptyState(p);
         });
@@ -10645,6 +10834,69 @@
             }
         }
 
+        function _fusionarDatosBackup(copia, actual) {
+            var base = copia && typeof copia === 'object' ? copia : {};
+            var actuales = actual && typeof actual === 'object' ? actual : {};
+            var fusionado = Object.assign({}, base);
+            Object.keys(actuales).forEach(function(k) {
+                if (Array.isArray(actuales[k]) && Array.isArray(base[k])) {
+                    fusionado[k] = base[k].concat(actuales[k]);
+                    return;
+                }
+                if (
+                    actuales[k] && typeof actuales[k] === 'object' && !Array.isArray(actuales[k]) &&
+                    base[k] && typeof base[k] === 'object' && !Array.isArray(base[k])
+                ) {
+                    fusionado[k] = Object.assign({}, base[k], actuales[k]);
+                    return;
+                }
+                if (typeof fusionado[k] === 'undefined' || fusionado[k] === null || fusionado[k] === '') {
+                    fusionado[k] = actuales[k];
+                }
+            });
+            return fusionado;
+        }
+        window._fusionarDatosBackup = _fusionarDatosBackup;
+
+        function _preguntarModoImportacionBackup(nombreArchivo) {
+            return new Promise(function(resolve) {
+                var prev = document.getElementById('_backupImportModeModal');
+                if (prev) prev.remove();
+                var modal = document.createElement('div');
+                modal.id = '_backupImportModeModal';
+                modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:30000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);padding:20px;';
+                modal.innerHTML = `
+                    <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.6);">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                            <span class="material-symbols-rounded" style="color:#60a5fa;font-size:24px;">upload_file</span>
+                            <span style="color:white;font-size:16px;font-weight:700;">Importar copia</span>
+                        </div>
+                        <p style="color:#94a3b8;font-size:13px;margin:0 0 8px;">${nombreArchivo ? 'Archivo: ' + nombreArchivo : '¿Cómo quieres importar esta copia?'}</p>
+                        <p style="color:#94a3b8;font-size:13px;margin:0 0 20px;">Elige si quieres reemplazar todo o fusionarlo con tus datos actuales.</p>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <button id="_backupImportReplace" style="background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(220,38,38,0.2));border:1px solid rgba(239,68,68,0.4);border-radius:12px;color:white;padding:12px 16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">
+                                <span class="material-symbols-rounded" style="color:#f87171;font-size:20px;">swap_horiz</span>
+                                <div><div style="font-size:14px;font-weight:600;">Reemplazar datos</div><div style="font-size:11px;color:#94a3b8;margin-top:2px;">Borra lo actual y carga la copia</div></div>
+                            </button>
+                            <button id="_backupImportMerge" style="background:linear-gradient(135deg,rgba(16,185,129,0.3),rgba(5,150,105,0.2));border:1px solid rgba(16,185,129,0.4);border-radius:12px;color:white;padding:12px 16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">
+                                <span class="material-symbols-rounded" style="color:#10b981;font-size:20px;">merge</span>
+                                <div><div style="font-size:14px;font-weight:600;">Fusionar datos</div><div style="font-size:11px;color:#94a3b8;margin-top:2px;">Combina la copia con lo que ya tienes</div></div>
+                            </button>
+                            <button id="_backupImportCancel" style="background:none;border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#64748b;padding:10px 16px;cursor:pointer;font-size:13px;">Cancelar</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(modal);
+                function cerrar(valor) {
+                    if (modal.parentNode) modal.remove();
+                    resolve(valor);
+                }
+                modal.querySelector('#_backupImportReplace').onclick = function() { cerrar('reemplazar'); };
+                modal.querySelector('#_backupImportMerge').onclick = function() { cerrar('fusionar'); };
+                modal.querySelector('#_backupImportCancel').onclick = function() { cerrar(null); };
+                modal.addEventListener('click', function(ev) { if (ev.target === modal) cerrar(null); });
+            });
+        }
+
         function importarDatos(input) {
             const file = input.files[0];
             if (!file) return;
@@ -10652,21 +10904,30 @@
             const iconSpan = btn?.querySelector('span.material-symbols-rounded');
             const iconOrig = iconSpan?.textContent;
             if (iconSpan) { iconSpan.textContent = 'sync'; iconSpan.style.animation = 'spin 1s linear infinite'; }
+            const restaurarIcono = (delay) => {
+                setTimeout(() => {
+                    if (iconSpan) {
+                        iconSpan.textContent = iconOrig;
+                        iconSpan.style.animation = '';
+                        iconSpan.style.color = '';
+                    }
+                }, delay || 0);
+            };
 
             const mostrarError = (msg) => {
                 if (iconSpan) { iconSpan.textContent = 'error'; iconSpan.style.animation = ''; iconSpan.style.color = '#ef4444'; }
                 alert('Error al importar: ' + msg);
-                setTimeout(() => { if(iconSpan){ iconSpan.textContent = iconOrig; iconSpan.style.color = ''; } }, 3000);
+                restaurarIcono(3000);
             };
 
             const mostrarOk = () => {
                 if (iconSpan) { iconSpan.textContent = 'check_circle'; iconSpan.style.animation = ''; iconSpan.style.color = '#10b981'; }
-                setTimeout(() => { if(iconSpan){ iconSpan.textContent = iconOrig; iconSpan.style.color = ''; } }, 2000);
+                restaurarIcono(2000);
             };
 
             const reader = new FileReader();
 
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const contenido = e.target.result;
                     if (!contenido || contenido.trim() === '') {
@@ -10690,10 +10951,22 @@
                         return;
                     }
 
-                    const datosString = JSON.stringify(datos);
+                    let datosFinales = datos;
+                    if (!window._restaurandoCopiaInterna) {
+                        const accionImportacion = await _preguntarModoImportacionBackup(file.name);
+                        if (!accionImportacion) {
+                            input.value = '';
+                            restaurarIcono();
+                            return;
+                        }
+                        if (accionImportacion === 'fusionar') {
+                            datosFinales = _fusionarDatosBackup(datos, (typeof _serializarDatos === 'function' ? (_serializarDatos() || {}) : {}));
+                        }
+                    }
+
                     const guardarYCargar = async () => {
                         try {
-                            await guardarEnDB('seniorPlazAppData', datos);
+                            await guardarEnDB('seniorPlazAppData', datosFinales);
                         } catch(e) {
                         }
                         if (!window._restaurandoCopiaInterna) {
@@ -10704,7 +10977,7 @@
                                 const hora  = d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
                                 const nombreArchivo = file.name.replace(/\.json$/i, '').replace(/copia de seguridad/i, '').replace(/[()]/g, '').trim();
                                 const etiqueta = (nombreArchivo || `Importado ${fecha}`) + ' · ' + hora;
-                                await guardarEnDB('backup_snap_' + ts, { ts, etiqueta, datos });
+                                await guardarEnDB('backup_snap_' + ts, { ts, etiqueta, datos: datosFinales });
                             } catch(e) {
                             }
                         }
