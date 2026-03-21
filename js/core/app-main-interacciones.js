@@ -1094,7 +1094,7 @@
             target: 'icon',
             h: 210,
             s: 100,
-            l: 50,
+            v: 100,
             dragging: false,
             initialized: false
         };
@@ -1108,20 +1108,33 @@
             return raw.slice(0, 6);
         }
 
-        function _hslToHexPicker(h, s, l) {
+        function _hsvToHexPicker(h, s, v) {
             h = ((Number(h) % 360) + 360) % 360;
             s = _clamp(Number(s), 0, 100) / 100;
-            l = _clamp(Number(l), 0, 100) / 100;
+            v = _clamp(Number(v), 0, 100) / 100;
 
-            const k = function (n) { return (n + h / 30) % 12; };
-            const a = s * Math.min(l, 1 - l);
-            const f = function (n) {
-                return l - a * Math.max(Math.min(k(n) - 3, 9 - k(n), 1), -1);
-            };
+            const c = v * s;
+            const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+            const m = v - c;
+            let r1 = 0, g1 = 0, b1 = 0;
 
-            const r = Math.round(255 * f(0));
-            const g = Math.round(255 * f(8));
-            const b = Math.round(255 * f(4));
+            if (h < 60) {
+                r1 = c; g1 = x; b1 = 0;
+            } else if (h < 120) {
+                r1 = x; g1 = c; b1 = 0;
+            } else if (h < 180) {
+                r1 = 0; g1 = c; b1 = x;
+            } else if (h < 240) {
+                r1 = 0; g1 = x; b1 = c;
+            } else if (h < 300) {
+                r1 = x; g1 = 0; b1 = c;
+            } else {
+                r1 = c; g1 = 0; b1 = x;
+            }
+
+            const r = Math.round((r1 + m) * 255);
+            const g = Math.round((g1 + m) * 255);
+            const b = Math.round((b1 + m) * 255);
 
             const toHex = function (x) {
                 const hex = x.toString(16).toUpperCase();
@@ -1131,7 +1144,7 @@
             return '#' + toHex(r) + toHex(g) + toHex(b);
         }
 
-        function _hexToHslPicker(hex) {
+        function _hexToHsvPicker(hex) {
             let clean = _sanitizeHexColor(hex);
             if (clean.length === 3) {
                 clean = clean.split('').map(function (ch) { return ch + ch; }).join('');
@@ -1147,11 +1160,10 @@
             const d = max - min;
 
             let h = 0;
-            let s = 0;
-            const l = (max + min) / 2;
+            const v = max;
+            const s = max === 0 ? 0 : d / max;
 
             if (d !== 0) {
-                s = d / (1 - Math.abs(2 * l - 1));
                 switch (max) {
                     case r:
                         h = ((g - b) / d) % 6;
@@ -1170,7 +1182,7 @@
             return {
                 h: Math.round(h),
                 s: Math.round(s * 100),
-                l: Math.round(l * 100)
+                v: Math.round(v * 100)
             };
         }
 
@@ -1187,7 +1199,7 @@
         }
 
         function _aplicarColorDesdePicker() {
-            const colorHex = _hslToHexPicker(_customColorPickerState.h, _customColorPickerState.s, _customColorPickerState.l);
+            const colorHex = _hsvToHexPicker(_customColorPickerState.h, _customColorPickerState.s, _customColorPickerState.v);
             if (_customColorPickerState.target === 'bg') {
                 seleccionarColorFondo(colorHex);
                 bgColorTemporal = colorHex;
@@ -1201,10 +1213,10 @@
             const refs = _getCustomPickerRefs();
             if (!refs.panel || !refs.area || !refs.thumb || !refs.hue || !refs.hex || !refs.preview) return;
 
-            const hex = _hslToHexPicker(_customColorPickerState.h, _customColorPickerState.s, _customColorPickerState.l);
+            const hex = _hsvToHexPicker(_customColorPickerState.h, _customColorPickerState.s, _customColorPickerState.v);
             refs.area.style.background = 'linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(' + _customColorPickerState.h + ',100%,50%))';
             refs.thumb.style.left = _customColorPickerState.s + '%';
-            refs.thumb.style.top = (100 - _customColorPickerState.l) + '%';
+            refs.thumb.style.top = (100 - _customColorPickerState.v) + '%';
             refs.thumb.style.background = hex;
             refs.hue.value = String(_customColorPickerState.h);
             refs.preview.style.background = hex;
@@ -1220,7 +1232,7 @@
             const y = _clamp(clientY - rect.top, 0, rect.height);
 
             _customColorPickerState.s = Math.round((x / rect.width) * 100);
-            _customColorPickerState.l = 100 - Math.round((y / rect.height) * 100);
+            _customColorPickerState.v = 100 - Math.round((y / rect.height) * 100);
 
             _aplicarColorDesdePicker();
             _renderCustomColorPicker();
@@ -1275,10 +1287,10 @@
                 const clean = _sanitizeHexColor(refs.hex.value);
                 refs.hex.value = clean;
                 if (clean.length === 6) {
-                    const hsl = _hexToHslPicker(clean);
-                    _customColorPickerState.h = hsl.h;
-                    _customColorPickerState.s = hsl.s;
-                    _customColorPickerState.l = hsl.l;
+                    const hsv = _hexToHsvPicker(clean);
+                    _customColorPickerState.h = hsv.h;
+                    _customColorPickerState.s = hsv.s;
+                    _customColorPickerState.v = hsv.v;
                     _aplicarColorDesdePicker();
                     _renderCustomColorPicker();
                 }
@@ -1298,10 +1310,10 @@
                 ? (bgColorTemporal || '#1e293b')
                 : (colorTemporal || '#ffffff');
 
-            const hsl = _hexToHslPicker(currentColor);
-            _customColorPickerState.h = hsl.h;
-            _customColorPickerState.s = hsl.s;
-            _customColorPickerState.l = hsl.l;
+            const hsv = _hexToHsvPicker(currentColor);
+            _customColorPickerState.h = hsv.h;
+            _customColorPickerState.s = hsv.s;
+            _customColorPickerState.v = hsv.v;
 
             if (refs.title) {
                 refs.title.textContent = _customColorPickerState.target === 'bg'
