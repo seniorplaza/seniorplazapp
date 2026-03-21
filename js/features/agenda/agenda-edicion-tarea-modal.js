@@ -79,9 +79,9 @@ function abrirEditarTarea(id, tipo) {
     document.getElementById('editTareaTituloHeader').textContent = esRecurrente ? 'Editar tarea recurrente' : (esRecordatorio ? 'Editar recordatorio' : 'Editar tarea');
     document.getElementById('editTareaNombre').value = item.nombre || '';
     const _etd = document.getElementById('editTareaDesc'); _etd.value = item.nota || item.desc || ''; setTimeout(()=>{ _etd.style.height='auto'; _etd.style.height=_etd.scrollHeight+'px'; },0);
-    window._editTareaSubitems = (item.subitems || []).map(s => ({ ...s }));
+    window._editTareaSubitems = esRecordatorio ? [] : (item.subitems || []).map(s => ({ ...s }));
     _editTareaRenderSubitems();
-    window._editTareaRecs = [...(item.recordatorios || (item.hora ? [item.hora] : []))];
+    window._editTareaRecs = esRecordatorio ? [] : [...(item.recordatorios || (item.hora ? [item.hora] : []))];
     window._editTareaHora = '';
     _editRenderRecList('tarea');
     _editActualizarHoraDisp('tarea');

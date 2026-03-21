@@ -1762,6 +1762,10 @@
             position: relative;
             top: 0.5px;
         }
+        .card-like-icon {
+            position: relative;
+            top: 0.5px;
+        }
         .explorar-icon { display: none !important; }
         @media (max-width: 640px) {
             .explorar-text { display: none !important; }
