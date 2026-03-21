@@ -7374,6 +7374,19 @@
         function _gymBubbleBridgeDisponible() {
             return !!(window.AndroidNotificador && typeof window.AndroidNotificador.showReposoBubble === 'function');
         }
+        function _gymSolicitarPermisoBurbujaSiHaceFalta() {
+            if (!_gymBubbleBridgeDisponible() || !_gymReposoRunning() || document.hidden) return;
+            if (window._gymBubblePermissionRequested === '1') return;
+            window._gymBubblePermissionRequested = '1';
+            try {
+                window.AndroidNotificador.showReposoBubble(String(window._gymReposoState.startAt || Date.now()));
+                setTimeout(function() {
+                    if (!document.hidden) _gymOcultarBurbujaReposo();
+                }, 250);
+            } catch (e) {
+                window._gymBubblePermissionRequested = '0';
+            }
+        }
         function _gymMostrarBurbujaReposo() {
             if (!_gymBubbleBridgeDisponible() || !_gymReposoRunning()) return;
             try {
@@ -7398,12 +7411,15 @@
             _gymOcultarBurbujaReposo();
         }
         document.addEventListener('visibilitychange', function() {
+            if (document.hidden && _gymReposoRunning()) _gymMostrarBurbujaReposo();
             setTimeout(_gymSyncBurbujaReposoConVisibilidad, 120);
         });
         document.addEventListener('pause', function() {
+            if (_gymReposoRunning()) _gymMostrarBurbujaReposo();
             setTimeout(_gymSyncBurbujaReposoConVisibilidad, 120);
         });
         document.addEventListener('resume', function() {
+            _gymOcultarBurbujaReposo();
             setTimeout(_gymSyncBurbujaReposoConVisibilidad, 180);
         });
         async function _gymCancelarNotifReposo() {
@@ -7483,6 +7499,8 @@
                         rEl.textContent = rh > 0 ? rh+'h '+String(rm).padStart(2,'0')+'m' : String(rm).padStart(2,'0')+':'+String(rs).padStart(2,'0');
                     }
                 }, 1000);
+                window._gymBubblePermissionRequested = window._gymBubblePermissionRequested || '0';
+                _gymSolicitarPermisoBurbujaSiHaceFalta();
                 _gymSyncBurbujaReposoConVisibilidad();
             }
         }
@@ -7597,9 +7615,58 @@
         function _gymFilterText(v) {
             return String(v || '').trim().toLowerCase();
         }
+        function _gymEsVistaVisible(el) {
+            if (!el) return false;
+            var styles = window.getComputedStyle ? window.getComputedStyle(el) : null;
+            if (!styles) return !!el.offsetParent || el === document.body;
+            return styles.display !== 'none' && styles.visibility !== 'hidden';
+        }
+        function _actualizarMainNavHeightVar() {
+            var nav = document.getElementById('mainNav');
+            var altura = 0;
+            if (nav) {
+                var estilos = window.getComputedStyle ? window.getComputedStyle(nav) : null;
+                var visible = !estilos || (estilos.display !== 'none' && estilos.visibility !== 'hidden');
+                if (visible) altura = Math.ceil(nav.getBoundingClientRect().height || 0);
+            }
+            document.documentElement.style.setProperty('--main-nav-height', altura + 'px');
+        }
+        if (!window._mainNavHeightVarInit) {
+            window._mainNavHeightVarInit = true;
+            document.addEventListener('DOMContentLoaded', _actualizarMainNavHeightVar);
+            window.addEventListener('load', _actualizarMainNavHeightVar);
+            window.addEventListener('resize', _actualizarMainNavHeightVar);
+            window.addEventListener('orientationchange', _actualizarMainNavHeightVar);
+            setTimeout(_actualizarMainNavHeightVar, 0);
+            setTimeout(_actualizarMainNavHeightVar, 300);
+            var _mainNavObsTry = function() {
+                var nav = document.getElementById('mainNav');
+                if (!nav || typeof MutationObserver !== 'function') return;
+                if (window._mainNavHeightVarObserver) return;
+                window._mainNavHeightVarObserver = new MutationObserver(function() {
+                    _actualizarMainNavHeightVar();
+                });
+                window._mainNavHeightVarObserver.observe(nav, { attributes: true, attributeFilter: ['style', 'class'] });
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', _mainNavObsTry);
+            } else {
+                _mainNavObsTry();
+            }
+        }
         window._gymFilterUiState = window._gymFilterUiState || { active: null };
         function _gymEsModoFiltrosMovil() {
             return window.innerWidth <= 768;
+        }
+        function _gymActualizarLabelFechaDuplicado(modalFecha, fechaIso) {
+            if (!modalFecha) return;
+            var display = modalFecha.querySelector('#_gymDupDateInputDisplay');
+            if (!display) return;
+            if (fechaIso && typeof _formatFechaDisplay === 'function') {
+                display.textContent = _formatFechaDisplay(fechaIso);
+                return;
+            }
+            display.textContent = fechaIso || 'Seleccionar fecha';
         }
         function _gymSetFiltroMovilActivo(filterName) {
             var bar = document.getElementById('filtros-bar-gym');
@@ -7615,6 +7682,73 @@
                 var input = bar.querySelector('.gym-filter-input-wrap[data-filter="' + next + '"] input');
                 if (input) setTimeout(function() { try { input.focus(); input.select(); } catch (e) {} }, 120);
             }
+        }
+        function _gymResetStickyBarFixed() {
+            var bar = document.getElementById('filtros-bar-gym');
+            if (!bar) return;
+            bar.style.position = '';
+            bar.style.top = '';
+            bar.style.left = '';
+            bar.style.width = '';
+            bar.style.right = '';
+            bar.style.zIndex = '';
+            if (bar._gymFixedPlaceholder) bar._gymFixedPlaceholder.style.display = 'none';
+            bar.dataset.fixedActive = '0';
+        }
+        function _gymActualizarStickyBarFija() {
+            var bar = document.getElementById('filtros-bar-gym');
+            var section = document.getElementById('fitness-gimnasio');
+            if (!bar || !section) return;
+            if (!_gymEsVistaVisible(section)) {
+                _gymResetStickyBarFixed();
+                return;
+            }
+            var topBase = 12;
+            var mainNav = document.getElementById('mainNav');
+            if (mainNav && _gymEsVistaVisible(mainNav)) {
+                topBase += Math.ceil(mainNav.getBoundingClientRect().height || 0);
+            }
+            var sectionRect = section.getBoundingClientRect();
+            var rect = bar.getBoundingClientRect();
+            var shouldFix = sectionRect.top <= topBase && sectionRect.bottom > (topBase + rect.height + 18);
+            if (!bar._gymFixedPlaceholder) {
+                var placeholder = document.createElement('div');
+                placeholder.style.display = 'none';
+                placeholder.style.width = '100%';
+                placeholder.setAttribute('aria-hidden', 'true');
+                bar.insertAdjacentElement('afterend', placeholder);
+                bar._gymFixedPlaceholder = placeholder;
+            }
+            if (!shouldFix) {
+                _gymResetStickyBarFixed();
+                return;
+            }
+            var placeholderEl = bar._gymFixedPlaceholder;
+            placeholderEl.style.display = 'block';
+            placeholderEl.style.height = rect.height + 'px';
+            placeholderEl.style.marginBottom = (window.getComputedStyle ? window.getComputedStyle(bar).marginBottom : '0px');
+            bar.style.position = 'fixed';
+            bar.style.top = topBase + 'px';
+            bar.style.left = rect.left + 'px';
+            bar.style.width = rect.width + 'px';
+            bar.style.right = 'auto';
+            bar.style.zIndex = '180';
+            bar.dataset.fixedActive = '1';
+        }
+        if (!window._gymStickyBarFixedInit) {
+            window._gymStickyBarFixedInit = true;
+            var _gymStickyBarUpdate = function() {
+                requestAnimationFrame(_gymActualizarStickyBarFija);
+            };
+            document.addEventListener('scroll', _gymStickyBarUpdate, true);
+            window.addEventListener('scroll', _gymStickyBarUpdate, { passive: true });
+            window.addEventListener('resize', _gymStickyBarUpdate);
+            window.addEventListener('orientationchange', _gymStickyBarUpdate);
+            document.addEventListener('DOMContentLoaded', _gymStickyBarUpdate);
+            document.addEventListener('visibilitychange', function() { setTimeout(_gymActualizarStickyBarFija, 10); });
+            window.addEventListener('pageshow', function() { setTimeout(_gymActualizarStickyBarFija, 30); });
+            setTimeout(_gymStickyBarUpdate, 0);
+            setTimeout(_gymStickyBarUpdate, 250);
         }
         function _gymLeerFiltrosActivos() {
             return {
@@ -9591,7 +9725,14 @@
                     <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:24px;width:100%;max-width:360px;padding:20px 20px 24px;box-shadow:0 25px 60px rgba(0,0,0,0.6);">
                         <div style="color:#f1f5f9;font-size:15px;font-weight:800;margin-bottom:6px;">Enviar ejercicio a otro día</div>
                         <div style="color:#64748b;font-size:12px;margin-bottom:18px;">Selecciona la fecha destino en el calendario.</div>
-                        <input id="_gymDupDateInput" type="date" value="${fechaActual}" style="width:100%;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(15,23,42,0.8);color:#f8fafc;padding:0 14px;font-size:14px;outline:none;">
+                        <input id="_gymDupDateInput" type="hidden" value="${fechaActual}">
+                        <button id="_gymDupDateTrigger" type="button" style="width:100%;min-height:52px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);background:rgba(15,23,42,0.8);color:#f8fafc;padding:0 14px;font-size:14px;outline:none;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;cursor:pointer;">
+                            <span style="display:flex;align-items:center;gap:10px;min-width:0;">
+                                <span class="material-symbols-rounded" style="font-size:20px;color:#60a5fa;flex-shrink:0;">calendar_month</span>
+                                <span id="_gymDupDateInputDisplay" style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${fechaActual}</span>
+                            </span>
+                            <span class="material-symbols-rounded" style="font-size:18px;color:#64748b;flex-shrink:0;">expand_more</span>
+                        </button>
                         <div style="display:flex;gap:10px;margin-top:18px;">
                             <button id="_gymDupDateCancel" style="flex:1;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#64748b;font-size:13px;font-weight:700;cursor:pointer;">Cancelar</button>
                             <button id="_gymDupDateConfirm" style="flex:1;height:44px;border-radius:14px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.16);color:#dbeafe;font-size:13px;font-weight:800;cursor:pointer;">Enviar</button>
@@ -9599,11 +9740,20 @@
                     </div>`;
                 document.body.appendChild(modalFecha);
                 var inputFecha = modalFecha.querySelector('#_gymDupDateInput');
-                if (inputFecha && typeof inputFecha.showPicker === 'function') {
-                    setTimeout(function() {
-                        try { inputFecha.showPicker(); } catch (e) {}
-                    }, 80);
-                }
+                _gymActualizarLabelFechaDuplicado(modalFecha, fechaActual);
+                var abrirSelector = function() {
+                    if (!inputFecha) return;
+                    if (typeof abrirCalAct2 === 'function') {
+                        abrirCalAct2('_gymDupDateInput', function(valor) {
+                            if (!valor) return;
+                            _gymActualizarLabelFechaDuplicado(modalFecha, valor);
+                        });
+                        return;
+                    }
+                };
+                var triggerFecha = modalFecha.querySelector('#_gymDupDateTrigger');
+                if (triggerFecha) triggerFecha.onclick = abrirSelector;
+                setTimeout(abrirSelector, 80);
                 modalFecha.querySelector('#_gymDupDateCancel').onclick = function() { modalFecha.remove(); };
                 modalFecha.addEventListener('click', function(ev) { if (ev.target === modalFecha) modalFecha.remove(); });
                 modalFecha.querySelector('#_gymDupDateConfirm').onclick = function() {
