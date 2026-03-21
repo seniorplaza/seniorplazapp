@@ -542,9 +542,15 @@ document.addEventListener('click', function(e) {
 });
 document.addEventListener('click', function(e) {
     if (e.target.closest('[data-nutri-id]')) return;
-    document.querySelectorAll('.reforma-preview-card[data-nutri-id].active-card')
-        .forEach(c => c.classList.remove('active-card'));
+    document.querySelectorAll('.reforma-preview-card[data-nutri-id].nutri-actions-open')
+        .forEach(c => c.classList.remove('nutri-actions-open'));
 });
+
+function _nutriFmtPeso(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '—';
+    return num.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
 function _nutriSwipeStart(e) {
     const inner = e.currentTarget;
     const startY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -641,7 +647,7 @@ function confirmarPeso() {
     if (typeof guardarDatos === 'function') guardarDatos();
     cerrarModalPeso();
     renderNutricion();
-    _mostrarToast && _mostrarToast('monitor_weight', '#60a5fa', val.toFixed(1).replace(',','.') + ' kg registrado');
+    _mostrarToast && _mostrarToast('monitor_weight', '#60a5fa', _nutriFmtPeso(val) + ' kg registrado');
 }
 
 function _nutriActualizarBadge() {
@@ -728,7 +734,7 @@ function _nutriRenderDots(total) {
         d.className = 'carrusel-dot carrusel-dot-comida' + (i === 0 ? ' active' : '');
         d.onclick = () => {
             const cards = track ? track.querySelectorAll('.reforma-preview-card') : [];
-            if (cards[i]) { const wrapper=document.getElementById('carrusel-comidas-wrapper'); cards.forEach(c=>c.classList.remove('active-card')); cards[i].classList.add('active-card'); if(wrapper){wrapper.scrollLeft=cards[i].offsetLeft-(wrapper.offsetWidth/2)+(cards[i].offsetWidth/2);} dotsEl.querySelectorAll('.carrusel-dot').forEach((d,j)=>d.classList.toggle('active',j===i)); }
+            if (cards[i]) { const wrapper=document.getElementById('carrusel-comidas-wrapper'); cards.forEach(c=>{ c.classList.remove('active-card'); c.classList.remove('nutri-actions-open'); }); cards[i].classList.add('active-card'); if(wrapper){wrapper.scrollLeft=cards[i].offsetLeft-(wrapper.offsetWidth/2)+(cards[i].offsetWidth/2);} dotsEl.querySelectorAll('.carrusel-dot').forEach((d,j)=>d.classList.toggle('active',j===i)); }
         };
         dotsEl.appendChild(d);
     }
@@ -780,13 +786,14 @@ function onNutriCarruselScroll() {
     }, 80);
 }
 
-function _nutriCentrarCard(card) {
+function _nutriCentrarCard(card, abrirAcciones) {
     const track=document.getElementById('carrusel-comidas'), dotsEl=document.getElementById('dots-comidas'), wrapper=document.getElementById('carrusel-comidas-wrapper');
     if (!track) return;
     const cards=track.querySelectorAll('.reforma-preview-card');
-    cards.forEach(c=>{ c.classList.remove('active-card'); c.style.transform=''; c.style.zIndex=''; });
+    cards.forEach(c=>{ c.classList.remove('active-card'); c.classList.remove('nutri-actions-open'); c.style.transform=''; c.style.zIndex=''; });
     requestAnimationFrame(()=>{
         card.classList.add('active-card');
+        if (abrirAcciones) card.classList.add('nutri-actions-open');
         if(dotsEl){const idx=Array.from(cards).indexOf(card);dotsEl.querySelectorAll('.carrusel-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));}
         if(wrapper){const cardLeft=card.getBoundingClientRect().left;const wrapperLeft=wrapper.getBoundingClientRect().left;const target=wrapper.scrollLeft+cardLeft-wrapperLeft-(wrapper.clientWidth/2)+(card.offsetWidth/2);wrapper.scrollTo({left:target,behavior:'smooth'});}
     });
@@ -1375,12 +1382,6 @@ function renderNutricion() {
         const badgeBg     = col + '40';
         const badgeBorder = col + '80';
         const isLiked     = c.liked === 'true' || c.liked === true;
-        const macroStr    = [
-            c.kcal   ? c.kcal   + ' kcal' : '',
-            c.prot   ? c.prot   + 'g P'   : '',
-            c.carbs  ? c.carbs  + 'g C'   : '',
-            c.grasas ? c.grasas + 'g G'   : '',
-        ].filter(Boolean).join('  ·  ');
 
         const thumbnailHTML = `<div class="card-thumbnail-placeholder" style="pointer-events:none;background:${col}40;border-color:${col}80;"><span class="material-symbols-rounded" style="font-size:22px;color:white;">${ic}</span></div>`;
 
@@ -1423,7 +1424,6 @@ function renderNutricion() {
                             <div style="margin-top:6px;">
                                 <span style="color:${colorAccent};font-size:14px;font-weight:700;text-shadow:0 0 12px ${colorAccent}44;">${c.cantidad} ${_nutriFmtUnidad(c.unidad, c.cantidad)}</span>
                             </div>
-                            ${macroStr ? `<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;font-weight:600;">${macroStr}</div>` : ''}
                         </div>
                     </div>
                     <div class="card-actions">
@@ -1440,7 +1440,7 @@ function renderNutricion() {
                             onmouseenter="this.style.borderColor='rgba(255,255,255,0.5)';this.style.color='white';"
                             onmouseleave="_nutriLikeLeave(this);"
                             onclick="event.stopPropagation();_nutriToggleLike(this)" title="Me gusta">
-                            <span class="material-symbols-rounded" style="font-size:16px;font-variation-settings:${likeFill};">favorite</span>
+                            <span class="material-symbols-rounded nutri-like-icon" style="font-size:16px;font-variation-settings:${likeFill};">favorite</span>
                         </button>
                         <button class="card-btn-icon"
                             onmouseenter="this.style.borderColor='${colorAccent}';this.style.color='${colorAccent}';"
@@ -1466,7 +1466,7 @@ function renderNutricion() {
         div.addEventListener('click', (e) => {
             if (e.target.closest('button') || e.target.closest('.card-actions') || e.target.closest('.card-thumbnail-wrapper')) return;
             e.stopPropagation();
-            _nutriCentrarCard(div);
+            _nutriCentrarCard(div, true);
         });
         div.addEventListener('touchstart', () => div.classList.add('touch-active'), { passive: true });
         div.addEventListener('touchend',   () => setTimeout(() => div.classList.remove('touch-active'), 400), { passive: true });
@@ -1660,11 +1660,10 @@ function _renderNutriPesoChart() {
 
     if (registros.length >= 1 && statActual) {
         const last = registros[registros.length-1].peso;
-        statActual.textContent = last.toFixed(1) + ' kg';
+        statActual.textContent = _nutriFmtPeso(last) + ' kg';
         if (registros.length >= 2 && statDiff) {
             const diff = last - registros[0].peso;
-            const sign = diff > 0 ? '+' : '';
-            statDiff.textContent = sign + diff.toFixed(1) + ' kg';
+            statDiff.textContent = (diff > 0 ? '+' : diff < 0 ? '-' : '') + _nutriFmtPeso(Math.abs(diff)) + ' kg';
             statDiff.style.color = diff <= 0 ? '#10b981' : '#f97316';
         } else if (statDiff) { statDiff.textContent = '—'; }
     } else {
@@ -1846,7 +1845,7 @@ function _renderNutriPesoChart() {
                         callbacks: {
                             title: items => items[0].label,
                             label: c => {
-                                const v = c.parsed.y.toFixed(1) + ' kg';
+                                const v = _nutriFmtPeso(c.parsed.y) + ' kg';
                                 const i = c.dataIndex;
                                 if (i === iMax) return '▲ ' + v + ' (máximo)';
                                 if (i === iMin) return '▼ ' + v + ' (mínimo)';
@@ -1871,7 +1870,7 @@ function _renderNutriPesoChart() {
                     y: {
                         grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
                         border: { display: false },
-                        ticks: { color: '#475569', font: { size: 11 }, callback: v => v + ' kg', maxTicksLimit: 6 }
+                        ticks: { color: '#475569', font: { size: 11 }, callback: v => _nutriFmtPeso(v) + ' kg', maxTicksLimit: 6 }
                     }
                 }
             }
@@ -1964,7 +1963,7 @@ function _nutriRenderListaPeso(filtro, rango) {
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.1);">
             <span class="material-symbols-rounded" style="font-size:16px;color:#10b981;flex-shrink:0;">monitor_weight</span>
             <span style="flex:1;font-size:13px;color:#94a3b8;">${label}</span>
-            <span style="font-size:15px;font-weight:800;color:#10b981;">${r.peso.toFixed(1)} kg</span>
+            <span style="font-size:15px;font-weight:800;color:#10b981;">${_nutriFmtPeso(r.peso)} kg</span>
             ${notaHtml}
             <button onclick="_nutriAbrirEditarPeso('${r.fecha}','${r.peso}','${r.nota||''}' )" style="background:none;border:none;color:#334155;cursor:pointer;padding:2px;flex-shrink:0;" onmouseover="this.style.color='#10b981'" onmouseout="this.style.color='#334155'">
                 <span class="material-symbols-rounded" style="font-size:16px;">edit</span>
