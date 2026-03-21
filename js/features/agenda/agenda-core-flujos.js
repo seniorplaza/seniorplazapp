@@ -1970,7 +1970,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;background:${c}22;color:${c};border:1px solid ${c}55;text-transform:uppercase;flex-shrink:0;">${labelMobile}</span>`;
     const scopePrefix = viewDate ? 'di' : 'ta';
     const uid = scopePrefix + '_' + item.id + '_' + tipo;
-    const descAnyWidth = viewDate ? '0' : '1';
+    const descAnyWidth = esRecordatorio ? '1' : '0';
     const descAttrs = descAnyWidth === '1'
         ? 'data-desc-any-width="1"'
         : 'data-desc-any-width="0" data-mobile-only="1"';
@@ -2030,8 +2030,13 @@ function _abrirMenuDiarioItem(e, id, tipo) {
     e.stopPropagation();
     const prev = document.getElementById('_diarioMenu');
     if (prev) { prev.remove(); return; }
-    const colores = { habito:'#10b981', tareaRecurrente:'#60a5fa', tarea:'#f59e0b' };
-    const labels  = { habito:'Hábito', tareaRecurrente:'Recurrente', tarea:'Tarea' };
+    const arr = tipo === 'habito'
+        ? (window.agendaData.habitos || [])
+        : (tipo === 'tareaRecurrente' ? (window.agendaData.tareasRecurrentes || []) : (window.agendaData.tareas || []));
+    const item = arr.find(x => x.id === id);
+    const esRecordatorio = tipo === 'tarea' && !!item?.esRecordatorio;
+    const colores = { habito:'#10b981', tareaRecurrente:'#60a5fa', tarea: esRecordatorio ? '#22d3ee' : '#f59e0b' };
+    const labels  = { habito:'Hábito', tareaRecurrente:'Recurrente', tarea: esRecordatorio ? 'Recordatorio' : 'Tarea' };
     const c = colores[tipo] || '#64748b';
     const label = labels[tipo] || tipo;
     const menu = document.createElement('div');
