@@ -1315,7 +1315,7 @@
         .reforma-preview-card[data-nutri-id] .card-thumbnail-placeholder {
             border-style: solid;
         }
-        .reforma-preview-card[data-nutri-id]:not(.active-card) .card-actions {
+        .reforma-preview-card[data-nutri-id]:not(.nutri-actions-open) .card-actions {
             pointer-events: none;
             opacity: 0;
             max-height: 0;
@@ -1324,7 +1324,7 @@
             transition: opacity 0.45s ease, max-height 0.45s ease, margin-top 0.45s ease;
         }
         .reforma-preview-card[data-nutri-id]:not(.active-card) { cursor: pointer; }
-        .reforma-preview-card[data-nutri-id].active-card .card-actions {
+        .reforma-preview-card[data-nutri-id].nutri-actions-open .card-actions {
             opacity: 1;
             max-height: 36px;
             margin-top: 4px;
@@ -1757,6 +1757,10 @@
             width: 16px;
             height: 16px;
             font-size: 16px !important;
+        }
+        .nutri-like-icon {
+            position: relative;
+            top: 0.5px;
         }
         .explorar-icon { display: none !important; }
         @media (max-width: 640px) {

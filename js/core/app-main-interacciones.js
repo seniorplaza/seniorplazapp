@@ -2073,6 +2073,7 @@
             const div = document.createElement('div');
             const isCuenta = containerId === 'listaCuentas' || containerId === 'listaInversiones';
             const isReforma = containerId === 'listaReformas';
+            checked = _parseActivoPersistido(checked);
             div.className = isCuenta
                 ? "card-input-group animate-in slide-in-from-top-4 duration-500"
                 : "card-input-group flex justify-between items-center animate-in slide-in-from-top-4 duration-500";
@@ -3741,6 +3742,10 @@
             const icon = card.querySelector('.cuenta-check-icon');
             if (icon) return icon.dataset.checked === 'true';
             return !card.classList.contains('disabled');
+        }
+
+        function _parseActivoPersistido(value) {
+            return !(value === false || value === 'false' || value === 0 || value === '0' || value === null);
         }
 
         function toggleCuentaCheck(btn) {
@@ -6009,11 +6014,11 @@
                 setTimeout(() => { _syncEmptyStates && _syncEmptyStates(); }, 100);
                 datos.cuentas?.forEach(cuenta => {
                     addRow('listaCuentas', cuenta.nombre, parseMoneyInput(String(cuenta.valor)), 'text-emerald-400', 'account_balance', 
-                           cuenta.activo, cuenta.icono, cuenta.colorIcono, cuenta.imagen);
+                           _parseActivoPersistido(cuenta.activo), cuenta.icono, cuenta.colorIcono, cuenta.imagen);
                 });
                 datos.inversiones?.forEach(inv => {
                     addRow('listaInversiones', inv.nombre, parseMoneyInput(String(inv.valor)), 'text-blue-400', 'show_chart', 
-                           inv.activo, inv.icono, inv.colorIcono, inv.imagen);
+                           _parseActivoPersistido(inv.activo), inv.icono, inv.colorIcono, inv.imagen);
                 });
                 const tituloApp = document.getElementById('tituloApp');
                 const subtituloApp = document.getElementById('subtituloApp');
@@ -6291,14 +6296,14 @@
                                     }
                                     cardNode = div;
                                 } else if (item.tipo === 'cuenta') {
-                                    addRow('listaCuentas', item.nombre, parseMoneyInput(String(item.valor || 0)), 'text-emerald-400', item.icono || 'account_balance', item.activo !== false, item.icono, item.colorIcono, item.imagen || null);
+                                    addRow('listaCuentas', item.nombre, parseMoneyInput(String(item.valor || 0)), 'text-emerald-400', item.icono || 'account_balance', _parseActivoPersistido(item.activo), item.icono, item.colorIcono, item.imagen || null);
                                     const lista = document.getElementById('listaCuentas');
                                     if (lista && lista.lastElementChild) {
                                         cardNode = lista.lastElementChild;
                                         lista.removeChild(cardNode);
                                     }
                                 } else if (item.tipo === 'inversion') {
-                                    addRow('listaInversiones', item.nombre, parseMoneyInput(String(item.valor || 0)), 'text-blue-400', item.icono || 'show_chart', item.activo !== false, item.icono, item.colorIcono, item.imagen || null);
+                                    addRow('listaInversiones', item.nombre, parseMoneyInput(String(item.valor || 0)), 'text-blue-400', item.icono || 'show_chart', _parseActivoPersistido(item.activo), item.icono, item.colorIcono, item.imagen || null);
                                     const lista = document.getElementById('listaInversiones');
                                     if (lista && lista.lastElementChild) {
                                         cardNode = lista.lastElementChild;
