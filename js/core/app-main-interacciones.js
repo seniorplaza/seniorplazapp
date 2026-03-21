@@ -3239,6 +3239,22 @@
             const data = await res.json();
             return data.secure_url;
         }
+
+        async function subirPdfACloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_PRESET);
+            formData.append('resource_type', 'raw');
+            formData.append('use_filename', 'true');
+            formData.append('unique_filename', 'true');
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            if (!res.ok) throw new Error('Error subiendo PDF a Cloudinary');
+            const data = await res.json();
+            return data.secure_url;
+        }
         // ────────────────────────────────────────────────────────────
 
         function comprimirImagen(imagenSrc, maxWidth = 600, quality = 0.6) {
@@ -3990,13 +4006,48 @@
                 '</button>';
             lista.appendChild(row);
         }
-            function _esArchivoPdfValido(file) {
+        function _esFuentePdfRemota(pdfSource) {
+            return /^https?:\/\//i.test(String(pdfSource || ''));
+        }
+        function _obtenerFuentePdfDesdeRegistro(pdfItem) {
+            if (!pdfItem || typeof pdfItem !== 'object') return '';
+            return pdfItem.url || pdfItem.data || pdfItem.pdfUrl || pdfItem.pdfData || '';
+        }
+        function _crearRegistroPdfDesdeFila(row, defaultName) {
+            const nombre = row.querySelector('span.truncate')?.textContent || defaultName || 'documento.pdf';
+            const source = row.dataset.pdfData || '';
+            return {
+                nombre: nombre,
+                data: source,
+                url: _esFuentePdfRemota(source) ? source : ''
+            };
+        }
+        function _esArchivoPdfValido(file) {
                 if (!file) return false;
                 const nombre = String(file.name || '').toLowerCase();
                 const tipo = String(file.type || '').toLowerCase();
                 return tipo === 'application/pdf' || /\.pdf$/i.test(nombre);
             }
-            function _descargarDataUrlComoArchivo(dataUrl, fileName) {
+        function _leerArchivoComoDataUrl(file) {
+            return new Promise(function(resolve, reject) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    resolve(event.target.result);
+                };
+                reader.onerror = function() {
+                    reject(new Error('No pude leer el PDF seleccionado.'));
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        async function _obtenerFuentePdfSubida(file) {
+            try {
+                return await subirPdfACloudinary(file);
+            } catch (error) {
+                return _leerArchivoComoDataUrl(file);
+            }
+        }
+        function _descargarDataUrlComoArchivo(dataUrl, fileName) {
                 if (!dataUrl) return;
                 try {
                     const match = String(dataUrl).match(/^data:([^;]+)?(;base64)?,(.*)$/);
@@ -4029,20 +4080,43 @@
                     a.remove();
                 }
             }
-        function uploadNominaPDF(input) {
+        async function _descargarPdfComoArchivo(pdfSource, fileName) {
+            if (!pdfSource) return;
+            if (!_esFuentePdfRemota(pdfSource)) {
+                _descargarDataUrlComoArchivo(pdfSource, fileName);
+                return;
+            }
+            try {
+                const res = await fetch(pdfSource, { mode: 'cors' });
+                if (!res.ok) throw new Error('No pude descargar el PDF remoto.');
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName || 'documento.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(function() { URL.revokeObjectURL(url); }, 1500);
+            } catch (error) {
+                const a = document.createElement('a');
+                a.href = pdfSource;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+        }
+        async function uploadNominaPDF(input) {
                 const files = Array.from(input.files).filter(f => _esArchivoPdfValido(f) && f.size <= 5*1024*1024);
             if (!files.length) { input.value = ''; return; }
             const lista = input.closest('.desglose-nomina').querySelector('.pdf-lista');
-            let loaded = 0;
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    _renderPdfRow(lista, file.name, e.target.result);
-                    loaded++;
-                    if (loaded === files.length) guardarDatos();
-                };
-                reader.readAsDataURL(file);
-            });
+            for (const file of files) {
+                const pdfSource = await _obtenerFuentePdfSubida(file);
+                _renderPdfRow(lista, file.name, pdfSource);
+            }
+            guardarDatos();
             input.value = '';
         }
 
@@ -4050,7 +4124,7 @@
             const item = button.closest('.pdf-item');
             const data = item.dataset.pdfData;
             const nombre = item.querySelector('span.truncate')?.textContent || 'nomina.pdf';
-            if (data) _descargarDataUrlComoArchivo(data, nombre);
+            if (data) _descargarPdfComoArchivo(data, nombre);
         }
         function deletePDFItem(button) {
             button.closest('.pdf-item').remove();
@@ -4062,6 +4136,7 @@
             scriptPromise: null,
             renderToken: 0,
             lastDataUrl: '',
+            lastSource: '',
             lastFileName: ''
         };
 
@@ -4110,11 +4185,8 @@
             var downloadBtn = document.getElementById('pdfViewerDownloadBtn');
             if (downloadBtn) {
                 downloadBtn.addEventListener('click', function () {
-                    if (!_pdfViewerState.lastDataUrl) return;
-                    const a = document.createElement('a');
-                    a.href = _pdfViewerState.lastDataUrl;
-                    a.download = _pdfViewerState.lastFileName || 'documento.pdf';
-                    a.click();
+                    if (!_pdfViewerState.lastSource) return;
+                    _descargarPdfComoArchivo(_pdfViewerState.lastSource, _pdfViewerState.lastFileName || 'documento.pdf');
                 });
             }
 
@@ -4130,6 +4202,45 @@
                 bytes[index] = binary.charCodeAt(index);
             }
             return bytes;
+        }
+
+        async function _obtenerPdfUint8Array(pdfSource) {
+            if (!pdfSource) throw new Error('PDF no disponible.');
+            if (!_esFuentePdfRemota(pdfSource)) return _dataUrlToUint8Array(pdfSource);
+            const response = await fetch(pdfSource, { mode: 'cors', cache: 'no-store' });
+            if (!response.ok) throw new Error('No pude descargar el PDF desde Cloudinary.');
+            const buffer = await response.arrayBuffer();
+            return new Uint8Array(buffer);
+        }
+
+        function _crearCanvasPaginaPdf(pageWrapper) {
+            let canvas = pageWrapper.querySelector('canvas');
+            if (canvas) return canvas;
+            canvas = document.createElement('canvas');
+            canvas.style.cssText = 'display:block;width:100%;height:auto;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.45);background:white;cursor:zoom-in;transition:box-shadow .18s ease, transform .18s ease;';
+            pageWrapper.appendChild(canvas);
+            return canvas;
+        }
+
+        async function _renderPdfPageWithZoom(page, pageWrapper, bodyWidth, zoomLevel) {
+            const safeBodyWidth = Math.max(280, bodyWidth || 280);
+            const baseViewport = page.getViewport({ scale: 1 });
+            const fitScale = Math.min(2.4, safeBodyWidth / baseViewport.width);
+            const displayScale = fitScale * zoomLevel;
+            const deviceScale = Math.min(window.devicePixelRatio || 1, 3);
+            const renderScale = displayScale * deviceScale;
+            const renderViewport = page.getViewport({ scale: renderScale });
+            const displayViewport = page.getViewport({ scale: displayScale });
+            const canvas = _crearCanvasPaginaPdf(pageWrapper);
+            const context = canvas.getContext('2d', { alpha: false });
+
+            canvas.width = Math.ceil(renderViewport.width);
+            canvas.height = Math.ceil(renderViewport.height);
+            canvas.style.maxWidth = Math.ceil(displayViewport.width) + 'px';
+
+            await page.render({ canvasContext: context, viewport: renderViewport }).promise;
+            canvas.dataset.zoomLevel = String(zoomLevel);
+            canvas.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
         }
 
         async function _ensurePdfJsLoaded() {
@@ -4180,6 +4291,7 @@
             if (!overlay || !content || !body) return;
 
             _pdfViewerState.lastDataUrl = dataUrl;
+            _pdfViewerState.lastSource = dataUrl;
             _pdfViewerState.lastFileName = fileName || 'documento.pdf';
             const currentToken = ++_pdfViewerState.renderToken;
 
@@ -4197,13 +4309,13 @@
                 const pdfjsLib = await _ensurePdfJsLoaded();
                 if (currentToken !== _pdfViewerState.renderToken) return;
 
-                const pdfData = _dataUrlToUint8Array(dataUrl);
+                const pdfData = await _obtenerPdfUint8Array(dataUrl);
                 const loadingTask = pdfjsLib.getDocument({ data: pdfData });
                 const pdf = await loadingTask.promise;
                 if (currentToken !== _pdfViewerState.renderToken) return;
 
                 content.innerHTML = '';
-                if (subtitle) subtitle.textContent = pdf.numPages + ' página' + (pdf.numPages === 1 ? '' : 's');
+                if (subtitle) subtitle.textContent = pdf.numPages + ' página' + (pdf.numPages === 1 ? '' : 's') + ' · toca una página para ampliar';
 
                 const targetWidth = Math.max(280, Math.min(body.clientWidth - 48, 920));
 
@@ -4211,9 +4323,6 @@
                     const page = await pdf.getPage(pageNumber);
                     if (currentToken !== _pdfViewerState.renderToken) return;
 
-                    const baseViewport = page.getViewport({ scale: 1 });
-                    const scale = targetWidth / baseViewport.width;
-                    const viewport = page.getViewport({ scale: scale });
                     const wrapper = document.createElement('div');
                     wrapper.style.cssText = 'width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;';
 
@@ -4221,17 +4330,30 @@
                     label.textContent = 'Página ' + pageNumber;
                     label.style.cssText = 'color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;';
 
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d', { alpha: false });
-                    canvas.width = Math.ceil(viewport.width);
-                    canvas.height = Math.ceil(viewport.height);
-                    canvas.style.cssText = 'width:100%;max-width:' + Math.ceil(viewport.width) + 'px;height:auto;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.45);background:white;';
+                    const pageWrapper = document.createElement('div');
+                    pageWrapper.style.cssText = 'width:100%;display:flex;justify-content:center;';
 
                     wrapper.appendChild(label);
-                    wrapper.appendChild(canvas);
+                    wrapper.appendChild(pageWrapper);
                     content.appendChild(wrapper);
 
-                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    await _renderPdfPageWithZoom(page, pageWrapper, targetWidth, 1);
+
+                    pageWrapper.addEventListener('click', async function () {
+                        if (currentToken !== _pdfViewerState.renderToken) return;
+                        const canvas = pageWrapper.querySelector('canvas');
+                        if (!canvas || canvas.dataset.rendering === 'true') return;
+                        const currentZoom = parseFloat(canvas.dataset.zoomLevel || '1');
+                        const nextZoom = currentZoom >= 2 ? 1 : 2;
+                        canvas.dataset.rendering = 'true';
+                        try {
+                            await _renderPdfPageWithZoom(page, pageWrapper, targetWidth, nextZoom);
+                            if (subtitle) subtitle.textContent = pdf.numPages + ' página' + (pdf.numPages === 1 ? '' : 's') + ' · zoom ' + nextZoom.toFixed(0) + 'x';
+                        } finally {
+                            const updatedCanvas = pageWrapper.querySelector('canvas');
+                            if (updatedCanvas) delete updatedCanvas.dataset.rendering;
+                        }
+                    });
                 }
             } catch (error) {
                 if (currentToken !== _pdfViewerState.renderToken) return;
@@ -4258,19 +4380,16 @@
             panel.style.display = isOpen ? 'none' : 'block';
         }
 
-        function uploadDocBanco(input) {
+        async function uploadDocBanco(input) {
             const files = Array.from(input.files).filter(f => _esArchivoPdfValido(f) && f.size <= 10*1024*1024);
             if (!files.length) { input.value = ''; return; }
             const lista = document.querySelector('.pdf-lista-bancos');
             if (!lista) { input.value = ''; return; }
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    _renderPdfRow(lista, file.name, e.target.result);
-                    guardarDatos();
-                };
-                reader.readAsDataURL(file);
-            });
+            for (const file of files) {
+                const pdfSource = await _obtenerFuentePdfSubida(file);
+                _renderPdfRow(lista, file.name, pdfSource);
+            }
+            guardarDatos();
             input.value = '';
         }
 
@@ -5175,7 +5294,7 @@
                         icono: iconElement?.textContent || 'euro',
                         colorIcono: iconElement ? (iconElement.style?.color || '#10b981') : '#10b981',
                         iconoImagen: (function(){ const s = card.querySelector('.icon-container img')?.src||''; return s.startsWith('data:') ? s : ''; })(),
-                        pdfNominas: Array.from(card.querySelectorAll('.pdf-item')).map(r => ({nombre: r.querySelector('span.truncate')?.textContent || 'nomina.pdf', data: r.dataset.pdfData || ''}))
+                        pdfNominas: Array.from(card.querySelectorAll('.pdf-item')).map(r => _crearRegistroPdfDesdeFila(r, 'nomina.pdf'))
                     };
                 }
             }),
@@ -5197,10 +5316,7 @@
                 gastoNotaria: document.getElementById('gastoNotaria')?.value || 2500
             },
             simulaciones: Array.from(document.querySelectorAll('.simulacion-card')).map(card => {
-                const pdfData = Array.from(card.querySelectorAll('.pdf-item-banco')).map(r => ({
-                    nombre: r.querySelector('span.truncate')?.textContent || 'doc.pdf',
-                    data: r.dataset.pdfData || ''
-                }));
+                const pdfData = Array.from(card.querySelectorAll('.pdf-item-banco')).map(r => _crearRegistroPdfDesdeFila(r, 'doc.pdf'));
                 
                 const iconContainer = card.querySelector('.icon-container-banco');
                 
@@ -5243,7 +5359,7 @@
                 };
             }),
             mobiliario: [],
-            docsBancos: Array.from(document.querySelectorAll('.pdf-lista-bancos .pdf-item')).map(r => ({nombre: r.querySelector('span.truncate')?.textContent || 'doc.pdf', data: r.dataset.pdfData || ''})),
+            docsBancos: Array.from(document.querySelectorAll('.pdf-lista-bancos .pdf-item')).map(r => _crearRegistroPdfDesdeFila(r, 'doc.pdf')),
             archivados: (function() {
                 const result = {};
                 const listas = ['listaCuentas','listaInversiones','listaIngresos','listaGastos','listaSimulaciones','listaReformas','listaMobiliario'];
@@ -5254,7 +5370,7 @@
                         if (listaId === 'listaSimulaciones') {
                             const iconContainer = card.querySelector('.icon-container-banco');
                             let pdfData = null;
-                            pdfData = Array.from(card.querySelectorAll('.pdf-item-banco')).map(r => ({nombre: r.querySelector('span.truncate')?.textContent || 'doc.pdf', data: r.dataset.pdfData || ''}));
+                            pdfData = Array.from(card.querySelectorAll('.pdf-item-banco')).map(r => _crearRegistroPdfDesdeFila(r, 'doc.pdf'));
                             return _addPos({
                                 tipo: 'simulacion',
                                 banco: card.querySelector('.banco-nombre')?.value || '',
@@ -5301,7 +5417,7 @@
                             if (esSimple) {
                                 return _addPos({ tipo: 'ingreso-simple', nombre: card.querySelector('input[type="text"]')?.value || '', cantidad: parseMoneyInput(card.querySelector('.ingreso-simple-neto')?.value || '0'), frecuencia: card.dataset.frecuencia || 'mensual', icono: iconElement?.textContent || 'euro', colorIcono: iconElement?.style?.color || '#10b981', iconoImagen: (function(){ const s = card.querySelector('.icon-container img')?.src||''; return s.startsWith('data:') ? s : ''; })() });
                             } else {
-                                return _addPos({ tipo: 'ingreso-nomina', nombre: card.querySelector('input[type="text"]')?.value || '', bruto: parseMoneyInput(card.querySelector('.ingreso-bruto-mes')?.value || '0'), neto: parseMoneyInput(card.querySelector('.ingreso-neto-mes')?.value || '0'), icono: iconElement?.textContent || 'euro', colorIcono: iconElement?.style?.color || '#10b981', iconoImagen: (function(){ const s = card.querySelector('.icon-container img')?.src||''; return s.startsWith('data:') ? s : ''; })(), pdfNominas: Array.from(card.querySelectorAll('.pdf-item')).map(r => ({nombre: r.querySelector('span.truncate')?.textContent || 'nomina.pdf', data: r.dataset.pdfData || ''})) });
+                                return _addPos({ tipo: 'ingreso-nomina', nombre: card.querySelector('input[type="text"]')?.value || '', bruto: parseMoneyInput(card.querySelector('.ingreso-bruto-mes')?.value || '0'), neto: parseMoneyInput(card.querySelector('.ingreso-neto-mes')?.value || '0'), icono: iconElement?.textContent || 'euro', colorIcono: iconElement?.style?.color || '#10b981', iconoImagen: (function(){ const s = card.querySelector('.icon-container img')?.src||''; return s.startsWith('data:') ? s : ''; })(), pdfNominas: Array.from(card.querySelectorAll('.pdf-item')).map(r => _crearRegistroPdfDesdeFila(r, 'nomina.pdf')) });
                             }
                         }
                         if (listaId === 'listaGastos') {
@@ -5861,7 +5977,7 @@
                                 const pdfs = ing.pdfNominas || (ing.pdfNomina ? [{nombre:'nomina.pdf', data:ing.pdfNomina}] : []);
                                 if (pdfs.length) {
                                     const lista = targetCard.querySelector('.pdf-lista');
-                                    if (lista) pdfs.forEach(p => _renderPdfRow(lista, p.nombre, p.data));
+                                    if (lista) pdfs.forEach(p => _renderPdfRow(lista, p.nombre, _obtenerFuentePdfDesdeRegistro(p)));
                                 }
                                 const iconContainer = targetCard.querySelector('.icon-container');
                                 if (iconContainer) attachIconLongPress(iconContainer, function(el) { abrirSelectorIconos(el); });
@@ -6021,7 +6137,7 @@
                                         const pdfsArch = item.pdfNominas || (item.pdfNomina ? [{nombre:'nomina.pdf', data:item.pdfNomina}] : []);
                                         if (pdfsArch.length) {
                                             const listaArch = cardNode.querySelector('.pdf-lista');
-                                            if (listaArch) pdfsArch.forEach(p => _renderPdfRow(listaArch, p.nombre, p.data));
+                                            if (listaArch) pdfsArch.forEach(p => _renderPdfRow(listaArch, p.nombre, _obtenerFuentePdfDesdeRegistro(p)));
                                         }
                                     }
                                 } else if (item.tipo === 'gasto') {
@@ -6324,7 +6440,7 @@
                 }
                 if (datos.docsBancos && datos.docsBancos.length) {
                     const listaBancos = document.querySelector('.pdf-lista-bancos');
-                    if (listaBancos) datos.docsBancos.forEach(p => _renderPdfRow(listaBancos, p.nombre, p.data));
+                    if (listaBancos) datos.docsBancos.forEach(p => _renderPdfRow(listaBancos, p.nombre, _obtenerFuentePdfDesdeRegistro(p)));
                 }
                 
                 calculate();
@@ -10891,7 +11007,8 @@
                 if (lista) {
                     const arr = Array.isArray(pdfData) ? pdfData : [pdfData];
                     arr.forEach(p => {
-                        if (p && p.nombre && p.data) _renderPdfRowBanco(lista, p.nombre, p.data);
+                        const pdfSource = _obtenerFuentePdfDesdeRegistro(p);
+                        if (p && p.nombre && pdfSource) _renderPdfRowBanco(lista, p.nombre, pdfSource);
                     });
                 }
             }
@@ -10941,24 +11058,21 @@
             const item = button.closest('.pdf-item-banco');
             const data = item.dataset.pdfData;
             const nombre = item.querySelector('span.truncate')?.textContent || 'simulacion.pdf';
-            if (data) _descargarDataUrlComoArchivo(data, nombre);
+            if (data) _descargarPdfComoArchivo(data, nombre);
         }
         function deletePDFItemBanco(button) {
             button.closest('.pdf-item-banco').remove();
             guardarDatos();
         }
-        function subirPDFBanco(input) {
+        async function subirPDFBanco(input) {
             const files = Array.from(input.files).filter(f => _esArchivoPdfValido(f) && f.size <= 5*1024*1024);
             if (!files.length) { input.value = ''; return; }
             const lista = input.closest('.pdf-banco-container').querySelector('.pdf-lista-banco');
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    _renderPdfRowBanco(lista, file.name, e.target.result);
-                    guardarDatos();
-                };
-                reader.readAsDataURL(file);
-            });
+            for (const file of files) {
+                const pdfSource = await _obtenerFuentePdfSubida(file);
+                _renderPdfRowBanco(lista, file.name, pdfSource);
+            }
+            guardarDatos();
             input.value = '';
         }
 
