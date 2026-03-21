@@ -1200,11 +1200,16 @@
             background: rgba(15,23,42,0.88);
         }
         .finanzas-scroll-modal {
+            display: none;
+            align-items: center;
+            justify-content: center;
             overflow-y: auto;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
         }
         .finanzas-scroll-modal-card {
+            width: min(100%, 520px);
+            margin: auto;
             box-sizing: border-box;
             max-height: min(calc(100vh - 32px - var(--nav-offset, 0px)), 92dvh) !important;
             overflow-y: auto !important;
@@ -1277,7 +1282,7 @@
                 min-width: 6px;
             }
             .finanzas-scroll-modal {
-                align-items: flex-start !important;
+                align-items: center !important;
                 justify-content: center !important;
                 padding-top: 16px !important;
                 padding-bottom: calc(16px + var(--nav-offset, 0px)) !important;
@@ -1286,6 +1291,10 @@
                 max-height: calc(100dvh - 32px - var(--nav-offset, 0px)) !important;
                 min-height: min-content;
             }
+        }
+        .gym-card-menu {
+            transform: translateX(0);
+            will-change: transform;
         }
         @media (min-width: 769px) {
             #filtros-bar .btn-add:not(.filtro-reforma-btn),

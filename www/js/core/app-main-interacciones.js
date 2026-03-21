@@ -7374,19 +7374,6 @@
         function _gymBubbleBridgeDisponible() {
             return !!(window.AndroidNotificador && typeof window.AndroidNotificador.showReposoBubble === 'function');
         }
-        function _gymSolicitarPermisoBurbujaSiHaceFalta() {
-            if (!_gymBubbleBridgeDisponible() || !_gymReposoRunning() || document.hidden) return;
-            if (window._gymBubblePermissionRequested === '1') return;
-            window._gymBubblePermissionRequested = '1';
-            try {
-                window.AndroidNotificador.showReposoBubble(String(window._gymReposoState.startAt || Date.now()));
-                setTimeout(function() {
-                    if (!document.hidden) _gymOcultarBurbujaReposo();
-                }, 250);
-            } catch (e) {
-                window._gymBubblePermissionRequested = '0';
-            }
-        }
         function _gymMostrarBurbujaReposo() {
             if (!_gymBubbleBridgeDisponible() || !_gymReposoRunning()) return;
             try {
@@ -7499,8 +7486,6 @@
                         rEl.textContent = rh > 0 ? rh+'h '+String(rm).padStart(2,'0')+'m' : String(rm).padStart(2,'0')+':'+String(rs).padStart(2,'0');
                     }
                 }, 1000);
-                window._gymBubblePermissionRequested = window._gymBubblePermissionRequested || '0';
-                _gymSolicitarPermisoBurbujaSiHaceFalta();
                 _gymSyncBurbujaReposoConVisibilidad();
             }
         }
@@ -8332,16 +8317,12 @@
             var menu = btn.nextElementSibling;
             var isOpen = menu.style.display === 'block';
             document.querySelectorAll('.gym-card-menu').forEach(function(m) { m.style.display = 'none'; });
-            document.querySelectorAll('.gym-card').forEach(function(c) { c.style.overflow = 'hidden'; });
             if (!isOpen) {
                 menu.style.display = 'block';
-                var card = btn.closest('.gym-card');
-                if (card) card.style.overflow = 'visible';
                 setTimeout(function() {
                     document.addEventListener('click', function closeMenu(e) {
                         if (!menu.contains(e.target) && e.target !== btn) {
                             menu.style.display = 'none';
-                            if (card) card.style.overflow = 'hidden';
                             document.removeEventListener('click', closeMenu);
                         }
                     });
@@ -9744,10 +9725,31 @@
                 var abrirSelector = function() {
                     if (!inputFecha) return;
                     if (typeof abrirCalAct2 === 'function') {
+                        modalFecha.style.display = 'none';
                         abrirCalAct2('_gymDupDateInput', function(valor) {
+                            modalFecha.style.display = 'flex';
                             if (!valor) return;
                             _gymActualizarLabelFechaDuplicado(modalFecha, valor);
                         });
+                        setTimeout(function() {
+                            var cal = document.getElementById('modalCalAct');
+                            if (!cal || cal.dataset.gymDupRestoreInit === '1') return;
+                            cal.dataset.gymDupRestoreInit = '1';
+                            var restoreGymDup = function() {
+                                if (modalFecha && modalFecha.isConnected && modalFecha.style.display === 'none') {
+                                    modalFecha.style.display = 'flex';
+                                }
+                            };
+                            cal.addEventListener('click', function(ev) {
+                                if (ev.target === cal) setTimeout(restoreGymDup, 0);
+                            });
+                            var lastDisplay = cal.style.display;
+                            var obs = new MutationObserver(function() {
+                                if (lastDisplay !== 'none' && cal.style.display === 'none') restoreGymDup();
+                                lastDisplay = cal.style.display;
+                            });
+                            obs.observe(cal, { attributes: true, attributeFilter: ['style'] });
+                        }, 0);
                         return;
                     }
                 };
