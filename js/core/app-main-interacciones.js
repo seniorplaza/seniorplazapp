@@ -3990,8 +3990,47 @@
                 '</button>';
             lista.appendChild(row);
         }
+            function _esArchivoPdfValido(file) {
+                if (!file) return false;
+                const nombre = String(file.name || '').toLowerCase();
+                const tipo = String(file.type || '').toLowerCase();
+                return tipo === 'application/pdf' || /\.pdf$/i.test(nombre);
+            }
+            function _descargarDataUrlComoArchivo(dataUrl, fileName) {
+                if (!dataUrl) return;
+                try {
+                    const match = String(dataUrl).match(/^data:([^;]+)?(;base64)?,(.*)$/);
+                    if (!match) throw new Error('data-url-invalido');
+                    const mime = match[1] || 'application/pdf';
+                    const payload = match[3] || '';
+                    let blob;
+                    if (match[2]) {
+                        const binary = atob(payload);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+                        blob = new Blob([bytes], { type: mime });
+                    } else {
+                        blob = new Blob([decodeURIComponent(payload)], { type: mime });
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName || 'documento.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    setTimeout(function() { URL.revokeObjectURL(url); }, 1500);
+                } catch (error) {
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName || 'documento.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                }
+            }
         function uploadNominaPDF(input) {
-            const files = Array.from(input.files).filter(f => f.type === 'application/pdf' && f.size <= 5*1024*1024);
+                const files = Array.from(input.files).filter(f => _esArchivoPdfValido(f) && f.size <= 5*1024*1024);
             if (!files.length) { input.value = ''; return; }
             const lista = input.closest('.desglose-nomina').querySelector('.pdf-lista');
             let loaded = 0;
@@ -4011,7 +4050,7 @@
             const item = button.closest('.pdf-item');
             const data = item.dataset.pdfData;
             const nombre = item.querySelector('span.truncate')?.textContent || 'nomina.pdf';
-            if (data) { const a = document.createElement('a'); a.href = data; a.download = nombre; a.click(); }
+            if (data) _descargarDataUrlComoArchivo(data, nombre);
         }
         function deletePDFItem(button) {
             button.closest('.pdf-item').remove();
@@ -4220,7 +4259,7 @@
         }
 
         function uploadDocBanco(input) {
-            const files = Array.from(input.files).filter(f => f.type === 'application/pdf' && f.size <= 10*1024*1024);
+            const files = Array.from(input.files).filter(f => _esArchivoPdfValido(f) && f.size <= 10*1024*1024);
             if (!files.length) { input.value = ''; return; }
             const lista = document.querySelector('.pdf-lista-bancos');
             if (!lista) { input.value = ''; return; }
@@ -7931,10 +7970,12 @@
                         }
                     }
                 } catch(parseErr) {
+                    input.value = '';
                     _gymRutaMostrarError(section, card, 'Error al leer el archivo.');
                     return;
                 }
                 if (!coords || coords.length < 2) {
+                    input.value = '';
                     _gymRutaMostrarError(section, card, 'No se encontraron puntos de ruta en el archivo.');
                     return;
                 }
@@ -7943,6 +7984,7 @@
                 card.dataset.rutaNombre = file.name;
                 card.dataset.rutaUrl = '';
                 _gymRenderRutaEnSeccion(section, coords, card, file.name);
+                input.value = '';
                 if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
                 else if (typeof guardarDatos === 'function') guardarDatos();
                 subirRutaACloudinary(file).then(function(url) {
@@ -7951,6 +7993,8 @@
                     else if (typeof guardarDatos === 'function') guardarDatos();
                 }).catch(function() {
                     // Cloudinary upload failed, data is still persisted locally via coords
+                }).finally(function() {
+                    input.value = '';
                 });
             };
             reader.readAsText(file);
@@ -8076,7 +8120,6 @@
             delBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:16px;">delete</span>';
             delBtn.addEventListener('click', function() { _gymEliminarRuta(delBtn); });
 
-            btns.appendChild(replaceInp);
             btns.appendChild(csvInp);
             btns.appendChild(replaceWrap);
             btns.appendChild(statsBtn);
@@ -10898,14 +10941,14 @@
             const item = button.closest('.pdf-item-banco');
             const data = item.dataset.pdfData;
             const nombre = item.querySelector('span.truncate')?.textContent || 'simulacion.pdf';
-            if (data) { const a = document.createElement('a'); a.href = data; a.download = nombre; a.click(); }
+            if (data) _descargarDataUrlComoArchivo(data, nombre);
         }
         function deletePDFItemBanco(button) {
             button.closest('.pdf-item-banco').remove();
             guardarDatos();
         }
         function subirPDFBanco(input) {
-            const files = Array.from(input.files).filter(f => f.type === 'application/pdf' && f.size <= 5*1024*1024);
+            const files = Array.from(input.files).filter(f => _esArchivoPdfValido(f) && f.size <= 5*1024*1024);
             if (!files.length) { input.value = ''; return; }
             const lista = input.closest('.pdf-banco-container').querySelector('.pdf-lista-banco');
             files.forEach(file => {
