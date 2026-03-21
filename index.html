@@ -2878,10 +2878,10 @@
                             <button onclick="seleccionarColorFondo('#1e3a8a')" style="width:22px;height:22px;border-radius:5px;background:#1e3a8a;border:1.5px solid transparent;cursor:pointer;transition:transform 0.1s;" data-bg="#1e3a8a" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></button>
                             <button onclick="seleccionarColorFondo('#042f2e')" style="width:22px;height:22px;border-radius:5px;background:#042f2e;border:1.5px solid transparent;cursor:pointer;transition:transform 0.1s;" data-bg="#042f2e" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></button>
                             <button onclick="seleccionarColorFondo('#052e16')" style="width:22px;height:22px;border-radius:5px;background:#052e16;border:1.5px solid transparent;cursor:pointer;transition:transform 0.1s;" data-bg="#052e16" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></button>
-                            <label style="width:22px;height:22px;border-radius:5px;border:1.5px dashed rgba(100,116,139,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;" title="Color personalizado">
-                                <input type="color" id="colorFondoPersonalizado" onchange="seleccionarColorFondo(this.value)" style="opacity:0;position:absolute;width:0;height:0;">
-                                <span class="material-symbols-rounded" style="font-size:10px;color:#64748b;pointer-events:none;">colorize</span>
-                            </label>
+                            <button type="button" onclick="abrirColorPickerPersonalizado('bg')" style="height:22px;padding:0 8px;border-radius:999px;border:1.5px dashed rgba(59,130,246,0.55);background:rgba(30,58,138,0.24);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;" title="Color personalizado fondo">
+                                <span class="material-symbols-rounded" style="font-size:12px;color:#93c5fd;pointer-events:none;">tune</span>
+                                <span style="font-size:10px;color:#bfdbfe;font-weight:700;letter-spacing:0.03em;pointer-events:none;">PRO</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2947,10 +2947,35 @@
                             <button onclick="seleccionarColorIcono('#f472b6')" style="width:22px;height:22px;border-radius:5px;background:#f472b6;border:1.5px solid transparent;cursor:pointer;transition:transform 0.1s;" data-color="#f472b6" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></button>
                             <button onclick="seleccionarColorIcono('#ec4899')" style="width:22px;height:22px;border-radius:5px;background:#ec4899;border:1.5px solid transparent;cursor:pointer;transition:transform 0.1s;" data-color="#ec4899" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></button>
                             <button onclick="seleccionarColorIcono('#e879f9')" style="width:22px;height:22px;border-radius:5px;background:#e879f9;border:1.5px solid transparent;cursor:pointer;transition:transform 0.1s;" data-color="#e879f9" onmouseover="this.style.transform='scale(1.25)'" onmouseout="this.style.transform='scale(1)'"></button>
-                            <label style="width:22px;height:22px;border-radius:5px;border:1.5px dashed rgba(100,116,139,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;" title="Color personalizado">
-                                <input type="color" id="colorPersonalizado" onchange="seleccionarColorIcono(this.value)" style="opacity:0;position:absolute;width:0;height:0;">
-                                <span class="material-symbols-rounded" style="font-size:10px;color:#64748b;pointer-events:none;">colorize</span>
-                            </label>
+                            <button type="button" onclick="abrirColorPickerPersonalizado('icon')" style="height:22px;padding:0 8px;border-radius:999px;border:1.5px dashed rgba(59,130,246,0.55);background:rgba(30,58,138,0.24);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;" title="Color personalizado icono">
+                                <span class="material-symbols-rounded" style="font-size:12px;color:#93c5fd;pointer-events:none;">tune</span>
+                                <span style="font-size:10px;color:#bfdbfe;font-weight:700;letter-spacing:0.03em;pointer-events:none;">PRO</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="customColorPickerPanel" style="display:none;margin:10px 14px 4px;padding:12px;border-radius:14px;border:1px solid rgba(59,130,246,0.35);background:linear-gradient(180deg,rgba(15,23,42,0.96),rgba(10,21,38,0.96));box-shadow:0 10px 28px rgba(2,6,23,0.55), inset 0 0 0 1px rgba(59,130,246,0.12);">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+                        <div id="customColorPickerTitle" style="color:#dbeafe;font-size:12px;font-weight:800;letter-spacing:0.03em;">Color personalizado</div>
+                        <button type="button" onclick="cerrarColorPickerPersonalizado()" style="width:24px;height:24px;border-radius:8px;border:1px solid rgba(148,163,184,0.28);background:rgba(15,23,42,0.75);color:#94a3b8;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                            <span class="material-symbols-rounded" style="font-size:14px;">close</span>
+                        </button>
+                    </div>
+
+                    <div id="customColorPickerArea" style="position:relative;width:100%;height:140px;border-radius:12px;border:1px solid rgba(96,165,250,0.25);cursor:crosshair;overflow:hidden;background:linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,#3b82f6);">
+                        <div id="customColorPickerThumb" style="position:absolute;left:0;top:0;width:18px;height:18px;border-radius:999px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(148,163,184,0.6),0 4px 12px rgba(2,6,23,0.75);transform:translate(-50%,-50%);pointer-events:none;"></div>
+                    </div>
+
+                    <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+                        <input id="customColorPickerHue" type="range" min="0" max="360" value="210" style="-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:999px;border:1px solid rgba(96,165,250,0.2);background:linear-gradient(to right,hsl(0,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(360,100%,50%));outline:none;" />
+
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div id="customColorPickerPreview" style="width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(148,163,184,0.45);background:#3b82f6;flex-shrink:0;"></div>
+                            <div style="position:relative;flex:1;">
+                                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#64748b;font-size:12px;font-weight:800;">#</span>
+                                <input id="customColorPickerHex" type="text" maxlength="6" value="3B82F6" placeholder="RRGGBB" style="width:100%;height:34px;background:rgba(2,6,23,0.55);border:1px solid rgba(148,163,184,0.22);border-radius:10px;color:#e2e8f0;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:0 10px 0 24px;outline:none;box-sizing:border-box;" />
+                            </div>
                         </div>
                     </div>
                 </div>
