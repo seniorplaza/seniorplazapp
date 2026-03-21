@@ -1127,6 +1127,10 @@
         }
         
         /* Regla base para filtros-bar - sticky */
+        :root {
+            --main-nav-height: 0px;
+            --section-sticky-gap: 12px;
+        }
         #filtros-bar-gym,
         #filtros-bar-nutri {
             width: 100%;
@@ -1140,7 +1144,7 @@
         }
         #filtros-bar {
             position: sticky !important;
-            top: 210px !important;
+            top: calc(var(--main-nav-height, 0px) + var(--section-sticky-gap, 12px)) !important;
             z-index: 90;
             background: rgba(30,41,59,0.45) !important;
             border: 1px solid rgba(51,65,85,0.6) !important;
@@ -1149,8 +1153,8 @@
         }
         #filtros-bar-gym {
             position: sticky !important;
-            top: 210px !important;
-            z-index: 90;
+            top: calc(var(--main-nav-height, 0px) + var(--section-sticky-gap, 12px)) !important;
+            z-index: 140;
         }
         #filtros-bar-gym .gym-filter-slot {
             display: flex;
@@ -1245,6 +1249,7 @@
                 gap: 8px !important;
                 flex-wrap: nowrap !important;
                 align-items: center !important;
+                margin-bottom: 16px !important;
             }
             #filtros-bar-gym .gym-filter-slot {
                 gap: 8px !important;
