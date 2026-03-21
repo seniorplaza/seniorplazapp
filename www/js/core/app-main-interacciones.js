@@ -334,7 +334,7 @@
 
         const iconosPorCategoria = {
             personalizados: [icSvg('tortuga','0 0 360.1 239.55','<path d="M123.07,191.61l-5.39,20.86c-4.95,19.17-23.85,30.7-42.77,26.05-19.03-4.67-30.82-24.13-25.65-43.42,1.06-3.97,1.99-7.59,2.87-11.79-8.33-8.89-24.36.86-32.69,5.98-4.35,2.67-9.21,3.26-13.56.65S-.46,182.79.08,177.31c2.14-21.62,15.7-43.09,36.11-52.49,1.83-52.3,24.62-105.51,79.28-120.29,21.96-5.94,44.73-5.91,66.82-.67,44.21,11.38,69.27,45.14,78.24,89.57,14.09-14.7,32.34-21.71,52.24-21.56,16.42.12,30.4,8.17,38.35,22.54,5.73,10.36,8.14,21.62,8.88,33.59.91,14.85-4.72,28.3-16.32,37.69-20.98,17.64-55.39,23.29-83.09,25.45,7.27,19.57-2.78,40.4-21.96,46.65-19.65,6.41-40.3-5.36-45.37-25.61l-5.13-20.49-65.07-.09ZM173.87,59.74l17.72-26.79c-13-6.35-26.59-8.8-40.79-8.95-14.74-.04-28.89,2.43-42.32,8.9l18.08,27.03,47.31-.19ZM88.09,119.52l18.44-46.25-17.8-26.51c-9.59,9.45-15.87,20.42-20.42,32.61-4.67,13.09-7.1,26.35-7.81,40.46l27.58-.3ZM239.51,119.44c-.8-14.97-3.5-28.68-8.59-42.05-4.55-11.34-10.5-21.49-19.62-30.5l-17.74,26.4,18.62,46.5,27.32-.35ZM186.24,119.72l-14.34-35.86-43.81.11-14.27,35.84,72.42-.09ZM114.43,167.67l82.83.04c5.84,0,10.48,3.64,11.88,9.12l7.74,30.45c1.58,6.23,7.95,9.54,13.95,7.85,5.62-1.58,9.31-7.47,7.77-13.67l-4.77-19.23c-.94-3.79.26-7.52,2.58-10.32s5.6-4.11,9.66-4.21c23.23-.55,60.73-4.61,79.68-18.47,4.64-3.4,9.05-8.09,9.82-14.01,1.23-9.42-.58-19.22-4.6-27.54s-11.57-12.2-20.45-11.88c-20.51.75-33.24,11.34-42.7,28.54-6.15,11.17-17.45,19.28-30.84,19.29l-177.57.15c-10.41,0-19.55,4.44-25.76,12.84,15.08-3.23,28.44,1.93,38.48,12.49,3.41,3.59,6.44,7.46,5.12,12.8l-4.86,19.71c-1.56,6.32,2.49,12.32,8.46,13.66s11.85-2.11,13.39-8.22l7.54-29.91c1.47-5.83,6.08-9.5,12.65-9.49Z"/><ellipse cx="312.04" cy="119.79" rx="11.98" ry="11.96" fill="currentColor"/>'),icSvg('reddit','0 0 90 90','<path d="M61.951 64.101c-1.017-.509-2.234-.397-3.143.286-3.925 2.951-8.777 4.46-13.655 4.261-.083-.004-.167-.005-.25 0-4.878.191-9.726-1.309-13.655-4.262-1.324-.996-3.204-.729-4.201.596-.995 1.325-.729 3.206.596 4.201 4.732 3.557 10.512 5.482 16.387 5.482.333 0 .666-.006.999-.019 5.791.22 11.526-1.447 16.32-4.702 1.3-.329 2.263-1.507 2.263-2.909v-.251c0-1.136-.643-2.175-1.661-2.683z"/><path d="M77.391 33.213c-2.177.076-4.28.737-6.107 1.899-6.924-4.041-16.675-6.539-24.476-7.268l3.719-17.482 13.879 2.774c.793 3.758 4.127 6.58 8.121 6.58 4.585 0 8.302-3.717 8.302-8.302 0-4.585-3.717-8.302-8.302-8.302-3.05 0-5.708 1.649-7.152 4.1L50.797 4.298c-1.297-.291-2.623-.058-3.742.654-1.12.712-1.894 1.819-2.181 3.117-.014.064-.026.131-.036.199l-4.14 19.461c-7.805.513-15.33 2.907-22.003 7.001-2.029-1.269-4.386-1.918-6.834-1.832-3.259.103-6.281 1.47-8.506 3.845-2.236 2.378-3.41 5.484-3.307 8.747.103 3.259 1.47 6.281 3.853 8.513.472.441.966.838 1.479 1.189.005.387.02.772.045 1.157.078 15.731 17.885 28.512 39.76 28.512 21.878 0 39.685-12.78 39.761-28.513.025-.408.041-.818.045-1.229 3.187-2.318 5.12-6.102 5.049-10.147-.048-6.673-5.729-11.971-12.449-11.721zm3.214 17.575c-1.082.541-1.733 1.679-1.651 2.886.053.786.053 1.584 0 2.37-.005.067-.007.135-.007.202 0 12.47-15.145 22.615-33.761 22.615-18.615 0-33.761-10.145-33.761-22.615 0-.068-.002-.136-.007-.204-.054-.785-.054-1.581 0-2.366.086-1.26-.626-2.439-1.782-2.948C9.069 50.477 8.518 50.104 8 49.62c-1.208-1.132-1.902-2.666-1.954-4.321-.053-1.659.544-3.238 1.685-4.451 1.131-1.208 2.666-1.901 4.321-1.954.067-.002.134-.003.201-.003 1.585 0 3.085.594 4.245 1.684 1.021.959 2.573 1.085 3.736.299 6.793-4.596 14.712-7.101 22.906-7.244 7.767.181 19.718 2.905 26.632 7.614 1.169.796 2.734.667 3.757-.307 1.116-1.063 2.563-1.677 4.068-1.729 3.401-.101 6.32 2.569 6.445 5.927.042 2.37-1.307 4.588-3.437 5.653z"/><path d="M36.416 51.59c0-3.561-2.904-6.465-6.465-6.465s-6.465 2.904-6.465 6.465 2.888 6.432 6.465 6.465c3.561-.001 6.465-2.905 6.465-6.465z"/><path d="M59.82 45.349c-3.561 0-6.465 2.904-6.465 6.465 0 3.561 2.904 6.465 6.465 6.465l-.049.241c.113 0 .209 0 .321 0 3.561-.145 6.336-3.143 6.192-6.706-.2-3.561-3.104-6.465-6.464-6.465z"/>'),icSvg('logo','0 0 487.43 642.8','<path d="M236.1,379.72c-.9,1.6-1.5,2.8-2.1,3.9-21.2,37.9-42.2,75.9-62.1,114.5-17.7,34.5-35,69.2-52.4,103.9-5.8,11.6-11.4,23.3-16,35.4-.3.8-.7,1.7-.7,2.5-.2,2,1.6,3.4,3.5,2.7.7-.3,1.5-.7,2-1.3,1.2-1.2,2.3-2.5,3.2-3.8,11.5-17.7,23.3-35.2,34.4-53.2,45.1-72.9,89.8-146,133-220.1,1.1-1.8,2.4-3.1,4.3-3.9,23.8-9.8,46.4-21.8,68.3-35.3,37.3-23.1,71.2-50.2,100.5-83,7.4-8.3,14-17.1,19.6-26.6,6.2-10.5,11.2-21.5,13.9-33.5,1.3-6,2.1-12,1.9-18.1-.2-8.4-3.4-15.9-8.6-22.5-4.8-6.2-10.7-11.2-17.6-15-7.1-4-14.7-7.1-22.6-9.1-11-2.8-22.1-4.4-33.4-5.2-8.8-.6-17.6-.9-26.4-.1-4.9.4-9.9,1.1-14.8,1.4-11.7.8-23.3,2.7-35,4.2-9.1,1.1-18.2,2.4-27.4,3-9.9.7-19.8,1-29.7,1.2-20.8.5-41.6.8-62.4-.6-8.5-.6-16.9-1.5-25.1-3.9-1-.3-1.9-.6-3.1-1,.5-.8.9-1.4,1.3-2,5-6.8,10.8-12.8,17.4-18.1,10.6-8.5,21.5-16.4,33.1-23.3,13.6-8.1,27.3-16,41.3-23.5,28.9-15.5,59.4-26.9,92.1-31.2,7.3-.9,14.6-1.7,22-.7,4.1.5,8.2,1.1,12,3,4,2,5.2,4.9,3.9,9.1-.5,1.7-1.2,3.3-2,4.9-1.9,3.8-4.3,7.3-7.1,10.5-5.3,6.1-11,11.8-17.2,17-.5.4-1.1.8-1.3,1.4-.3.6-.6,1.5-.3,1.9.3.4,1.3.7,1.8.6,1.2-.3,2.3-.7,3.3-1.3,5.1-2.9,10.1-5.8,15.1-8.9,4.8-2.9,9.2-6.4,13.2-10.3,3.4-3.2,6.1-7,8.1-11.2,2.8-6.1,2.6-12.1-.8-17.9-2.1-3.7-5-6.6-8.7-8.8-3.2-1.9-6.6-3.3-10.1-4.4C389.3.22,380-.08,370.6.02c-16.6.1-32.8,2.8-48.7,7.2-33.6,9.2-65.5,22.7-95.8,39.8-19.1,10.8-37.1,23.2-53.3,38.2-6.3,5.9-11.9,12.3-16.4,19.6-2.5,4-4.6,8.2-5.7,12.9-1.9,8.1.6,14,7.9,18.2,3.1,1.8,6.5,3.1,10,4,12.6,2.9,25.4,3.9,38.3,4.2,10,.2,20,0,30,.1.8,0,1.6-.3,2.6.4-.8.4-1.4.7-1.9.9-39.8,16.4-77.7,36.5-113.9,59.6-43.4,27.8-83.7,59.5-119,97.2-1.5,1.6-2.7,3.4-4,5.1-.3.4-.5,1.1-.7,1.6,1.4-.4,2.5-1,3.5-1.8,3.2-2.4,6.5-4.7,9.6-7.2,29.2-22.9,59.8-43.9,91.7-63,47.2-28.2,96.6-51.9,148.9-69.1,35.4-11.6,71.2-22,108.3-26.4,8.1-1,16.2-1.9,24.4-1.9,10.7.1,21.4.8,32,2.2,8.3,1.1,16.5,3,24.3,6.2,3.5,1.4,6.6,3.3,9.2,5.9,2.4,2.5,3.9,5.4,4.4,8.9,1,7-.2,13.7-3,20.1-3.3,7.4-7.4,14.3-12.2,20.9-5.9,8-12.6,15.3-19.4,22.5-8.8,9.4-17.5,19-27.7,26.9-9.4,7.3-19,14.4-28.8,21.2-16.4,11.4-33.2,22.3-50.8,31.7-.7.4-1.5.7-2.5,1.2.2-.6.3-.9.4-1.2.2-.5.5-1,.8-1.5,12.4-22.3,24.7-44.6,35.6-67.7,4.7-9.9,9.3-19.8,12.4-30.4,1-3.6,1.8-7.3,2.4-11,.2-1.1-.1-2.4-.5-3.5-.5-1.4-1.4-1.6-2.7-.9-.9.5-1.7,1.2-2.5,1.9-5.6,4.9-10.6,10.5-15.2,16.3-12.6,16-24,32.8-35,49.9-14.9,23.1-28.7,46.7-42.6,70.4-1.4,2.4-3.2,4-5.7,5.2-37.9,18.2-76.7,34.5-116.2,48.8-23.3,8.4-46.9,16-71.2,20.9-11.1,2.2-22.2,3.6-33.6,3.6-4.6,0-8.8-1.2-12.8-3.5-3.1-1.8-4.7-4.5-4.6-8.1,0-3.5.7-6.8,1.7-10.1,2.3-7.4,5.9-14.2,9.8-20.8,7.7-12.7,16-24.9,25-36.7,6.7-8.8,13.3-17.6,19.8-26.5,1.6-2.2,2.9-4.6,4.4-6.9.3-.4.5-.8.6-1.3.3-1-.4-1.7-1.3-1.3-1.1.5-2.2,1-3.1,1.8-3.8,3-7.8,5.9-11.4,9.2-15,13.7-28.8,28.5-41.5,44.3-8,9.9-14.1,20.9-18.2,33-2.2,6.5-3.8,13.1-3.2,20,.7,8.5,4.3,15.5,11.5,20.3,3.8,2.6,8,4.4,12.5,5.4,15.8,3.2,31.6,3.3,47.4.2,20.6-4,41.1-9,61.2-14.9,32.8-9.8,65.1-20.8,97.5-32,.8-.1,1.4-.2,2.5-.5Z" fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" paint-order="stroke fill"/>')],
-            finanzas:     [ic('account_balance'),ic('savings'),ic('credit_card'),ic('paid'),ic('trending_up'),ic('trending_down'),ic('euro'),ic('attach_money'),ic('currency_exchange'),ic('account_balance_wallet'),ic('payments'),ic('receipt_long'),ic('point_of_sale'),ic('local_atm'),ic('currency_bitcoin'),ic('currency_franc'),ic('currency_pound'),ic('currency_ruble'),ic('currency_rupee'),ic('currency_yen'),ic('currency_yuan'),ic('monetization_on'),ic('money_off'),ic('payment'),ic('request_quote'),ic('calculate'),ic('percent'),ic('pie_chart'),ic('bar_chart'),ic('bar_chart_4_bars'),ic('show_chart'),ic('insights'),ic('analytics'),ic('gavel'),ic('balance'),ic('sell'),ic('toll'),ic('receipt'),ic('shopping_bag'),ic('account_tree'),ic('donut_large'),ic('donut_small'),ic('candlestick_chart'),ic('handshake'),ic('inventory_2'),ic('price_check'),ic('wallet'),ic('real_estate_agent'),ic('contract'),ic('price_change'),ic('waterfall_chart'),ic('finance'),ic('finance_mode'),ic('checkbook'),ic('credit_card_heart'),ic('credit_score'),ic('leaderboard'),ic('stacked_bar_chart'),ic('area_chart'),ic('bubble_chart'),ic('multiline_chart'),ic('query_stats'),ic('ssid_chart')],
+            finanzas:     [ic('account_balance'),ic('savings'),ic('credit_card'),ic('paid'),ic('trending_up'),ic('trending_down'),ic('euro'),ic('attach_money'),ic('currency_exchange'),ic('account_balance_wallet'),ic('payments'),ic('receipt_long'),ic('point_of_sale'),ic('local_atm'),ic('currency_bitcoin'),ic('currency_franc'),ic('currency_pound'),ic('currency_ruble'),ic('currency_rupee'),ic('currency_yen'),ic('currency_yuan'),ic('monetization_on'),ic('money_off'),ic('payment'),ic('request_quote'),ic('calculate'),ic('percent'),ic('pie_chart'),ic('bar_chart'),ic('bar_chart_4_bars'),ic('show_chart'),ic('insights'),ic('analytics'),ic('gavel'),ic('balance'),ic('sell'),ic('toll'),ic('receipt'),ic('shopping_bag'),ic('account_tree'),ic('donut_large'),ic('donut_small'),ic('candlestick_chart'),ic('handshake'),ic('inventory_2'),ic('price_check'),ic('wallet'),ic('real_estate_agent'),ic('contract'),ic('price_change'),ic('waterfall_chart'),ic('finance'),ic('finance_mode'),ic('checkbook'),ic('credit_card_heart'),ic('credit_score'),ic('leaderboard'),ic('stacked_bar_chart'),ic('area_chart'),ic('bubble_chart'),ic('multiline_chart'),ic('query_stats'),ic('ssid_chart'),icSvg('bizum','0 0 38.1 50','<path d="M9.2,17.9c1.8,1.3,4.4,0.9,5.7-0.9l4.8-6.6C21,8.6,20.6,6,18.8,4.7c-1.8-1.3-4.4-0.9-5.7,0.9l-4.8,6.6C7,14,7.4,16.5,9.2,17.9z M31,8.6c-1.8-1.3-4.4-0.9-5.7,0.9L6.1,35.8c-1.3,1.8-0.9,4.4,0.9,5.7c1.8,1.3,4.4,0.9,5.7-0.9l19.1-26.3C33.2,12.5,32.8,9.9,31,8.6z M7.4,6.5c1.3-1.8,0.9-4.4-0.9-5.7C4.7-0.5,2.1-0.2,0.8,1.7C-0.5,3.5-0.2,6,1.7,7.4C3.5,8.7,6,8.3,7.4,6.5z M36.4,42.6c-1.8-1.3-4.4-0.9-5.7,0.9c-1.3,1.8-0.9,4.4,0.9,5.7c1.8,1.3,4.4,0.9,5.7-0.9C38.6,46.5,38.2,44,36.4,42.6z M28.9,32.2c-1.8-1.3-4.4-0.9-5.7,0.9l-4.8,6.6c-1.3,1.8-0.9,4.4,0.9,5.7c1.8,1.3,4.4,0.9,5.7-0.9l4.8-6.6C31.1,36.1,30.7,33.5,28.9,32.2z" fill="currentColor"/>')],
             hogar:        [ic('home'),ic('house'),ic('apartment'),ic('villa'),ic('cottage'),ic('chalet'),ic('bungalow'),ic('cabin'),ic('event_seat'),ic('bed'),ic('king_bed'),ic('single_bed'),ic('kitchen'),ic('bathtub'),ic('weekend'),ic('desk'),ic('garage'),ic('balcony'),ic('roofing'),ic('foundation'),ic('lightbulb'),ic('lightbulb_circle'),ic('floor_lamp'),ic('cleaning_services'),ic('yard'),ic('fence'),ic('deck'),ic('thermostat'),ic('ac_unit'),ic('grass'),ic('local_florist'),ic('home_work'),ic('microwave'),ic('blender'),ic('coffee_maker'),ic('pool'),ic('shower'),ic('wc'),ic('countertops'),ic('meeting_room'),ic('local_laundry_service'),ic('dry_cleaning'),ic('iron'),ic('nightlight'),ic('vpn_key'),ic('key'),ic('door_front'),ic('door_back'),ic('door_sliding'),ic('doorbell'),ic('sensor_door'),ic('house_siding'),ic('chair'),ic('chair_alt'),ic('table_restaurant'),ic('table_bar'),ic('dresser'),ic('curtains'),ic('blinds'),ic('fireplace'),ic('hot_tub'),ic('dishwasher'),ic('faucet'),ic('soap'),ic('cleaning'),ic('chair_fireplace'),ic('window'),ic('stairs'),ic('elevator'),ic('garage_door'),ic('shelves'),ic('crib'),ic('baby_changing_station'),ic('room_preferences')],
             reformas:     [ic('construction'),ic('build'),ic('hardware'),ic('home_repair_service'),ic('plumbing'),ic('electrical_services'),ic('roofing'),ic('format_paint'),ic('brush'),ic('palette'),ic('wallpaper'),ic('texture'),ic('grid_view'),ic('architecture'),ic('engineering'),ic('foundation'),ic('fence'),ic('deck'),ic('kitchen'),ic('bathtub'),ic('microwave'),ic('handyman'),ic('content_cut'),ic('design_services'),ic('square_foot'),ic('straighten'),ic('space_dashboard'),ic('grid_on'),ic('layers'),ic('view_in_ar'),ic('build_circle'),ic('settings'),ic('tune'),ic('shower'),ic('wc'),ic('local_florist'),ic('yard'),ic('balcony'),ic('carpenter'),ic('tile'),ic('brick'),ic('conveyor_belt'),ic('forklift'),ic('front_loader'),ic('palette'),ic('colorize'),ic('format_color_fill'),ic('format_color_text')],
             transporte:   [ic('directions_car'),ic('two_wheeler'),ic('motorcycle'),ic('directions_bike'),ic('train'),ic('tram'),ic('subway'),ic('directions_bus'),ic('flight'),ic('airport_shuttle'),ic('local_taxi'),ic('car_rental'),ic('local_gas_station'),ic('local_parking'),ic('commute'),ic('traffic'),ic('local_shipping'),ic('delivery_dining'),ic('directions_boat'),ic('sailing'),ic('directions_railway'),ic('car_repair'),ic('rv_hookup'),ic('agriculture'),ic('kayaking'),ic('skateboarding'),ic('rocket'),ic('rocket_launch'),ic('garage'),ic('electric_car'),ic('moped'),ic('electric_bike'),ic('electric_scooter'),ic('ev_station'),ic('electric_moped'),ic('pedal_bike'),ic('scooter'),ic('cable_car'),ic('gondola_lift'),ic('funicular'),ic('helicopter'),ic('drone'),ic('snowmobile'),ic('boat_bus'),ic('directions_subway'),ic('directions_transit'),ic('directions_walk'),ic('directions_run'),ic('hail'),ic('car_crash'),ic('tire_repair'),ic('no_crash'),ic('local_shipping'),ic('forklift')],
@@ -824,7 +824,8 @@
             'hucha': ['savings'],
             'cerdito': ['savings'],
             'ahorro': ['savings','account_balance_wallet','wallet'],
-            'banco': ['account_balance','local_atm','payments'],
+            'banco': ['account_balance','local_atm','payments','bizum'],
+            'bizum': ['bizum','payments','contactless'],
             'tarjeta': ['credit_card','payment'],
             'credito': ['credit_card'],
             'debito': ['credit_card'],
@@ -1329,6 +1330,12 @@
             return `rgba(${rgb},${alpha})`;
         }
 
+        function _svgDataToDataUrl(svgData, color) {
+            if (!svgData || !svgData.vb || !svgData.svg) return '';
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${svgData.vb}" fill="none" style="color:${color || '#ffffff'};fill:currentColor;">${svgData.svg}</svg>`;
+            return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        }
+
         function actualizarPrevisualizacionIcono() {
             const previewBg = document.getElementById('iconoPreviewBg');
             const nombrePreview = document.getElementById('nombreIconoPreview');
@@ -1526,6 +1533,19 @@
             if (tipoElementoActual === 'reforma-card' && _cardMiniaturaActual) {
                 const card = _cardMiniaturaActual;
                 if (tipoSeleccionado === 'icono' && iconoTemporal) {
+                    const svgIconDataUrl = _svgDataTemporal ? _svgDataToDataUrl(_svgDataTemporal, colorTemporal) : '';
+                    if (svgIconDataUrl) {
+                        card.dataset.iconoImagen = svgIconDataUrl;
+                        card.dataset.icono = '';
+                        card.dataset.colorIcono = colorTemporal;
+                        delete card.dataset.miniatura;
+                        actualizarPreviewCard(card);
+                        guardarDatos();
+                        _cardMiniaturaActual = null;
+                        tipoElementoActual = null;
+                        cerrarModalIconos();
+                        return;
+                    }
                     card.dataset.icono = iconoTemporal;
                     card.dataset.colorIcono = colorTemporal;
                     card.dataset.bgColor = bgColorTemporal;
@@ -1570,26 +1590,29 @@
                 const esSeccion = tipoElementoActual === 'seccion';
                 const esPrincipal = tipoElementoActual === 'principal';
                 const bgCss = _bgCss(bgColorTemporal, bgOpacityTemporal);
+                const svgIconDataUrl = _svgDataTemporal ? _svgDataToDataUrl(_svgDataTemporal, colorTemporal) : '';
                 
                 if (esPrincipal) {
                     if (!iconContainer.classList.contains('bg-gradient-to-br')) {
                         iconContainer.className = 'icon-container-principal relative p-3 rounded-2xl text-white cursor-pointer transition-all duration-300 group';
                         iconContainer.style.cssText = 'background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);';
                         iconContainer.innerHTML = `
-                            <span class="material-symbols-rounded" style="font-size: 36px; color:${colorTemporal};">${iconoTemporal}</span>
+                            ${svgIconDataUrl ? `<img src="${svgIconDataUrl}" style="width:36px;height:36px;object-fit:contain;">` : `<span class="material-symbols-rounded" style="font-size: 36px; color:${colorTemporal};">${iconoTemporal}</span>`}
                             <div class="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                 <span class="material-symbols-rounded text-white text-sm">edit</span>
                             </div>
                         `;
                     } else {
                         const iconSpan = iconContainer.querySelector('.material-symbols-rounded');
-                        if (iconSpan) {
+                        const iconImg = iconContainer.querySelector('img');
+                        if (svgIconDataUrl && iconImg) iconImg.src = svgIconDataUrl;
+                        else if (iconSpan) {
                             iconSpan.textContent = iconoTemporal;
                             iconSpan.style.color = colorTemporal;
                         }
                     }
                     const iconoMobile = document.querySelector('#iconoPrincipalMobile .material-symbols-rounded');
-                    if (iconoMobile) {
+                    if (iconoMobile && !svgIconDataUrl) {
                         iconoMobile.textContent = iconoTemporal;
                         iconoMobile.style.color = colorTemporal;
                     }
@@ -1605,11 +1628,14 @@
                     iconContainer.dataset.bgOpacity = bgOpacityTemporal;
                     iconContainer.dataset.colorIcono = colorTemporal;
                     iconContainer.innerHTML = `
-                        <span class="material-symbols-rounded" style="font-size: 28px; color:${colorTemporal};">${iconoTemporal}</span>
+                        ${svgIconDataUrl ? `<img src="${svgIconDataUrl}" class="w-full h-full object-contain rounded-xl">` : `<span class="material-symbols-rounded" style="font-size: 28px; color:${colorTemporal};">${iconoTemporal}</span>`}
                         <div class="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                             <span class="material-symbols-rounded text-white text-xs">edit</span>
                         </div>
                     `;
+                    if (svgIconDataUrl) {
+                        iconContainer.dataset.tipo = 'imagen';
+                    }
                     attachIconLongPress(iconContainer, function(el) {
                         abrirSelectorIconosBanco(el);
                     });
@@ -1619,7 +1645,7 @@
                     iconContainer.dataset.bgOpacity = bgOpacityTemporal;
                     iconContainer.dataset.colorIcono = colorTemporal;
                     iconContainer.innerHTML = `
-                        <span class="material-symbols-rounded" style="color: ${colorTemporal}">${iconoTemporal}</span>
+                        ${svgIconDataUrl ? `<img src="${svgIconDataUrl}" class="w-full h-full object-contain rounded-xl">` : `<span class="material-symbols-rounded" style="color: ${colorTemporal}">${iconoTemporal}</span>`}
                         <div class="absolute inset-0 bg-black/50 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                             <span class="material-symbols-rounded text-white text-xs">edit</span>
                         </div>
@@ -1632,10 +1658,11 @@
                         parentCard.dataset.colorIcono = colorTemporal;
                         parentCard.dataset.bgColor = bgColorTemporal;
                         parentCard.dataset.bgOpacity = bgOpacityTemporal;
-                        parentCard.dataset.icono = iconoTemporal;
+                        parentCard.dataset.icono = svgIconDataUrl ? '' : iconoTemporal;
+                        parentCard.dataset.iconoImagen = svgIconDataUrl || '';
                     }
                 }
-                iconContainer.dataset.tipo = 'icono';
+                iconContainer.dataset.tipo = svgIconDataUrl ? 'imagen' : 'icono';
                 tipoElementoActual = null;
             } else if (tipoSeleccionado === 'imagen') {
                 const imgPreview = document.getElementById('imgPreviewMiniatura');
@@ -4217,7 +4244,7 @@
             let canvas = pageWrapper.querySelector('canvas');
             if (canvas) return canvas;
             canvas = document.createElement('canvas');
-            canvas.style.cssText = 'display:block;width:100%;height:auto;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.45);background:white;cursor:zoom-in;transition:box-shadow .18s ease, transform .18s ease;';
+            canvas.style.cssText = 'display:block;width:100%;height:auto;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.45);background:white;cursor:zoom-in;transform-origin:center top;transition:box-shadow .18s ease, transform .18s ease;';
             pageWrapper.appendChild(canvas);
             return canvas;
         }
@@ -4241,6 +4268,89 @@
             await page.render({ canvasContext: context, viewport: renderViewport }).promise;
             canvas.dataset.zoomLevel = String(zoomLevel);
             canvas.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+            canvas.style.transform = 'scale(1)';
+        }
+
+        function _clampPdfZoomLevel(level) {
+            return Math.max(1, Math.min(3, Number(level) || 1));
+        }
+
+        function _pdfTouchDistance(touchA, touchB) {
+            const dx = touchA.clientX - touchB.clientX;
+            const dy = touchA.clientY - touchB.clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        function _previewPdfPinchZoom(pageWrapper, zoomLevel) {
+            const canvas = pageWrapper.querySelector('canvas');
+            if (!canvas) return;
+            const renderedZoom = parseFloat(canvas.dataset.zoomLevel || '1');
+            const previewZoom = _clampPdfZoomLevel(zoomLevel);
+            const scaleFactor = previewZoom / renderedZoom;
+            canvas.style.transform = 'scale(' + scaleFactor + ')';
+            canvas.style.boxShadow = scaleFactor > 1 ? '0 22px 62px rgba(0,0,0,0.55)' : '0 16px 48px rgba(0,0,0,0.45)';
+        }
+
+        function _bindPdfPageZoomGestures(pageWrapper, page, targetWidth, totalPages, subtitle, currentToken) {
+            if (pageWrapper.dataset.zoomBound === '1') return;
+            pageWrapper.dataset.zoomBound = '1';
+
+            let pinchStartDistance = 0;
+            let pinchStartZoom = 1;
+            let pinchPreviewZoom = 1;
+            let pinchMoved = false;
+
+            const setSubtitle = function(text) {
+                if (subtitle) subtitle.textContent = text;
+            };
+
+            const commitPinchZoom = async function() {
+                if (pageWrapper.dataset.pinchActive !== '1') return;
+                delete pageWrapper.dataset.pinchActive;
+                const finalZoom = _clampPdfZoomLevel(pinchMoved ? pinchPreviewZoom : pinchStartZoom);
+                const canvas = pageWrapper.querySelector('canvas');
+                if (canvas) canvas.style.transform = 'scale(1)';
+                if (currentToken !== _pdfViewerState.renderToken) return;
+                await _renderPdfPageWithZoom(page, pageWrapper, targetWidth, finalZoom);
+                setSubtitle(totalPages + ' página' + (totalPages === 1 ? '' : 's') + ' · toca o pellizca para ampliar');
+                setTimeout(function() {
+                    delete pageWrapper.dataset.blockClick;
+                }, 180);
+            };
+
+            pageWrapper.addEventListener('touchstart', function(event) {
+                if (event.touches.length !== 2) return;
+                const [touchA, touchB] = event.touches;
+                pinchStartDistance = _pdfTouchDistance(touchA, touchB);
+                const canvas = pageWrapper.querySelector('canvas');
+                pinchStartZoom = parseFloat(canvas?.dataset.zoomLevel || '1');
+                pinchPreviewZoom = pinchStartZoom;
+                pinchMoved = false;
+                pageWrapper.dataset.pinchActive = '1';
+                pageWrapper.dataset.blockClick = '1';
+            }, { passive: true });
+
+            pageWrapper.addEventListener('touchmove', function(event) {
+                if (pageWrapper.dataset.pinchActive !== '1' || event.touches.length !== 2) return;
+                const [touchA, touchB] = event.touches;
+                const nextDistance = _pdfTouchDistance(touchA, touchB);
+                if (!pinchStartDistance) return;
+                pinchPreviewZoom = _clampPdfZoomLevel(pinchStartZoom * (nextDistance / pinchStartDistance));
+                pinchMoved = pinchMoved || Math.abs(pinchPreviewZoom - pinchStartZoom) > 0.05;
+                _previewPdfPinchZoom(pageWrapper, pinchPreviewZoom);
+                setSubtitle(totalPages + ' página' + (totalPages === 1 ? '' : 's') + ' · zoom ' + pinchPreviewZoom.toFixed(2) + 'x');
+                event.preventDefault();
+            }, { passive: false });
+
+            pageWrapper.addEventListener('touchend', function(event) {
+                if (pageWrapper.dataset.pinchActive === '1' && event.touches.length < 2) {
+                    commitPinchZoom();
+                }
+            }, { passive: true });
+
+            pageWrapper.addEventListener('touchcancel', function() {
+                if (pageWrapper.dataset.pinchActive === '1') commitPinchZoom();
+            }, { passive: true });
         }
 
         async function _ensurePdfJsLoaded() {
@@ -4315,7 +4425,7 @@
                 if (currentToken !== _pdfViewerState.renderToken) return;
 
                 content.innerHTML = '';
-                if (subtitle) subtitle.textContent = pdf.numPages + ' página' + (pdf.numPages === 1 ? '' : 's') + ' · toca una página para ampliar';
+                if (subtitle) subtitle.textContent = pdf.numPages + ' página' + (pdf.numPages === 1 ? '' : 's') + ' · toca o pellizca para ampliar';
 
                 const targetWidth = Math.max(280, Math.min(body.clientWidth - 48, 920));
 
@@ -4331,15 +4441,17 @@
                     label.style.cssText = 'color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;';
 
                     const pageWrapper = document.createElement('div');
-                    pageWrapper.style.cssText = 'width:100%;display:flex;justify-content:center;';
+                    pageWrapper.style.cssText = 'width:100%;display:flex;justify-content:center;position:relative;';
 
                     wrapper.appendChild(label);
                     wrapper.appendChild(pageWrapper);
                     content.appendChild(wrapper);
 
                     await _renderPdfPageWithZoom(page, pageWrapper, targetWidth, 1);
+                    _bindPdfPageZoomGestures(pageWrapper, page, targetWidth, pdf.numPages, subtitle, currentToken);
 
                     pageWrapper.addEventListener('click', async function () {
+                        if (pageWrapper.dataset.blockClick === '1') return;
                         if (currentToken !== _pdfViewerState.renderToken) return;
                         const canvas = pageWrapper.querySelector('canvas');
                         if (!canvas || canvas.dataset.rendering === 'true') return;
