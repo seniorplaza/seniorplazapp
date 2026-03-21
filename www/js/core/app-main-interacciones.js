@@ -118,6 +118,14 @@
             if (!window._restoringTab) { try { sessionStorage.setItem('_lastTab', id); } catch(e) {} }
             document.querySelectorAll('.tab-content').forEach(el => { el.classList.remove('active'); el.classList.remove('pre-restore'); });
             document.getElementById(id).classList.add('active');
+            if (id === 'analisis') {
+                // En Android WebView algunos cambios de pestaña conservan el scroll previo.
+                window.scrollTo(0, 0);
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.scrollTop = 0;
+            }
             
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             if (button) {

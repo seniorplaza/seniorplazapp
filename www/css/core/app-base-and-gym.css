@@ -2870,6 +2870,32 @@
             .space-y-6 > div {
                 scroll-margin-top: 100px !important; /* Ajustado para mobile-header */
             }
+
+            /* Fix Análisis en Android: forzar visibilidad de bloques clave */
+            #analisis > .space-y-6 {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 16px !important;
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            #analisis > .space-y-6 > div {
+                margin: 0 !important;
+            }
+            #analisis .grid {
+                gap: 16px !important;
+                margin: 0 !important;
+            }
+            #analisis #analisis-dinero-disponible-card,
+            #analisis #analisis-gasto-inicial-card,
+            #analisis #analisis-resumen-hipoteca-card {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                transform: none !important;
+                position: relative !important;
+                z-index: 2 !important;
+            }
             
             /* Textos responsive con clamp - escalan automáticamente */
             .text-5xl {
