@@ -4303,8 +4303,22 @@
         
         <!-- Header -->
         <div style="display:flex; align-items:center; gap:12px; padding:20px 20px 16px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;">
-            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(30,58,138,0.6),rgba(37,99,235,0.4));display:flex;align-items:center;justify-content:center;border:1px solid rgba(59,130,246,0.3);">
-                <span class="material-symbols-rounded" style="color:#60a5fa;font-size:22px;">backup</span>
+            <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="34" height="36" viewBox="0 0 109 113" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Supabase logo" role="img">
+                    <path d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z" fill="url(#backupSupabasePaint0)"/>
+                    <path d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z" fill="url(#backupSupabasePaint1)" fill-opacity="0.2"/>
+                    <path d="M45.317 2.07103C48.1765 -1.53037 53.9745 0.442937 54.0434 5.041L54.4849 72.2922H9.83113C1.64038 72.2922 -2.92775 62.8321 2.1655 56.4175L45.317 2.07103Z" fill="#3ECF8E"/>
+                    <defs>
+                        <linearGradient id="backupSupabasePaint0" x1="53.9738" y1="54.974" x2="94.1635" y2="71.8295" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#249361"/>
+                            <stop offset="1" stop-color="#3ECF8E"/>
+                        </linearGradient>
+                        <linearGradient id="backupSupabasePaint1" x1="36.1558" y1="30.578" x2="54.4844" y2="65.0806" gradientUnits="userSpaceOnUse">
+                            <stop/>
+                            <stop offset="1" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
             <div style="flex:1;">
                 <div style="color:white;font-size:16px;font-weight:700;">Copia de seguridad</div>
@@ -4349,10 +4363,13 @@
                     <div id="cloudSyncLoggedIn" style="display:none;">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;">
                             <div>
-                                <div style="color:#e2e8f0;font-size:12px;font-weight:700;">Sesion activa</div>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="color:#e2e8f0;font-size:12px;font-weight:700;">Sesion activa</div>
+                                    <span aria-hidden="true" style="width:9px;height:9px;border-radius:999px;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.95),0 0 16px rgba(34,197,94,0.75);display:inline-block;"></span>
+                                </div>
                                 <div id="cloudSyncCurrentEmail" style="color:#93c5fd;font-size:12px;margin-top:2px;"></div>
                             </div>
-                            <span id="cloudSyncLivePill" style="padding:4px 8px;border-radius:999px;background:rgba(30,64,175,0.14);border:1px solid rgba(96,165,250,0.24);color:#93c5fd;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;">AUTO</span>
+                            <span id="cloudSyncLivePill" style="padding:4px 8px;border-radius:999px;background:rgba(30,64,175,0.14);border:1px solid rgba(96,165,250,0.24);color:#93c5fd;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;">MANUAL</span>
                         </div>
 
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -4375,7 +4392,7 @@
                 </div>
 
                 <!-- GUARDAR COPIA EN LA WEB -->
-                <div id="backup-guardar-box" style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:14px; padding:14px; position:relative; overflow:hidden;">
+                <div id="backup-guardar-box" style="display:none;background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:14px; padding:14px; position:relative; overflow:hidden;">
                     <div id="backup-sweep" style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent 0%,rgba(16,185,129,0.35) 50%,transparent 100%);transform:translateX(-100%);pointer-events:none;border-radius:14px;"></div>
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                         <span class="material-symbols-rounded" style="color:#10b981;font-size:20px;">cloud_done</span>
@@ -4395,7 +4412,16 @@
                     <span class="material-symbols-rounded" style="color:#60a5fa;font-size:24px;flex-shrink:0;">file_json</span>
                     <div style="text-align:left;">
                         <div style="color:white;font-size:13px;font-weight:600;">Descargar copia</div>
-                        <div style="color:#64748b;font-size:11px;margin-top:2px;">Exporta un .json a tu ordenador</div>
+                        <div style="color:#64748b;font-size:11px;margin-top:2px;">Exporta un .json a tu dispositivo</div>
+                    </div>
+                </button>
+
+                <!-- RESTAURAR DESDE ARCHIVO -->
+                <button onclick="document.getElementById('importFile').click(); cerrarModalBackup();" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid rgba(59,130,246,0.25);background:rgba(59,130,246,0.08);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(59,130,246,0.15)'" onmouseout="this.style.background='rgba(59,130,246,0.08)'">
+                    <span class="material-symbols-rounded" style="color:#60a5fa;font-size:24px;flex-shrink:0;">file_json</span>
+                    <div style="text-align:left;">
+                        <div style="color:white;font-size:13px;font-weight:600;">Restaurar copia</div>
+                        <div style="color:#64748b;font-size:11px;margin-top:2px;">Importa un .json desde tu dispositivo</div>
                     </div>
                 </button>
 
@@ -4403,32 +4429,23 @@
                 <button onclick="exportarCSV(); cerrarModalBackup();" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid rgba(16,185,129,0.25);background:rgba(16,185,129,0.06);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.14)'" onmouseout="this.style.background='rgba(16,185,129,0.06)'">
                     <span class="material-symbols-rounded" style="color:#10b981;font-size:24px;flex-shrink:0;">csv</span>
                     <div style="text-align:left;">
-                        <div style="color:white;font-size:13px;font-weight:600;">Exportar operaciones CSV</div>
+                        <div style="color:white;font-size:13px;font-weight:600;">Exportar operaciones en .csv</div>
                         <div style="color:#64748b;font-size:11px;margin-top:2px;">Abre en Excel o Google Sheets</div>
                     </div>
                 </button>
 
-                <!-- RESTAURAR DESDE ARCHIVO -->
-                <button onclick="document.getElementById('importFile').click(); cerrarModalBackup();" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid rgba(245,158,11,0.25);background:rgba(245,158,11,0.08);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(245,158,11,0.15)'" onmouseout="this.style.background='rgba(245,158,11,0.08)'">
-                    <span class="material-symbols-rounded" style="color:#f59e0b;font-size:24px;flex-shrink:0;">file_json</span>
-                    <div style="text-align:left;">
-                        <div style="color:white;font-size:13px;font-weight:600;">Restaurar archivo</div>
-                        <div style="color:#64748b;font-size:11px;margin-top:2px;">Importa un .json desde tu ordenador</div>
-                    </div>
-                </button>
-
                 <!-- IMPORTAR CSV -->
-                <button onclick="document.getElementById('importCSVFile').click(); cerrarModalBackup();" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid rgba(139,92,246,0.25);background:rgba(139,92,246,0.06);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(139,92,246,0.14)'" onmouseout="this.style.background='rgba(139,92,246,0.06)'">
-                    <span class="material-symbols-rounded" style="color:#a78bfa;font-size:24px;flex-shrink:0;">csv</span>
+                <button onclick="document.getElementById('importCSVFile').click(); cerrarModalBackup();" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;border:1px solid rgba(16,185,129,0.25);background:rgba(16,185,129,0.06);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.14)'" onmouseout="this.style.background='rgba(16,185,129,0.06)'">
+                    <span class="material-symbols-rounded" style="color:#10b981;font-size:24px;flex-shrink:0;">csv</span>
                     <div style="text-align:left;">
-                        <div style="color:white;font-size:13px;font-weight:600;">Importar CSV universal</div>
+                        <div style="color:white;font-size:13px;font-weight:600;">Importar .csv universal</div>
                         <div style="color:#64748b;font-size:11px;margin-top:2px;">Añade elementos de otras apps</div>
                     </div>
                 </button>
                 <input type="file" id="importCSVFile" accept=".csv,text/csv" style="display:none;" onchange="importarCSV(this)">
 
                 <!-- HISTORIAL DE COPIAS INTERNAS -->
-                <div>
+                <div id="backup-historial-box" style="display:none;">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                         <span class="material-symbols-rounded" style="color:#60a5fa;font-size:18px;">history</span>
                         <span style="color:#94a3b8;font-size:13px;font-weight:600;">Copias guardadas en esta web</span>
@@ -4448,7 +4465,7 @@
         <div style="padding:10px 20px 14px; border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:8px;">
                 <span class="material-symbols-rounded" style="color:#475569;font-size:14px;">info</span>
-                <span style="color:#475569;font-size:11px;">Las copias internas se almacenan en IndexedDB de este navegador</span>
+                <span style="color:#475569;font-size:11px;">No te olvides de sincronizar los cambios</span>
             </div>
         </div>
     </div>

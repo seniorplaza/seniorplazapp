@@ -176,7 +176,7 @@
             icon.style.animation = mode === 'syncing' ? 'cloudSyncSpin 1.1s linear infinite' : '';
         }
         if (pill) {
-            pill.textContent = mode === 'syncing' ? 'SYNC' : 'AUTO';
+            pill.textContent = mode === 'syncing' ? 'SYNC' : 'MANUAL';
             pill.style.color = mode === 'error' ? '#fca5a5' : '#93c5fd';
             pill.style.borderColor = mode === 'error' ? 'rgba(248,113,113,0.28)' : 'rgba(96,165,250,0.24)';
             pill.style.background = mode === 'error' ? 'rgba(127,29,29,0.24)' : 'rgba(30,64,175,0.14)';
@@ -775,7 +775,7 @@
                 lastSyncedHash: lastSyncedHash,
                 lastSyncMode: 'ready-for-manual-sync'
             });
-            setStatus('synced', 'Listo para sincronizar', 'Tienes cambios locales. Usa SUBIR para enviarlos a la nube o bajar los cambios de la web.');
+            setStatus('synced', 'Listo para sincronizar', 'Sincronizacion manual activa. Usa SUBIR o TRAER NUBE cuando lo necesites.');
         } catch (error) {
             setStatus('error', 'No pude arrancar la sincronizacion', friendlyErrorMessage(error));
         } finally {
