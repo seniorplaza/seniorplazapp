@@ -131,6 +131,9 @@ function _renderCalHistoricoContenido(id) {
 window._editHabitoId = null;
 window._editHabitoFrecSel = 'todos_dias';
 window._editHabitoDiasSel = [];
+window._editHabitoCadaXDias = 2;
+window._editHabitoVecesPeriodo = 3;
+window._editHabitoVecesPeriodoPer = 'semana';
 
 function abrirEditarHabito(id) {
     const habito = (window.agendaData.habitos||[]).find(h=>h.id===id);
@@ -138,6 +141,9 @@ function abrirEditarHabito(id) {
     window._editHabitoId = id;
     window._editHabitoFrecSel = habito.frecuencia || 'todos_dias';
     window._editHabitoDiasSel = [...(habito.diasSemana||[])];
+    window._editHabitoCadaXDias = habito.cadaXDias || 2;
+    window._editHabitoVecesPeriodo = habito.vecesPeriodo || 3;
+    window._editHabitoVecesPeriodoPer = habito.vecesPeriodoPer || 'semana';
     window._editHabitoCatObj = habito.categoria || null;
     window._editHabitoCatId = habito.categoriaId || _editResolveCatId(habito.categoria) || null;
     window._editHabitoEtiqueta = habito.etiqueta || null;
@@ -156,12 +162,16 @@ function abrirEditarHabito(id) {
 
     _renderEditFrecGrid();
     _renderEditDiasSemana();
+    _renderEditHabitoFrecDetalle();
     document.getElementById('modalEditarHabito').style.display = 'flex';
 }
 
 function cerrarEditarHabito() {
     document.getElementById('modalEditarHabito').style.display = 'none';
     window._editHabitoId = null;
+    window._editHabitoCadaXDias = 2;
+    window._editHabitoVecesPeriodo = 3;
+    window._editHabitoVecesPeriodoPer = 'semana';
 }
 
 function _renderEditFrecGrid() {
@@ -184,6 +194,24 @@ function editHabitoSelFrec(v) {
     window._editHabitoFrecSel = v;
     _renderEditFrecGrid();
     _renderEditDiasSemana();
+    _renderEditHabitoFrecDetalle();
+}
+
+function _renderEditHabitoFrecDetalle() {
+    const wrap = document.getElementById('editHabitoFrecDetalleWrap');
+    const detalle = document.getElementById('editHabitoFrecDetalle');
+    if (!wrap || !detalle) return;
+    const frec = window._editHabitoFrecSel;
+    if (frec === 'cada_x_dias') {
+        wrap.style.display = 'block';
+        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:13px;">Cada</span><input type="number" id="editHabitoCadaXDias" min="2" max="365" value="${window._editHabitoCadaXDias || 2}" oninput="window._editHabitoCadaXDias=Math.max(2, +this.value || 2)" style="width:72px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">días</span></div>`;
+    } else if (frec === 'veces_periodo') {
+        wrap.style.display = 'block';
+        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input type="number" id="editHabitoVecesPeriodo" min="1" max="30" value="${window._editHabitoVecesPeriodo || 3}" oninput="window._editHabitoVecesPeriodo=Math.max(1, +this.value || 1)" style="width:64px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">veces por</span><select id="editHabitoVecesPeriodoPer" onchange="window._editHabitoVecesPeriodoPer=this.value" style="background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:10px;color:#f1f5f9;font-size:13px;padding:10px;outline:none;"><option value="semana" ${(window._editHabitoVecesPeriodoPer||'semana')==='semana'?'selected':''}>semana</option><option value="mes" ${(window._editHabitoVecesPeriodoPer||'semana')==='mes'?'selected':''}>mes</option><option value="anio" ${(window._editHabitoVecesPeriodoPer||'semana')==='anio'?'selected':''}>año</option></select></div>`;
+    } else {
+        wrap.style.display = 'none';
+        detalle.innerHTML = '';
+    }
 }
 
 function _renderEditDiasSemana() {
@@ -211,7 +239,10 @@ function guardarEditarHabito() {
     habito.nota = notaVal;
     habito.desc = notaVal;
     habito.frecuencia = window._editHabitoFrecSel;
-    habito.diasSemana = window._editHabitoFrecSel === 'dias_semana' ? [...window._editHabitoDiasSel] : habito.diasSemana;
+    habito.diasSemana = window._editHabitoFrecSel === 'dias_semana' ? [...window._editHabitoDiasSel] : [];
+    habito.cadaXDias = window._editHabitoFrecSel === 'cada_x_dias' ? Math.max(2, Number(window._editHabitoCadaXDias) || 2) : null;
+    habito.vecesPeriodo = window._editHabitoFrecSel === 'veces_periodo' ? Math.max(1, Number(window._editHabitoVecesPeriodo) || 1) : null;
+    habito.vecesPeriodoPer = window._editHabitoFrecSel === 'veces_periodo' ? (window._editHabitoVecesPeriodoPer || 'semana') : null;
     habito.fechaInicio = document.getElementById('editHabitoFechaInicio').value || habito.fechaInicio;
     habito.fechaFin = document.getElementById('editHabitoFechaFin').value || null;
     if (window._editHabitoCatId) {

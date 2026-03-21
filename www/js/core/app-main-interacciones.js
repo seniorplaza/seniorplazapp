@@ -3760,7 +3760,7 @@
                 if (node.nodeType === 3) node.textContent = newChecked ? 'Desactivar' : 'Activar';
             });
             newChecked ? card.classList.remove('disabled') : card.classList.add('disabled');
-            guardarDatos();
+            guardarDatosAhora().catch(() => {});
             calculate();
         }
 
@@ -3784,7 +3784,7 @@
                     if (node.nodeType === 3) node.textContent = 'Activar';
                 });
                 card.classList.add('disabled');
-                guardarDatos();
+                guardarDatosAhora().catch(() => {});
             } else if (val > 0 && isDisabled) {
                 icon.dataset.checked = 'true';
                 icon.style.color = '#10b981';
@@ -3792,7 +3792,7 @@
                     if (node.nodeType === 3) node.textContent = 'Desactivar';
                 });
                 card.classList.remove('disabled');
-                guardarDatos();
+                guardarDatosAhora().catch(() => {});
             }
         }
         function mostrarModalTipoIngreso() {
@@ -5772,8 +5772,22 @@
         let _cargando = false; // Bloquea guardarDatos durante cargarDatos // Referencia para forzar guardado en beforeunload
         async function guardarDatosAhora() {
             clearTimeout(saveTimeout);
-            guardarDatos();
-            await new Promise(r => setTimeout(r, 0));
+            if (_cargando) return;
+            document.querySelectorAll('#listaCuentas .cuenta-saldo-input').forEach(function(inp) {
+                inp.dataset.saldoPrev = parseMoneyInput(inp.value) || 0;
+            });
+            try {
+                const datos = _serializarDatos();
+                if (_undoRestaurando) {
+                    _undoRestaurando = false;
+                } else if (_snapshotActual !== null) {
+                    _undoPushDebounced();
+                }
+                _snapshotActual = datos;
+                _ultimosDatos = datos;
+                await guardarEnDB('seniorPlazAppData', datos);
+                mostrarIndicadorGuardado();
+            } catch (error) {}
         }
         var _undoSnapshots = [];          // pila de snapshots anteriores (undo)
         var _redoSnapshots = [];          // pila de snapshots para rehacer (redo)
