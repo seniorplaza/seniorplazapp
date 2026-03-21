@@ -2591,20 +2591,38 @@
         abrirModalAddMovimiento('EXPENSE', false);
     }
 
+    function _prepararModalFinanzasScrollable(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        const card = modal.querySelector('.finanzas-scroll-modal-card');
+        const nav = document.getElementById('mobileBottomNav');
+        const navOffset = nav && window.getComputedStyle(nav).display !== 'none' ? (nav.offsetHeight + 24 + 16) : 16;
+        modal.style.overflowY = 'auto';
+        modal.style.overflowX = 'hidden';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        modal.style.paddingTop = '16px';
+        modal.style.paddingBottom = navOffset + 'px';
+        modal.style.touchAction = 'pan-y';
+        modal.scrollTop = 0;
+        if (!card) return;
+        card.style.overflowY = 'auto';
+        card.style.overflowX = 'hidden';
+        card.style.touchAction = 'pan-y';
+        card.style.webkitOverflowScrolling = 'touch';
+        card.style.overscrollBehavior = 'contain';
+        card.style.maxHeight = 'calc(100dvh - 32px - ' + navOffset + 'px)';
+        card.scrollTop = 0;
+    }
+
     function abrirModalAddMovimiento(tipo, desdeOperaciones = true, mostrarSwitch = false) {
         window._modalGastoTipo = tipo || 'EXPENSE';
         window._modalGastoDesdeOperaciones = desdeOperaciones;
         window._modalGastoCuentaIdx = null;
 
         const modal = document.getElementById('modalAddGasto');
-        const nav = document.getElementById('mobileBottomNav');
-        if (nav && window.getComputedStyle(nav).display !== 'none') {
-            const navH = nav.offsetHeight + 24 + 16; // height + bottom offset + gap
-            modal.style.paddingBottom = navH + 'px';
-        } else {
-            modal.style.paddingBottom = '16px';
-        }
         modal.style.display = 'flex';
+        _prepararModalFinanzasScrollable('modalAddGasto');
         document.getElementById('modalGastoNombre').value = '';
         document.getElementById('modalGastoImporte').value = '';
         var notaField = document.getElementById('modalNotaField'); if(notaField) notaField.style.display='none';
@@ -2675,8 +2693,12 @@
         if (cuentaThumb) cuentaThumb.innerHTML = '<div style="width:38px;height:38px;border-radius:10px;background:#1e293b;display:flex;align-items:center;justify-content:center;"><span class="material-symbols-rounded" style="font-size:22px;color:#94a3b8;">account_balance</span></div>';
         const cuentaSection = document.getElementById('modalGastoCuentaSection');
         const frecSection = document.getElementById('modalGastoFrecSection');
+        const categoriaSection = document.getElementById('modalGastoCategoriaSection');
         if (cuentaSection) cuentaSection.style.display = desdeOperaciones ? 'block' : 'none';
         if (frecSection) frecSection.style.display = desdeOperaciones ? 'none' : 'block';
+        if (categoriaSection) categoriaSection.style.display = 'block';
+        const catBtn = document.getElementById('modalGastoCatBtn');
+        if (catBtn) catBtn.style.display = 'flex';
         const switchBtn = document.getElementById('modalAddGastoModoSwitch');
         if (switchBtn) {
             switchBtn.style.display = mostrarSwitch ? 'flex' : 'none';
@@ -4527,6 +4549,7 @@
         setProgramadoTipo('EXPENSE');
         _renderProgCatGrid('EXPENSE');
         document.getElementById('modalProgramado').style.display = 'flex';
+        _prepararModalFinanzasScrollable('modalProgramado');
     }
 
     function cerrarModalProgramado() {
@@ -4642,6 +4665,7 @@
         _renderEProgCatGrid(p.type || 'EXPENSE', p.categoryId);
         _renderProgSubtags(cat, 'eprog-subtag-section', 'eprog-subtag-grid', '_editProgSubtag');
         document.getElementById('modalEditarProgramado').style.display = 'flex';
+        _prepararModalFinanzasScrollable('modalEditarProgramado');
     }
 
     function cerrarModalEditarProgramado() {

@@ -1204,17 +1204,22 @@
             align-items: center;
             justify-content: center;
             overflow-y: auto;
+            overflow-x: hidden;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
         }
         .finanzas-scroll-modal-card {
             width: min(100%, 520px);
+            max-width: 100%;
             margin: auto;
             box-sizing: border-box;
             max-height: min(calc(100vh - 32px - var(--nav-offset, 0px)), 92dvh) !important;
             overflow-y: auto !important;
+            overflow-x: hidden;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
             padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
         }
         

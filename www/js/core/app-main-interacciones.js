@@ -7374,6 +7374,18 @@
         function _gymBubbleBridgeDisponible() {
             return !!(window.AndroidNotificador && typeof window.AndroidNotificador.showReposoBubble === 'function');
         }
+        function _gymBridgeSetReposoArmed(startAtMs) {
+            if (!window.AndroidNotificador || typeof window.AndroidNotificador.setReposoBubbleArmed !== 'function') return;
+            try {
+                window.AndroidNotificador.setReposoBubbleArmed(String(startAtMs || Date.now()));
+            } catch (e) {}
+        }
+        function _gymBridgeClearReposoArmed() {
+            if (!window.AndroidNotificador || typeof window.AndroidNotificador.clearReposoBubbleArmed !== 'function') return;
+            try {
+                window.AndroidNotificador.clearReposoBubbleArmed();
+            } catch (e) {}
+        }
         function _gymMostrarBurbujaReposo() {
             if (!_gymBubbleBridgeDisponible() || !_gymReposoRunning()) return;
             try {
@@ -7391,18 +7403,12 @@
                 _gymOcultarBurbujaReposo();
                 return;
             }
-            if (document.hidden) {
-                _gymMostrarBurbujaReposo();
-                return;
-            }
             _gymOcultarBurbujaReposo();
         }
         document.addEventListener('visibilitychange', function() {
-            if (document.hidden && _gymReposoRunning()) _gymMostrarBurbujaReposo();
             setTimeout(_gymSyncBurbujaReposoConVisibilidad, 120);
         });
         document.addEventListener('pause', function() {
-            if (_gymReposoRunning()) _gymMostrarBurbujaReposo();
             setTimeout(_gymSyncBurbujaReposoConVisibilidad, 120);
         });
         document.addEventListener('resume', function() {
@@ -7465,6 +7471,7 @@
                 window._gymReposoState.intervalId = null;
                 window._gymReposoState.activeBtn = null;
                 _gymReposoSetAllIcons(false);
+                _gymBridgeClearReposoArmed();
                 _gymCancelarNotifReposo();
                 _gymOcultarBurbujaReposo();
                 gymGuardarSesionHoy();
@@ -7477,6 +7484,7 @@
                 window._gymReposoState.activeBtn = btn;
                 btn.dataset.running = '1';
                 _gymReposoSetAllIcons(true);
+                _gymBridgeSetReposoArmed(startAt);
                 window._gymReposoState.intervalId = setInterval(function() {
                     var elapsed = Math.floor((Date.now() - window._gymReposoState.startAt) / 1000);
                     var rEl = document.getElementById('gym-stat-reposo');
@@ -8316,13 +8324,43 @@
         function toggleGymCardMenu(btn) {
             var menu = btn.nextElementSibling;
             var isOpen = menu.style.display === 'block';
-            document.querySelectorAll('.gym-card-menu').forEach(function(m) { m.style.display = 'none'; });
+            document.querySelectorAll('.gym-card-menu').forEach(function(m) {
+                m.style.display = 'none';
+                m.style.position = '';
+                m.style.top = '';
+                m.style.left = '';
+                m.style.right = '';
+                m.style.zIndex = '';
+                m.style.maxHeight = '';
+                m.style.overflowY = '';
+            });
             if (!isOpen) {
+                var btnRect = btn.getBoundingClientRect();
+                var menuWidth = Math.max(menu.offsetWidth || 150, 150);
+                var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+                var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+                var top = btnRect.bottom + 6;
+                var left = Math.min(btnRect.right - menuWidth, viewportWidth - menuWidth - 10);
+                left = Math.max(10, left);
                 menu.style.display = 'block';
+                menu.style.position = 'fixed';
+                menu.style.top = top + 'px';
+                menu.style.left = left + 'px';
+                menu.style.right = 'auto';
+                menu.style.zIndex = '10080';
+                menu.style.maxHeight = Math.max(180, viewportHeight - top - 16) + 'px';
+                menu.style.overflowY = 'auto';
                 setTimeout(function() {
                     document.addEventListener('click', function closeMenu(e) {
                         if (!menu.contains(e.target) && e.target !== btn) {
                             menu.style.display = 'none';
+                            menu.style.position = '';
+                            menu.style.top = '';
+                            menu.style.left = '';
+                            menu.style.right = '';
+                            menu.style.zIndex = '';
+                            menu.style.maxHeight = '';
+                            menu.style.overflowY = '';
                             document.removeEventListener('click', closeMenu);
                         }
                     });
