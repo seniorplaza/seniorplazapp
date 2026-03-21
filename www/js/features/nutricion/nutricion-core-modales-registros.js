@@ -3160,14 +3160,9 @@ async function restaurarCopiaInterna(key) {
         } else {
             const actual = _serializarDatos() || {};
             const copia = entry.datos;
-            const fusionado = Object.assign({}, copia);
-            for (const k in actual) {
-                if (Array.isArray(actual[k]) && Array.isArray(copia[k])) {
-                    fusionado[k] = [...copia[k], ...actual[k]];
-                } else if (actual[k] && !copia[k]) {
-                    fusionado[k] = actual[k];
-                }
-            }
+            const fusionado = typeof window._fusionarDatosBackup === 'function'
+                ? window._fusionarDatosBackup(copia, actual)
+                : Object.assign({}, copia);
             const blob = new Blob([JSON.stringify(fusionado)], { type: 'application/json' });
             const file = new File([blob], 'backup.json', { type: 'application/json' });
             const dt = new DataTransfer();
