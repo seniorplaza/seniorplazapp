@@ -71,8 +71,9 @@ function abrirEditarTarea(id, tipo) {
     window._editTareaDiasSel  = [...(item.diasSemana||[])];
 
     const esRecurrente = tipo === 'tareaRecurrente';
+    const esRecordatorio = tipo === 'tarea' && !!item.esRecordatorio;
     const color = esRecurrente ? '#60a5fa' : '#f59e0b';
-    document.getElementById('editTareaTituloHeader').textContent = esRecurrente ? 'Editar tarea recurrente' : 'Editar tarea';
+    document.getElementById('editTareaTituloHeader').textContent = esRecurrente ? 'Editar tarea recurrente' : (esRecordatorio ? 'Editar recordatorio' : 'Editar tarea');
     document.getElementById('editTareaNombre').value = item.nombre || '';
     const _etd = document.getElementById('editTareaDesc'); _etd.value = item.nota || item.desc || ''; setTimeout(()=>{ _etd.style.height='auto'; _etd.style.height=_etd.scrollHeight+'px'; },0);
     window._editTareaSubitems = (item.subitems || []).map(s => ({ ...s }));
@@ -175,6 +176,6 @@ function guardarEditarTarea() {
     cerrarEditarTarea();
     if (typeof renderDiario === 'function') renderDiario();
     if (typeof renderTareasSection === 'function') renderTareasSection();
-    if (typeof _mostrarToast === 'function') _mostrarToast('check_circle','#10b981','Cambios guardados');
+    if (typeof _mostrarToast === 'function') _mostrarToast('check_circle','#10b981', item.esRecordatorio ? 'Recordatorio actualizado' : 'Cambios guardados');
 }
 

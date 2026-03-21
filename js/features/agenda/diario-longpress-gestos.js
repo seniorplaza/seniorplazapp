@@ -28,7 +28,7 @@
         const target = event.target;
         if (!target) return;
         if (target.closest('button, input, textarea, select, label, a')) return;
-        if (target.closest('[data-drag-handle-mobile], [data-drag-handle]')) return;
+        if (target.closest('[data-drag-handle-mobile], [data-drag-handle], .agenda-drag-thumb')) return;
         if (_diarioDebeIgnorarClick(event)) return;
         const descEl = document.getElementById(uid + '_desc');
         if (!descEl) return;
@@ -49,12 +49,27 @@
         window._vistaTareasActiva = vista;
         var btnT = document.getElementById('tab-tareas-tarea');
         var btnR = document.getElementById('tab-tareas-recurrente');
-        if (!btnT || !btnR) return;
-        var activeStyle = {
-            border: '1px solid rgba(245,158,11,0.4)',
-            background: 'linear-gradient(135deg,rgba(120,53,15,0.8) 0%,rgba(180,83,9,0.7) 50%,rgba(217,119,6,0.8) 100%)',
-            boxShadow: '0 0 16px rgba(245,158,11,0.3)',
-            color: 'white'
+        var btnN = document.getElementById('tab-tareas-recordatorio');
+        if (!btnT || !btnR || !btnN) return;
+        var activeStyles = {
+            tarea: {
+                border: '1px solid rgba(245,158,11,0.4)',
+                background: 'linear-gradient(135deg,rgba(120,53,15,0.8) 0%,rgba(180,83,9,0.7) 50%,rgba(217,119,6,0.8) 100%)',
+                boxShadow: '0 0 16px rgba(245,158,11,0.3)',
+                color: 'white'
+            },
+            recurrente: {
+                border: '1px solid rgba(96,165,250,0.4)',
+                background: 'linear-gradient(135deg,rgba(30,64,175,0.78) 0%,rgba(37,99,235,0.72) 50%,rgba(96,165,250,0.8) 100%)',
+                boxShadow: '0 0 16px rgba(96,165,250,0.28)',
+                color: 'white'
+            },
+            recordatorio: {
+                border: '1px solid rgba(34,211,238,0.38)',
+                background: 'linear-gradient(135deg,rgba(8,47,73,0.82) 0%,rgba(14,116,144,0.74) 50%,rgba(34,211,238,0.75) 100%)',
+                boxShadow: '0 0 16px rgba(34,211,238,0.22)',
+                color: 'white'
+            }
         };
         var inactiveStyle = {
             border: '1px solid transparent',
@@ -62,10 +77,12 @@
             boxShadow: 'none',
             color: '#64748b'
         };
-        var actBtn  = vista === 'tarea' ? btnT : btnR;
-        var inactBtn = vista === 'tarea' ? btnR : btnT;
-        Object.assign(actBtn.style, activeStyle);
-        Object.assign(inactBtn.style, inactiveStyle);
+        [btnT, btnR, btnN].forEach(function(btn) {
+            Object.assign(btn.style, inactiveStyle);
+        });
+        var activeMap = { tarea: btnT, recurrente: btnR, recordatorio: btnN };
+        var actBtn = activeMap[vista] || btnT;
+        Object.assign(actBtn.style, activeStyles[vista] || activeStyles.tarea);
         if (typeof renderTareasSection === 'function') renderTareasSection();
         if (navigator.vibrate) navigator.vibrate(10);
     }
