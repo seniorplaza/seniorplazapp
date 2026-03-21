@@ -756,9 +756,9 @@
             if (!remoteRow || !remoteRow.snapshot) {
                 initialSyncDone = true;
                 if (hasUsableSnapshot(localSnapshot)) {
-                    setStatus('synced', 'Sesion lista', 'La nube esta preparada. Usa el boton SUBIR para guardar tus cambios.');
+                    setStatus('synced', 'Sesion lista', 'La nube esta preparada.');
                 } else {
-                    setStatus('auth', 'Sesion lista', 'La nube esta preparada. Empezara a sincronizar cuando haya datos.');
+                    setStatus('auth', 'Sesion lista', 'La nube esta preparada.');
                 }
                 return;
             }
@@ -791,7 +791,7 @@
                 lastSyncedHash: lastSyncedHash,
                 lastSyncMode: 'ready-for-manual-sync'
             });
-            setStatus('synced', 'Listo para sincronizar', 'Sincronizacion manual activa. Usa SUBIR o TRAER NUBE cuando lo necesites.');
+            setStatus('synced', 'Listo para sincronizar', 'La nube esta preparada.');
         } catch (error) {
             setStatus('error', 'No pude arrancar la sincronizacion', friendlyErrorMessage(error));
         } finally {

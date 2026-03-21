@@ -29,7 +29,7 @@
 @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 @keyframes cloudSyncSpin {
     from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    to { transform: rotate(-360deg); }
 }
 @keyframes scanLine {
     0%   { top: 10%; opacity: 1; }
