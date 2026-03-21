@@ -1105,6 +1105,14 @@
             display: flex !important;
             align-items: center !important;
         }
+        #nutri-filtro-favoritos .material-symbols-rounded {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            align-self: center !important;
+            line-height: 1 !important;
+            transform: translateY(1px);
+        }
         .filtro-reforma-btn:hover {
             border-color: #475569 !important;
             color: white !important;
