@@ -1126,21 +1126,15 @@
             transform: none !important;
         }
         
-        /* Regla base para filtros-bar - sticky */
+        /* Regla base para filtros-bar */
         :root {
             --main-nav-height: 0px;
             --section-sticky-gap: 12px;
         }
-        #filtros-bar-gym,
+        #gym-filtros-inline,
         #filtros-bar-nutri {
-            width: 100%;
             box-sizing: border-box;
-            min-height: 68.67px;
             overflow: visible;
-            background: rgba(30,41,59,0.45) !important;
-            border: 1px solid rgba(51,65,85,0.6) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
         }
         #filtros-bar {
             position: sticky !important;
@@ -1151,31 +1145,22 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
-        #filtros-bar-gym {
-            position: sticky !important;
-            top: calc(var(--main-nav-height, 0px) + var(--section-sticky-gap, 12px)) !important;
-            z-index: 140;
-        }
-        #filtros-bar-gym .gym-filter-slot {
+        #gym-filtros-inline .gym-filter-slot {
             display: flex;
             align-items: center;
             gap: 8px;
             min-width: 0;
             flex: 0 1 auto;
         }
-        #filtros-bar-gym .gym-filter-toggle {
+        #gym-filtros-inline .gym-filter-toggle {
             height: 36px !important;
             min-width: 36px;
             flex-shrink: 0;
         }
-        #filtros-bar-gym .gym-filter-input-wrap {
+        #gym-filtros-inline .gym-filter-input-wrap {
             width: 184px;
             min-width: 184px;
             transition: width 0.22s ease, min-width 0.22s ease, opacity 0.18s ease, margin 0.22s ease;
-        }
-        #filtros-bar-gym .gym-filter-bar-spacer {
-            flex: 1 1 auto;
-            min-width: 0;
         }
         .gym-filter-input {
             height: 40px;
@@ -1249,7 +1234,7 @@
                 margin-top: 0 !important;
             }
             #filtros-bar .btn-add:not(.filtro-reforma-btn),
-            #filtros-bar-gym .btn-add,
+            #gym-filtros-inline .btn-add,
             #filtros-bar-nutri .btn-add:not(.filtro-reforma-btn) {
                 width: 36px !important;
                 min-width: 36px !important;
@@ -1261,41 +1246,39 @@
                 gap: 0 !important;
             }
             #filtros-bar .btn-add:not(.filtro-reforma-btn) .material-symbols-rounded,
-            #filtros-bar-gym .btn-add .material-symbols-rounded,
+            #gym-filtros-inline .btn-add .material-symbols-rounded,
             #filtros-bar-nutri .btn-add:not(.filtro-reforma-btn) .material-symbols-rounded {
                 font-size: 16px !important;
                 flex-shrink: 0 !important;
             }
-            #filtros-bar-gym {
+            #gym-filtros-inline {
                 gap: 8px !important;
-                flex-wrap: nowrap !important;
+                flex-wrap: wrap !important;
                 align-items: center !important;
-                margin-bottom: 16px !important;
             }
-            #filtros-bar-gym .gym-filter-slot {
+            #gym-filtros-inline .gym-filter-slot {
                 gap: 8px !important;
                 flex: 0 1 auto !important;
             }
-            #filtros-bar-gym .gym-filter-input-wrap {
+            #gym-filtros-inline .gym-filter-input-wrap {
                 width: 0 !important;
                 min-width: 0 !important;
                 opacity: 0;
                 overflow: hidden;
                 margin-left: 0 !important;
             }
-            #filtros-bar-gym .gym-filter-slot.is-open .gym-filter-input-wrap {
+            #gym-filtros-inline .gym-filter-slot.is-open .gym-filter-input-wrap {
                 width: min(44vw, 168px) !important;
                 min-width: min(44vw, 168px) !important;
                 opacity: 1;
             }
-            #filtros-bar-gym .gym-filter-input {
+            #gym-filtros-inline .gym-filter-input {
                 height: 36px;
                 padding: 0 12px;
                 font-size: 11px;
             }
-            #filtros-bar-gym .gym-filter-bar-spacer {
-                flex: 1 1 auto;
-                min-width: 6px;
+            #gym-botones-edicion {
+                row-gap: 10px !important;
             }
             .finanzas-scroll-modal {
                 align-items: center !important;
@@ -1317,7 +1300,7 @@
         }
         @media (min-width: 769px) {
             #filtros-bar .btn-add:not(.filtro-reforma-btn),
-            #filtros-bar-gym .btn-add,
+            #gym-filtros-inline .btn-add,
             #filtros-bar-nutri .btn-add:not(.filtro-reforma-btn) {
                 width: auto !important;
                 min-width: unset !important;
@@ -1326,7 +1309,7 @@
                 height: 34px !important;
                 gap: 6px !important;
             }
-            #filtros-bar-gym .gym-filter-toggle .material-symbols-outlined {
+            #gym-filtros-inline .gym-filter-toggle .material-symbols-outlined {
                 font-size: 16px !important;
             }
         }
