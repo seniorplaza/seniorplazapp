@@ -11,6 +11,7 @@
 
     var DAYS_AHEAD = 30;
     var LS_KEY     = '_notifIds';
+    var _iconBitmapCache = Object.create(null);
 
     function _hashId(str) {
         var h = 5381;
@@ -43,20 +44,58 @@
         return (d.getDay() + 6) % 7;
     }
 
+    function _materialIconBitmapDataUrl(iconName) {
+        if (!iconName) return '';
+        if (_iconBitmapCache[iconName]) return _iconBitmapCache[iconName];
+        try {
+            var canvas = document.createElement('canvas');
+            var size = 128;
+            canvas.width = size;
+            canvas.height = size;
+            var ctx = canvas.getContext('2d');
+            if (!ctx) return '';
+            ctx.clearRect(0, 0, size, size);
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '700 84px "Material Symbols Rounded"';
+            ctx.fillText(String(iconName), size / 2, size / 2 + 2);
+            var dataUrl = canvas.toDataURL('image/png');
+            _iconBitmapCache[iconName] = dataUrl;
+            return dataUrl;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function _resolveIconBitmapDataUrl(icono, svgData) {
+        if (svgData && svgData.vb && svgData.svg) return '';
+        return _materialIconBitmapDataUrl(icono);
+    }
+
     function _categoriaVisual(item) {
         try {
             var cats = window.finanzasData && window.finanzasData.categorias;
             var cat = (cats && item.categoriaId)
                 ? cats.find(function (c) { return c.id === item.categoriaId; })
                 : null;
-            if (!cat && cats && item.categoria) cat = cats.find(function (c) { return c.icon === item.categoria.icono; });
+            if (!cat && cats && item.categoria) {
+                cat = cats.find(function (c) {
+                    return c.icon === item.categoria.icono
+                        || (item.categoria.nombre && c.name === item.categoria.nombre)
+                        || (item.categoria.color && c.color === item.categoria.color && c.icon === item.categoria.icono);
+                });
+            }
+            var icono = (cat && cat.icon) || (item.categoria && item.categoria.icono) || 'category';
+            var svgData = (item.categoria && item.categoria.svgData)
+                || (cat && cat.svgData)
+                || (typeof window._getSvgDataForIcon === 'function' ? window._getSvgDataForIcon(icono) : null)
+                || null;
 
             return {
                 color: (cat && cat.color) || (item.categoria && item.categoria.color) || null,
-                icono: (cat && cat.icon) || (item.categoria && item.categoria.icono) || 'category',
-                svgData: (item.categoria && item.categoria.svgData)
-                    || (cat && cat.svgData)
-                    || null
+                icono: icono,
+                svgData: svgData
             };
         } catch (e) {
             return { color: null, icono: 'category', svgData: null };
@@ -117,6 +156,7 @@
             var color  = visual.color || (t.esRecordatorio ? '#22d3ee' : '#f59e0b');
             var cuerpo = _descripcionTarea(t);
             var svgData = visual.svgData || null;
+            var iconBitmapDataUrl = _resolveIconBitmapDataUrl(visual.icono, svgData);
 
             if (timerTarget) {
                 if (timerTarget <= now) return;
@@ -130,6 +170,7 @@
                     iconName:  visual.icono || 'category',
                     svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
                     svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
+                    iconBitmapDataUrl: iconBitmapDataUrl,
                     horaOriginal: _padTime(timerTarget.getHours(), timerTarget.getMinutes()),
                     timestamp: timerTarget.getTime()
                 });
@@ -154,6 +195,7 @@
                     iconName:  visual.icono || 'category',
                     svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
                     svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
+                    iconBitmapDataUrl: iconBitmapDataUrl,
                     horaOriginal: _padTime(hm.hour, hm.minute),
                     timestamp: dt.getTime()
                 });
@@ -171,6 +213,7 @@
             var cuerpo = _descripcionRecurrente(item, esHabito);
             var tipo   = item.subtipo || (esHabito ? 'habito' : 'recurrente');
             var svgData = visual.svgData || null;
+            var iconBitmapDataUrl = _resolveIconBitmapDataUrl(visual.icono, svgData);
 
             for (var d = 0; d < DAYS_AHEAD; d++) {
                 var fecha   = new Date(now.getTime() + d * 86400000);
@@ -193,6 +236,7 @@
                         iconName:  visual.icono || 'category',
                         svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
                         svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
+                        iconBitmapDataUrl: iconBitmapDataUrl,
                         horaOriginal: _padTime(hm.hour, hm.minute),
                         timestamp: dt.getTime()
                     });

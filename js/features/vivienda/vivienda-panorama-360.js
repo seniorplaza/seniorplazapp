@@ -8,6 +8,8 @@
                 let gyroEnabled360 = false;
                 let gyroPermissionRequested360 = false;
                 let gyroBaseAlpha360 = null, gyroBaseBeta360 = null, gyroBaseGamma360 = null;
+                let gyroLastAlpha360 = null;
+                let gyroAccumulatedYaw360 = 0;
                 let gyroAnchorLon360 = 0, gyroAnchorLat360 = 0;
                 let gyroTargetLon360 = 0, gyroTargetLat360 = 0;
                 let immersiveFallback360 = false;
@@ -30,6 +32,8 @@
                     gyroBaseAlpha360 = null;
                     gyroBaseBeta360 = null;
                     gyroBaseGamma360 = null;
+                    gyroLastAlpha360 = null;
+                    gyroAccumulatedYaw360 = 0;
                     gyroAnchorLon360 = lon360;
                     gyroAnchorLat360 = lat360;
                     gyroTargetLon360 = lon360;
@@ -45,6 +49,17 @@
 
                 function applyGyroDeadZone360(delta, deadZone) {
                     return Math.abs(delta) < deadZone ? 0 : delta;
+                }
+
+                function clampGyroDelta360(delta, maxAbs) {
+                    return Math.max(-maxAbs, Math.min(maxAbs, delta));
+                }
+
+                function normalizeAngle360(angle) {
+                    let normalized = angle % 360;
+                    if (normalized > 180) normalized -= 360;
+                    if (normalized < -180) normalized += 360;
+                    return normalized;
                 }
 
                 function getScreenAngle360() {
@@ -110,6 +125,8 @@
 
                     if (gyroBaseAlpha360 === null || gyroBaseBeta360 === null || gyroBaseGamma360 === null) {
                         gyroBaseAlpha360 = event.alpha;
+                        gyroLastAlpha360 = event.alpha;
+                        gyroAccumulatedYaw360 = 0;
                         gyroBaseBeta360 = verticalRaw;
                         gyroBaseGamma360 = horizontalRaw;
                         gyroAnchorLon360 = lon360;
@@ -118,10 +135,16 @@
                         gyroTargetLat360 = lat360;
                         return;
                     }
-                    const deltaAlpha = applyGyroDeadZone360(Math.max(-50, Math.min(50, horizontalRaw - gyroBaseGamma360)), 0.9);
+                    let deltaYaw = shortestAngleDelta360(event.alpha, gyroLastAlpha360);
                     const deltaBeta = applyGyroDeadZone360(Math.max(-55, Math.min(55, verticalRaw - gyroBaseBeta360)), 0.8);
-                    gyroTargetLon360 = gyroAnchorLon360 - deltaAlpha * 1.45;
-                    gyroTargetLat360 = gyroAnchorLat360 - deltaBeta * 0.85;
+                    gyroLastAlpha360 = event.alpha;
+                    if (Math.abs(deltaYaw) > 18) {
+                        return;
+                    }
+                    deltaYaw = applyGyroDeadZone360(clampGyroDelta360(deltaYaw, 5), 0.2);
+                    gyroAccumulatedYaw360 += deltaYaw;
+                    gyroTargetLon360 = gyroAnchorLon360 - gyroAccumulatedYaw360 * 1.05;
+                    gyroTargetLat360 = gyroAnchorLat360 + deltaBeta * 0.85;
                 }
 
                 async function enterNativeFullscreen360() {
@@ -631,10 +654,11 @@
                     if (!camera360 || !renderer360 || !scene360) return;
 
                     if (gyroEnabled360 && isFullscreen360() && !isUserInteracting360) {
-                        lon360 += (gyroTargetLon360 - lon360) * 0.12;
+                        lon360 += shortestAngleDelta360(gyroTargetLon360, lon360) * 0.10;
                         lat360 += (gyroTargetLat360 - lat360) * 0.12;
                     }
                     
+                    lon360 = normalizeAngle360(lon360);
                     lat360 = Math.max(-85, Math.min(85, lat360));
                     phi360 = THREE.MathUtils.degToRad(90 - lat360);
                     theta360 = THREE.MathUtils.degToRad(lon360);

@@ -4037,7 +4037,7 @@
                     style="width:100%;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:12px;color:#f1f5f9;font-size:16px;font-weight:600;padding:14px 16px;outline:none;box-sizing:border-box;"
                     onkeydown="if(event.key==='Enter') guardarEditarCategoria()">
             </div>
-            <div style="margin-bottom:24px;display:none;" id="editTareaRecordatoriosWrap">
+            <div style="margin-bottom:24px;display:none;" id="editarCatTipoWrap">
                 <label style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:8px;">Tipo</label>
                 <div id="cat-switch-editar" style="display:flex;align-items:center;height:36px;background:rgba(15,23,42,0.5);border:1px solid rgba(51,65,85,0.5);border-radius:12px;padding:3px;gap:3px;">
                     <button onclick="catSwitchTipo(this,'EXPENSE','editar')" id="editar-cat-tipo-expense"
@@ -4779,6 +4779,13 @@
             <!-- Recordatorios múltiples -->
             <div style="margin-bottom:24px;" id="editTareaRecordatoriosWrap">
                 <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                    <button onclick="_editAbrirTimePicker('tarea')" style="flex:1;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:12px;color:#64748b;font-size:13px;font-weight:600;padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;text-align:left;">
+                        <span class="material-symbols-rounded" style="color:rgba(59,130,246,0.35);font-size:18px;">schedule</span>
+                        <span id="editTareaHoraDisp">Añadir hora...</span>
+                    </button>
+                    <button onclick="_editAddRecordatorio('tarea')" style="width:40px;height:40px;border-radius:12px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <span class="material-symbols-rounded" style="font-size:20px;">add</span>
+                    </button>
                 </div>
                 <div id="editTareaRecList" style="display:flex;flex-direction:column;gap:6px;"></div>
             </div>

@@ -357,6 +357,12 @@
             return true;
         });
 
+        window._getSvgDataForIcon = function(iconName) {
+            if (!iconName) return null;
+            const icon = todosLosIconos.find(ic => ic && ic.n === iconName && ic.f === 'svg' && ic.vb && ic.svg);
+            return icon ? { vb: icon.vb, svg: icon.svg } : null;
+        };
+
         let iconoTemporal = null;
         let colorTemporal = '#ffffff';
         let bgColorTemporal = '#10b981';
