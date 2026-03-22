@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -2074,31 +2074,29 @@
 
                 <!-- VISTA PESO -->
                 <div id="nutri-vista-peso" style="display:none;">
-                <!-- Botón registrar peso -->
-                <div class="flex items-center gap-2" style="margin-bottom:12px;">
-                    <div class="hidden sm:flex items-center gap-2">
-                        <button onclick="abrirModalPeso()" class="btn-add rounded-xl flex items-center justify-center shrink-0" style="height:36px;padding:0 14px;">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Registrar peso</span>
-                        </button>
-                    </div>
-                    <div class="flex sm:hidden items-center gap-2">
-                        <button onclick="abrirModalPeso()" class="btn-add rounded-xl flex items-center justify-center shrink-0" style="height:34px;width:34px;">
-                            <span class="material-symbols-rounded" style="font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;">monitor_weight</span>
-                        </button>
-                    </div>
-                </div>
                 <!-- GRÁFICO PESO -->
                 <div id="nutri-peso-panel" style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:20px 20px 16px;">
                     <!-- Header + stats -->
                     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
-                        <div>
-                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                                <span class="material-symbols-rounded" style="font-size:18px;color:#10b981;">show_chart</span>
-                                <span style="font-size:14px;font-weight:700;color:#cbd5e1;">Progreso de peso</span>
+                        <div style="display:flex; justify-content:space-between; width:100%; align-items:flex-start;">
+                            <div>
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                                    <span class="material-symbols-rounded" style="font-size:18px;color:#10b981;">show_chart</span>
+                                    <span style="font-size:14px;font-weight:700;color:#cbd5e1;">Progreso de peso</span>
+                                </div>
+                                <div style="font-size:11px;color:#475569;" id="nutri-peso-subtitle">Evolución registrada</div>
                             </div>
-                            <div style="font-size:11px;color:#475569;" id="nutri-peso-subtitle">Evolución registrada</div>
+                            <!-- Botón registrar peso -->
+                            <div class="flex items-center gap-2">
+                                <button onclick="abrirModalPeso()" class="btn-add rounded-xl hidden sm:flex items-center justify-center shrink-0" style="height:36px;padding:0 14px;">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider">Registrar peso</span>
+                                </button>
+                                <button onclick="abrirModalPeso()" class="btn-add rounded-xl flex sm:hidden items-center justify-center shrink-0" style="height:34px;width:34px;">
+                                    <span class="material-symbols-rounded" style="font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;">monitor_weight</span>
+                                </button>
+                            </div>
                         </div>
-                        <div style="display:flex;gap:20px;">
+                        <div style="display:flex;gap:20px; width:100%;">
                             <div>
                                 <div id="nutri-peso-stat-actual" style="font-size:18px;font-weight:800;color:#10b981;">—</div>
                                 <div style="font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:0.06em;">Peso actual</div>
