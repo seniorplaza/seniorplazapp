@@ -1,4 +1,4 @@
-﻿
+
 function exportarCSV() {
     try {
         const ops = (window.finanzasData && window.finanzasData.operaciones) ? window.finanzasData.operaciones : [];
@@ -1329,7 +1329,8 @@ function renderNutricion() {
     let comidas = window.nutricionData.comidas.filter(c => {
         if (c.archivado) return false;
         if (!desde && !hasta) return true;
-        const d = new Date(c.fecha + 'T12:00:00');
+        const parts = c.fecha.split('-');
+        const d = new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2], 12, 0, 0);
         if (desde && d < desde) return false;
         if (hasta && d > hasta) return false;
         return true;
