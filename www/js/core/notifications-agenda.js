@@ -29,14 +29,14 @@
         return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
     }
 
-    function _hoyStr() {
-        return new Date().toISOString().split('T')[0];
-    }
-
     function _dateToStr(d) {
         return d.getFullYear() + '-' +
                String(d.getMonth() + 1).padStart(2, '0') + '-' +
                String(d.getDate()).padStart(2, '0');
+    }
+
+    function _hoyStr() {
+        return _dateToStr(new Date());
     }
 
     function _appWeekday(d) {
@@ -82,6 +82,12 @@
         return item.nombre || (esHabito ? 'Habito' : 'Tarea recurrente');
     }
 
+    function _parseReminderTimerTarget(item) {
+        if (!item || !item.esRecordatorio || !item.timerTargetAt) return null;
+        var target = new Date(item.timerTargetAt);
+        return isNaN(target.getTime()) ? null : target;
+    }
+
     function _debeDispararse(item, dateStr, appWd) {
         var frec       = item.frecuencia || 'todos_dias';
         var diasSemana = item.diasSemana || [];
@@ -106,13 +112,33 @@
 
         (data.tareas || []).forEach(function (t) {
             if (t.completada) return;
+            var timerTarget = _parseReminderTimerTarget(t);
+            var visual = _categoriaVisual(t);
+            var color  = visual.color || (t.esRecordatorio ? '#22d3ee' : '#f59e0b');
+            var cuerpo = _descripcionTarea(t);
+            var svgData = visual.svgData || null;
+
+            if (timerTarget) {
+                if (timerTarget <= now) return;
+                notifs.push({
+                    id:        _hashId('tarea_timer_' + t.id + '_' + timerTarget.getTime()),
+                    titulo:    t.nombre || (t.esRecordatorio ? 'Recordatorio' : 'Tarea'),
+                    cuerpo:    cuerpo,
+                    colorHex:  color,
+                    itemId:    t.id,
+                    tipo:      'tarea',
+                    iconName:  visual.icono || 'category',
+                    svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
+                    svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
+                    horaOriginal: _padTime(timerTarget.getHours(), timerTarget.getMinutes()),
+                    timestamp: timerTarget.getTime()
+                });
+                return;
+            }
+
             if (t.fecha && t.fecha < hoy) return;
             var recs = (t.recordatorios && t.recordatorios.length) ? t.recordatorios : (t.hora ? [t.hora] : []);
             if (!recs.length) return;
-            var visual = _categoriaVisual(t);
-            var color  = visual.color || '#f59e0b';
-            var cuerpo = _descripcionTarea(t);
-            var svgData = visual.svgData || null;
 
             recs.forEach(function (horaStr, i) {
                 var hm = _parseHM(horaStr);
@@ -120,7 +146,7 @@
                 if (dt <= now) return;
                 notifs.push({
                     id:        _hashId('tarea_' + t.id + '_' + i),
-                    titulo:    t.nombre || 'Tarea',
+                    titulo:    t.nombre || (t.esRecordatorio ? 'Recordatorio' : 'Tarea'),
                     cuerpo:    cuerpo,
                     colorHex:  color,
                     itemId:    t.id,

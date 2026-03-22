@@ -5,8 +5,141 @@
                 let onPointerDownPointerX360 = 0, onPointerDownPointerY360 = 0;
                 let onPointerDownLon360 = 0, onPointerDownLat360 = 0;
                 let visor360Initialized = false;
+                let gyroEnabled360 = false;
+                let gyroPermissionRequested360 = false;
+                let gyroBaseBeta360 = null, gyroBaseGamma360 = null;
+                let gyroAnchorLon360 = 0, gyroAnchorLat360 = 0;
+                let immersiveFallback360 = false;
                 window.rooms360 = [{ texture: null, textureData: null, name: 'Sin foto', lon: 0, lat: 0 }];
                 window.currentRoomIndex = 0;
+
+                function isMobile360() {
+                    return /Mobi|Android/i.test(navigator.userAgent);
+                }
+
+                function isNativeFullscreen360() {
+                    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+                }
+
+                function isFullscreen360() {
+                    return immersiveFallback360 || isNativeFullscreen360();
+                }
+
+                function resetGyro360() {
+                    gyroBaseBeta360 = null;
+                    gyroBaseGamma360 = null;
+                    gyroAnchorLon360 = lon360;
+                    gyroAnchorLat360 = lat360;
+                }
+
+                function syncImmersive360State(forceActive) {
+                    const active = typeof forceActive === 'boolean' ? forceActive : isFullscreen360();
+                    const visorContainer = document.getElementById('visor-main-container');
+                    document.body.classList.toggle('visor360-immersive', !!active);
+                    if (visorContainer) visorContainer.classList.toggle('visor360-faux-fullscreen', !!immersiveFallback360);
+                    const mobileHint = document.getElementById('mobile-fullscreen-hint');
+                    if (mobileHint && isMobile360()) {
+                        const hasImage = window.rooms360 && window.rooms360[window.currentRoomIndex] && window.rooms360[window.currentRoomIndex].texture;
+                        mobileHint.style.display = (!active && hasImage) ? 'block' : 'none';
+                    }
+                    const canvas = renderer360 && renderer360.domElement;
+                    if (canvas && isMobile360()) {
+                        canvas.style.touchAction = active ? 'none' : 'pan-y';
+                    }
+                }
+
+                async function requestGyroPermission360() {
+                    if (!isMobile360()) return false;
+                    if (gyroEnabled360) return true;
+                    if (gyroPermissionRequested360) return gyroEnabled360;
+                    gyroPermissionRequested360 = true;
+                    try {
+                        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                            const permission = await DeviceOrientationEvent.requestPermission();
+                            gyroEnabled360 = permission === 'granted';
+                        } else {
+                            gyroEnabled360 = true;
+                        }
+                    } catch (e) {
+                        gyroEnabled360 = false;
+                    }
+                    return gyroEnabled360;
+                }
+
+                function onDeviceOrientation360(event) {
+                    if (!gyroEnabled360 || !isFullscreen360() || isUserInteracting360) return;
+                    if (typeof event.beta !== 'number' || typeof event.gamma !== 'number') return;
+                    if (gyroBaseBeta360 === null || gyroBaseGamma360 === null) {
+                        gyroBaseBeta360 = event.beta;
+                        gyroBaseGamma360 = event.gamma;
+                        gyroAnchorLon360 = lon360;
+                        gyroAnchorLat360 = lat360;
+                        return;
+                    }
+                    const deltaGamma = Math.max(-45, Math.min(45, event.gamma - gyroBaseGamma360));
+                    const deltaBeta = Math.max(-45, Math.min(45, event.beta - gyroBaseBeta360));
+                    const targetLon = gyroAnchorLon360 + deltaGamma * 1.6;
+                    const targetLat = gyroAnchorLat360 - deltaBeta * 1.1;
+                    lon360 += (targetLon - lon360) * 0.16;
+                    lat360 += (targetLat - lat360) * 0.16;
+                }
+
+                async function enterNativeFullscreen360() {
+                    const root = document.documentElement;
+                    try {
+                        if (root.requestFullscreen) {
+                            const result = root.requestFullscreen();
+                            if (result && typeof result.then === 'function') await result;
+                            return true;
+                        }
+                        if (root.webkitRequestFullscreen) {
+                            root.webkitRequestFullscreen();
+                            return true;
+                        }
+                        if (root.mozRequestFullScreen) {
+                            root.mozRequestFullScreen();
+                            return true;
+                        }
+                        if (root.msRequestFullscreen) {
+                            root.msRequestFullscreen();
+                            return true;
+                        }
+                    } catch (e) {
+                    }
+                    return false;
+                }
+
+                async function exitNativeFullscreen360() {
+                    try {
+                        if (document.exitFullscreen) {
+                            const result = document.exitFullscreen();
+                            if (result && typeof result.then === 'function') await result;
+                            return;
+                        }
+                        if (document.webkitExitFullscreen) {
+                            document.webkitExitFullscreen();
+                            return;
+                        }
+                        if (document.mozCancelFullScreen) {
+                            document.mozCancelFullScreen();
+                            return;
+                        }
+                        if (document.msExitFullscreen) {
+                            document.msExitFullscreen();
+                        }
+                    } catch (e) {
+                    }
+                }
+
+                function syncFullscreenUi360() {
+                    const fullscreenBtn = document.getElementById('fullscreenBtn360');
+                    const icon = fullscreenBtn ? fullscreenBtn.querySelector('.material-symbols-rounded') : null;
+                    if (icon) icon.textContent = isFullscreen360() ? 'fullscreen_exit' : 'fullscreen';
+                    syncImmersive360State();
+                    resetGyro360();
+                    setTimeout(onWindowResize360, 100);
+                }
+
                 window.init360Visor = function() {
                     if (!visor360Initialized) {
                         init360();
@@ -25,7 +158,7 @@
                     const containerHeight = container.offsetHeight || 600;
                     scene360 = new THREE.Scene();
                     camera360 = new THREE.PerspectiveCamera(75, containerWidth / containerHeight, 1, 1100);
-                    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+                    const isMobile = isMobile360();
                     const segments = isMobile ? 32 : 60;
                     const rings = isMobile ? 24 : 40;
                     const geometry = new THREE.SphereGeometry(500, segments, rings);
@@ -65,6 +198,11 @@
                     window.addEventListener('pointerup', onPointerUp360, { passive: true });
                     container.addEventListener('wheel', onDocumentMouseWheel360, { passive: false });
                     window.addEventListener('resize', onWindowResize360, { passive: true });
+                    window.addEventListener('deviceorientation', onDeviceOrientation360, true);
+                    window.addEventListener('orientationchange', function () {
+                        resetGyro360();
+                        setTimeout(onWindowResize360, 120);
+                    }, { passive: true });
 
                     const fileInput = document.getElementById('file-input-360');
                     if (fileInput) {
@@ -156,11 +294,10 @@
                                 canvasContainer.style.opacity = '1';
                                 canvasContainer.style.zIndex = '1';
                             }
-                            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+                            const isMobile = isMobile360();
                             const mobileHint = document.getElementById('mobile-fullscreen-hint');
                             if (isMobile && mobileHint) {
-                                const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || 
-                                                       document.mozFullScreenElement || document.msFullscreenElement);
+                                const isFullscreen = isFullscreen360();
                                 mobileHint.style.display = isFullscreen ? 'none' : 'block';
                             }
                             window.visor360Initialized = true;
@@ -299,11 +436,10 @@
                         if (dropZone) dropZone.style.display = 'none';
                         const deleteBtn = document.getElementById('deleteBtn360');
                         if (deleteBtn) deleteBtn.style.display = 'flex';
-                        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+                        const isMobile = isMobile360();
                         const mobileHint = document.getElementById('mobile-fullscreen-hint');
                         if (isMobile && mobileHint) {
-                            const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || 
-                                                   document.mozFullScreenElement || document.msFullscreenElement);
+                            const isFullscreen = isFullscreen360();
                             mobileHint.style.display = isFullscreen ? 'none' : 'block';
                         }
                     } else {
@@ -362,9 +498,8 @@
 
                 function onPointerDown360(event) {
                     if (event.isPrimary === false) return;
-                    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-                    const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || 
-                                           document.mozFullScreenElement || document.msFullscreenElement);
+                    const isMobile = isMobile360();
+                    const isFullscreen = isFullscreen360();
                     if (isMobile && !isFullscreen) {
                         return; // No capturar el evento, permitir que pase al scroll
                     }
@@ -412,82 +547,26 @@
                     camera360.updateProjectionMatrix();
                     renderer360.setSize(containerWidth, containerHeight);
                 }
-                window.toggleFullscreen360 = function() {
-                    const visorContainer = document.getElementById('visor-main-container');
-                    const fullscreenBtn = document.getElementById('fullscreenBtn360');
-                    const icon = fullscreenBtn.querySelector('.material-symbols-rounded');
-                    
-                    if (!document.fullscreenElement) {
-                        if (visorContainer.requestFullscreen) {
-                            visorContainer.requestFullscreen();
-                        } else if (visorContainer.webkitRequestFullscreen) {
-                            visorContainer.webkitRequestFullscreen();
-                        } else if (visorContainer.mozRequestFullScreen) {
-                            visorContainer.mozRequestFullScreen();
-                        } else if (visorContainer.msRequestFullscreen) {
-                            visorContainer.msRequestFullscreen();
-                        }
-                        icon.textContent = 'fullscreen_exit';
+                window.toggleFullscreen360 = async function() {
+                    if (!isFullscreen360()) {
+                        const nativeEntered = await enterNativeFullscreen360();
+                        immersiveFallback360 = !nativeEntered;
+                        syncImmersive360State(true);
+                        await requestGyroPermission360();
+                        resetGyro360();
                         if (navigator.vibrate) navigator.vibrate(30);
                     } else {
-                        if (document.exitFullscreen) {
-                            document.exitFullscreen();
-                        } else if (document.webkitExitFullscreen) {
-                            document.webkitExitFullscreen();
-                        } else if (document.mozCancelFullScreen) {
-                            document.mozCancelFullScreen();
-                        } else if (document.msExitFullscreen) {
-                            document.msExitFullscreen();
-                        }
-                        icon.textContent = 'fullscreen';
+                        const wasNative = isNativeFullscreen360();
+                        immersiveFallback360 = false;
+                        if (wasNative) await exitNativeFullscreen360();
+                        syncImmersive360State(false);
                     }
+                    syncFullscreenUi360();
                 };
-                document.addEventListener('fullscreenchange', function() {
-                    const fullscreenBtn = document.getElementById('fullscreenBtn360');
-                    const icon = fullscreenBtn ? fullscreenBtn.querySelector('.material-symbols-rounded') : null;
-                    if (icon) {
-                        icon.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
-                    }
-                    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-                    const canvas = renderer360?.domElement;
-                    if (canvas && isMobile) {
-                        if (document.fullscreenElement) {
-                            canvas.style.touchAction = 'none';
-                        } else {
-                            canvas.style.touchAction = 'pan-y';
-                        }
-                    }
-                    const mobileHint = document.getElementById('mobile-fullscreen-hint');
-                    if (isMobile && mobileHint) {
-                        const hasImage = window.rooms360 && window.rooms360[window.currentRoomIndex]?.texture;
-                        mobileHint.style.display = (!document.fullscreenElement && hasImage) ? 'block' : 'none';
-                    }
-                    setTimeout(onWindowResize360, 100);
-                });
-                
-                document.addEventListener('webkitfullscreenchange', function() {
-                    const fullscreenBtn = document.getElementById('fullscreenBtn360');
-                    const icon = fullscreenBtn ? fullscreenBtn.querySelector('.material-symbols-rounded') : null;
-                    if (icon) {
-                        icon.textContent = document.webkitFullscreenElement ? 'fullscreen_exit' : 'fullscreen';
-                    }
-                    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-                    const canvas = renderer360?.domElement;
-                    if (canvas && isMobile) {
-                        if (document.webkitFullscreenElement) {
-                            canvas.style.touchAction = 'none';
-                        } else {
-                            canvas.style.touchAction = 'pan-y';
-                        }
-                    }
-                    const mobileHint = document.getElementById('mobile-fullscreen-hint');
-                    if (isMobile && mobileHint) {
-                        const hasImage = window.rooms360 && window.rooms360[window.currentRoomIndex]?.texture;
-                        mobileHint.style.display = (!document.webkitFullscreenElement && hasImage) ? 'block' : 'none';
-                    }
-                    
-                    setTimeout(onWindowResize360, 100);
-                });
+                document.addEventListener('fullscreenchange', syncFullscreenUi360);
+                document.addEventListener('webkitfullscreenchange', syncFullscreenUi360);
+                document.addEventListener('mozfullscreenchange', syncFullscreenUi360);
+                document.addEventListener('MSFullscreenChange', syncFullscreenUi360);
 
                 let frameCount = 0;
                 function animate360() {
