@@ -7,6 +7,81 @@ window._editTareaCadaXDias = 2;
 window._editTareaVecesPeriodo = 3;
 window._editTareaVecesPeriodoPer = 'semana';
 window._editTareaSubitems = [];
+window._editRecordatorioTimerMinutes = null;
+window._editRecordatorioTimerTargetAt = '';
+
+function _editRecordatorioBuildData(minutes) {
+    if (typeof _agendaBuildReminderTimerData === 'function') return _agendaBuildReminderTimerData(minutes);
+    var mins = Math.max(1, parseInt(minutes, 10) || 0);
+    if (!mins) return null;
+    var target = new Date(Date.now() + mins * 60000);
+    var pad = function(v) { return String(v).padStart(2, '0'); };
+    return {
+        minutes: mins,
+        targetAt: target.toISOString(),
+        fecha: target.getFullYear() + '-' + pad(target.getMonth() + 1) + '-' + pad(target.getDate()),
+        hora: pad(target.getHours()) + ':' + pad(target.getMinutes())
+    };
+}
+
+function _editRecordatorioFmtTarget(targetAt) {
+    if (typeof _agendaFormatReminderTimer === 'function') return _agendaFormatReminderTimer(targetAt);
+    var target = new Date(targetAt);
+    if (isNaN(target.getTime())) return '';
+    var diffMs = target.getTime() - Date.now();
+    if (diffMs <= 0) return 'Vencido';
+    var totalMinutes = Math.ceil(diffMs / 60000);
+    if (totalMinutes < 60) return 'En ' + totalMinutes + ' min';
+    var hours = Math.floor(totalMinutes / 60);
+    var mins = totalMinutes % 60;
+    return 'En ' + hours + ' h' + (mins ? ' ' + mins + ' min' : '');
+}
+
+function _renderEditRecordatorioTimerUI() {
+    var chips = document.getElementById('editRecordatorioTimerChips');
+    var summary = document.getElementById('editRecordatorioTimerSummary');
+    var presets = [10, 30, 60, 120];
+    if (chips) {
+        chips.innerHTML = presets.map(function (mins) {
+            var active = mins === (window._editRecordatorioTimerMinutes || 0);
+            return '<button type="button" onclick="editRecordatorioSetTimer(' + mins + ')" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid ' + (active ? 'rgba(34,211,238,0.7)' : 'rgba(71,85,105,0.45)') + ';background:' + (active ? 'rgba(34,211,238,0.14)' : 'rgba(15,23,42,0.72)') + ';color:' + (active ? '#67e8f9' : '#94a3b8') + ';font-size:12px;font-weight:700;cursor:pointer;box-shadow:' + (active ? '0 0 0 3px rgba(34,211,238,0.12)' : 'none') + ';">' + (mins >= 60 ? (mins / 60) + ' hora' + (mins > 60 ? 's' : '') : mins + ' min') + '</button>';
+        }).join('');
+    }
+    if (summary) {
+        if (window._editRecordatorioTimerTargetAt) {
+            var target = new Date(window._editRecordatorioTimerTargetAt);
+            var label = _editRecordatorioFmtTarget(target);
+            var fecha = isNaN(target.getTime()) ? '' : target.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            summary.textContent = label ? (label + (fecha ? ' (' + fecha + ')' : '')) : 'Sin timer';
+            summary.style.color = label ? '#67e8f9' : '#64748b';
+        } else {
+            summary.textContent = 'Sin timer';
+            summary.style.color = '#64748b';
+        }
+    }
+}
+
+function editRecordatorioSetTimer(minutes) {
+    var data = _editRecordatorioBuildData(minutes);
+    if (!data) return;
+    window._editRecordatorioTimerMinutes = data.minutes;
+    window._editRecordatorioTimerTargetAt = data.targetAt;
+    _renderEditRecordatorioTimerUI();
+}
+
+function editRecordatorioAplicarTimerCustom() {
+    var input = document.getElementById('editRecordatorioTimerCustom');
+    var mins = input ? Math.max(1, parseInt(input.value, 10) || 0) : 0;
+    if (!mins) return;
+    editRecordatorioSetTimer(mins);
+    if (input) input.value = '';
+}
+
+function editRecordatorioClearTimer() {
+    window._editRecordatorioTimerMinutes = null;
+    window._editRecordatorioTimerTargetAt = '';
+    _renderEditRecordatorioTimerUI();
+}
 
 function _editTareaAddSubitem() {
     const input = document.getElementById('editTareaSubitemInput');
@@ -78,6 +153,7 @@ function abrirEditarTarea(id, tipo) {
     const color = esRecurrente ? '#60a5fa' : '#f59e0b';
     const subitemsWrap = document.getElementById('editTareaSubitemsWrap');
     const recordatoriosWrap = document.getElementById('editTareaRecordatoriosWrap');
+    const recordatorioTimerWrap = document.getElementById('editRecordatorioTimerWrap');
     const categoriaWrap = document.getElementById('editTareaCatContainer');
     document.getElementById('editTareaTituloHeader').textContent = esRecurrente ? 'Editar tarea recurrente' : (esRecordatorio ? 'Editar recordatorio' : 'Editar tarea');
     document.getElementById('editTareaNombre').value = item.nombre || '';
@@ -95,7 +171,16 @@ function abrirEditarTarea(id, tipo) {
     if (categoriaWrap) categoriaWrap.style.display = esRecordatorio ? 'none' : 'block';
     if (subitemsWrap) subitemsWrap.style.display = esRecordatorio ? 'none' : 'block';
     if (recordatoriosWrap) recordatoriosWrap.style.display = esRecordatorio ? 'none' : 'block';
+    if (recordatorioTimerWrap) recordatorioTimerWrap.style.display = esRecordatorio ? 'block' : 'none';
     document.getElementById('editTareaFechaWrap').style.display = esRecurrente || esRecordatorio ? 'none' : 'block';
+    if (esRecordatorio) {
+        var targetAt = item.timerTargetAt || ((item.fecha && item.hora) ? (item.fecha + 'T' + item.hora + ':00') : '');
+        var targetDate = targetAt ? new Date(targetAt) : null;
+        var futureMinutes = targetDate && !isNaN(targetDate.getTime()) ? Math.max(1, Math.ceil((targetDate.getTime() - Date.now()) / 60000)) : 0;
+        window._editRecordatorioTimerMinutes = futureMinutes > 0 ? futureMinutes : null;
+        window._editRecordatorioTimerTargetAt = futureMinutes > 0 && targetDate ? targetDate.toISOString() : '';
+        _renderEditRecordatorioTimerUI();
+    }
     if (!esRecurrente) {
         document.getElementById('editTareaFecha').value = item.fecha || '';
         const fmt = item.fecha ? new Date(item.fecha + 'T00:00:00').toLocaleDateString('es-ES', {day:'numeric',month:'short',year:'numeric'}) : 'Sin fecha';
@@ -198,13 +283,26 @@ function guardarEditarTarea() {
     item.nota = notaVal;
     item.desc = notaVal;
     if (item.esRecordatorio) {
-        delete item.fecha;
-        delete item.hora;
-        delete item.recordatorios;
         delete item.subitems;
         delete item.categoriaId;
         delete item.etiqueta;
         item.categoria = { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' };
+        if (window._editRecordatorioTimerTargetAt) {
+            var timerData = _editRecordatorioBuildData(window._editRecordatorioTimerMinutes || 1);
+            if (timerData) {
+                item.fecha = timerData.fecha;
+                item.hora = timerData.hora;
+                item.recordatorios = [timerData.hora];
+                item.timerTargetAt = timerData.targetAt;
+                item.timerMinutes = timerData.minutes;
+            }
+        } else {
+            delete item.fecha;
+            delete item.hora;
+            delete item.recordatorios;
+            delete item.timerTargetAt;
+            delete item.timerMinutes;
+        }
     } else {
         item.subitems = window._editTareaSubitems.length ? window._editTareaSubitems : undefined;
     }
