@@ -7922,9 +7922,11 @@
             // Lock/unlock reposo buttons based on whether we are viewing today
             if (typeof _gymReposoSetBloqueado === 'function') _gymReposoSetBloqueado(!esHoy);
             var _wrapper = document.getElementById('gym-controles-wrapper');
+            var _switch = document.getElementById('gym-switch-grupos');
             var _histCont = document.getElementById('gym-historico-container');
             var _paneles = ['pecho','espalda','brazo','pierna','cardio'];
-            if (_wrapper) _wrapper.style.display = _esMultiple ? 'none' : '';
+            if (_wrapper) _wrapper.style.display = '';
+            if (_switch) _switch.style.display = _esMultiple ? 'none' : 'flex';
             if (_histCont) _histCont.style.display = _esMultiple ? '' : 'none';
             _paneles.forEach(function(p) {
                 var panel = document.getElementById('gym-panel-' + p);

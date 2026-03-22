@@ -1253,7 +1253,7 @@
             }
             #gym-filtros-inline {
                 gap: 8px !important;
-                flex-wrap: wrap !important;
+                flex-wrap: nowrap !important;
                 align-items: center !important;
             }
             #gym-filtros-inline .gym-filter-slot {
@@ -1279,6 +1279,7 @@
             }
             #gym-botones-edicion {
                 row-gap: 10px !important;
+                column-gap: 8px !important;
             }
             .finanzas-scroll-modal {
                 align-items: center !important;
