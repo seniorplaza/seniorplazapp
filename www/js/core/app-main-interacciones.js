@@ -8224,51 +8224,92 @@
                 if(icon){ icon.style.color = '#eab308'; }
             }, 700);
         }
+        function _gymCloseFloatingCardMenu() {
+            if (typeof window._gymFloatingMenuCleanup === 'function') {
+                window._gymFloatingMenuCleanup();
+            }
+        }
+
         function toggleGymCardMenu(btn) {
-            var menu = btn.nextElementSibling;
-            var isOpen = menu.style.display === 'block';
+            var sourceMenu = btn.nextElementSibling;
+            if (!sourceMenu) return;
+
+            var wasSameButtonOpen = window._gymFloatingMenuButton === btn;
+            _gymCloseFloatingCardMenu();
             document.querySelectorAll('.gym-card-menu').forEach(function(m) {
-                m.style.display = 'none';
-                m.style.position = '';
-                m.style.top = '';
-                m.style.left = '';
-                m.style.right = '';
-                m.style.zIndex = '';
-                m.style.maxHeight = '';
-                m.style.overflowY = '';
+                if (m.parentNode !== document.body) {
+                    m.style.display = 'none';
+                }
             });
-            if (!isOpen) {
-                var btnRect = btn.getBoundingClientRect();
-                var menuWidth = Math.max(menu.offsetWidth || 150, 150);
+            if (wasSameButtonOpen) return;
+
+            var floatingMenu = sourceMenu.cloneNode(true);
+
+            floatingMenu.style.cssText = 'position:fixed;display:flex;flex-direction:column;gap:2px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:10080;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:min(220px, calc(100vw - 20px));';
+            document.body.appendChild(floatingMenu);
+
+            function updatePosition() {
+                if (!document.body.contains(btn)) {
+                    closeMenu();
+                    return;
+                }
                 var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
                 var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+                var btnRect = btn.getBoundingClientRect();
+                var menuRect = floatingMenu.getBoundingClientRect();
+                var left = btnRect.right - menuRect.width;
                 var top = btnRect.bottom + 6;
-                var left = Math.min(btnRect.right - menuWidth, viewportWidth - menuWidth - 10);
-                left = Math.max(10, left);
-                menu.style.display = 'block';
-                menu.style.position = 'fixed';
-                menu.style.top = top + 'px';
-                menu.style.left = left + 'px';
-                menu.style.right = 'auto';
-                menu.style.zIndex = '10080';
-                menu.style.maxHeight = Math.max(180, viewportHeight - top - 16) + 'px';
-                menu.style.overflowY = 'auto';
-                setTimeout(function() {
-                    document.addEventListener('click', function closeMenu(e) {
-                        if (!menu.contains(e.target) && e.target !== btn) {
-                            menu.style.display = 'none';
-                            menu.style.position = '';
-                            menu.style.top = '';
-                            menu.style.left = '';
-                            menu.style.right = '';
-                            menu.style.zIndex = '';
-                            menu.style.maxHeight = '';
-                            menu.style.overflowY = '';
-                            document.removeEventListener('click', closeMenu);
-                        }
-                    });
-                }, 10);
+
+                if (left < 10) left = 10;
+                if (left + menuRect.width > viewportWidth - 10) {
+                    left = Math.max(10, viewportWidth - menuRect.width - 10);
+                }
+
+                if (top + menuRect.height > viewportHeight - 10) {
+                    var aboveTop = btnRect.top - menuRect.height - 6;
+                    top = aboveTop >= 10 ? aboveTop : Math.max(10, viewportHeight - menuRect.height - 10);
+                }
+
+                floatingMenu.style.left = left + 'px';
+                floatingMenu.style.top = top + 'px';
+                floatingMenu.style.maxHeight = Math.max(180, viewportHeight - top - 10) + 'px';
+                floatingMenu.style.overflowY = 'auto';
             }
+
+            function closeMenu() {
+                if (floatingMenu && floatingMenu.parentNode) {
+                    floatingMenu.parentNode.removeChild(floatingMenu);
+                }
+                document.removeEventListener('click', handleOutsideClick, true);
+                window.removeEventListener('scroll', updatePosition, true);
+                window.removeEventListener('resize', updatePosition);
+                if (window._gymFloatingMenuCleanup === closeMenu) {
+                    window._gymFloatingMenuCleanup = null;
+                    window._gymFloatingMenuButton = null;
+                }
+            }
+
+            function handleOutsideClick(e) {
+                if (!floatingMenu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                    closeMenu();
+                }
+            }
+
+            floatingMenu.addEventListener('click', function(e) {
+                if (e.target.closest('button')) {
+                    setTimeout(closeMenu, 0);
+                }
+            }, true);
+
+            updatePosition();
+            window.addEventListener('scroll', updatePosition, true);
+            window.addEventListener('resize', updatePosition);
+            setTimeout(function() {
+                document.addEventListener('click', handleOutsideClick, true);
+            }, 0);
+
+            window._gymFloatingMenuCleanup = closeMenu;
+            window._gymFloatingMenuButton = btn;
         }
         window._gymArchivados = (window._gymArchivados && !Array.isArray(window._gymArchivados)) ? window._gymArchivados : {};
 
