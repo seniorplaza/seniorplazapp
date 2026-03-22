@@ -1,4 +1,4 @@
-﻿
+
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
 
         /* Android WebView: CSS inset shorthand polyfill */
@@ -2410,8 +2410,10 @@
         }
 
         .glass-panel {
-            background: rgba(15, 23, 42, 0.25);
+            background: rgba(15, 23, 42, 0.45);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
         
         .material-symbols-rounded {
