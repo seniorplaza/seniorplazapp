@@ -7604,7 +7604,7 @@
             display.textContent = fechaIso || 'Seleccionar fecha';
         }
         function _gymSetFiltroMovilActivo(filterName) {
-            var bar = document.getElementById('filtros-bar-gym');
+            var bar = document.getElementById('gym-filtros-inline');
             if (!bar) return;
             var next = filterName || null;
             if (!_gymEsModoFiltrosMovil()) next = null;
@@ -7618,72 +7618,8 @@
                 if (input) setTimeout(function() { try { input.focus(); input.select(); } catch (e) {} }, 120);
             }
         }
-        function _gymResetStickyBarFixed() {
-            var bar = document.getElementById('filtros-bar-gym');
-            if (!bar) return;
-            bar.style.position = '';
-            bar.style.top = '';
-            bar.style.left = '';
-            bar.style.width = '';
-            bar.style.right = '';
-            bar.style.zIndex = '';
-            if (bar._gymFixedPlaceholder) bar._gymFixedPlaceholder.style.display = 'none';
-            bar.dataset.fixedActive = '0';
-        }
-        function _gymActualizarStickyBarFija() {
-            var bar = document.getElementById('filtros-bar-gym');
-            var section = document.getElementById('fitness-gimnasio');
-            if (!bar || !section) return;
-            if (!_gymEsVistaVisible(section)) {
-                _gymResetStickyBarFixed();
-                return;
-            }
-            var topBase = 12;
-            var mainNav = document.getElementById('mainNav');
-            if (mainNav && _gymEsVistaVisible(mainNav)) {
-                topBase += Math.ceil(mainNav.getBoundingClientRect().height || 0);
-            }
-            var sectionRect = section.getBoundingClientRect();
-            var rect = bar.getBoundingClientRect();
-            var shouldFix = sectionRect.top <= topBase && sectionRect.bottom > (topBase + rect.height + 18);
-            if (!bar._gymFixedPlaceholder) {
-                var placeholder = document.createElement('div');
-                placeholder.style.display = 'none';
-                placeholder.style.width = '100%';
-                placeholder.setAttribute('aria-hidden', 'true');
-                bar.insertAdjacentElement('afterend', placeholder);
-                bar._gymFixedPlaceholder = placeholder;
-            }
-            if (!shouldFix) {
-                _gymResetStickyBarFixed();
-                return;
-            }
-            var placeholderEl = bar._gymFixedPlaceholder;
-            placeholderEl.style.display = 'block';
-            placeholderEl.style.height = rect.height + 'px';
-            placeholderEl.style.marginBottom = (window.getComputedStyle ? window.getComputedStyle(bar).marginBottom : '0px');
-            bar.style.position = 'fixed';
-            bar.style.top = topBase + 'px';
-            bar.style.left = rect.left + 'px';
-            bar.style.width = rect.width + 'px';
-            bar.style.right = 'auto';
-            bar.style.zIndex = '180';
-            bar.dataset.fixedActive = '1';
-        }
-        if (!window._gymStickyBarFixedInit) {
-            window._gymStickyBarFixedInit = true;
-            var _gymStickyBarUpdate = function() {
-                requestAnimationFrame(_gymActualizarStickyBarFija);
-            };
-            document.addEventListener('scroll', _gymStickyBarUpdate, true);
-            window.addEventListener('scroll', _gymStickyBarUpdate, { passive: true });
-            window.addEventListener('resize', _gymStickyBarUpdate);
-            window.addEventListener('orientationchange', _gymStickyBarUpdate);
-            document.addEventListener('DOMContentLoaded', _gymStickyBarUpdate);
-            document.addEventListener('visibilitychange', function() { setTimeout(_gymActualizarStickyBarFija, 10); });
-            window.addEventListener('pageshow', function() { setTimeout(_gymActualizarStickyBarFija, 30); });
-            setTimeout(_gymStickyBarUpdate, 0);
-            setTimeout(_gymStickyBarUpdate, 250);
+        function _gymFiltrosActivosTieneValor(filtros) {
+            return !!((filtros && filtros.badge) || (filtros && filtros.maquina));
         }
         function _gymLeerFiltrosActivos() {
             return {
@@ -7721,12 +7657,17 @@
         }
         function _gymAplicarFiltrosActivos() {
             var filtros = _gymLeerFiltrosActivos();
+            var ctx = _gymContextoActivo();
+            if (!ctx.esDia) {
+                gymCargarStatsParaIntervalo();
+                return;
+            }
             document.querySelectorAll('.gym-panel-grid').forEach(function(grid) {
                 _gymAplicarFiltrosEnGrid(grid, filtros);
             });
         }
         function _gymInitFilterBar() {
-            var bar = document.getElementById('filtros-bar-gym');
+            var bar = document.getElementById('gym-filtros-inline');
             if (!bar) return;
             var badgeInp = document.getElementById('gym-filter-badge');
             var maqInp = document.getElementById('gym-filter-maquina');
@@ -7757,7 +7698,7 @@
                 });
                 document.addEventListener('click', function(ev) {
                     if (!_gymEsModoFiltrosMovil()) return;
-                    var activeBar = document.getElementById('filtros-bar-gym');
+                    var activeBar = document.getElementById('gym-filtros-inline');
                     if (activeBar && !activeBar.contains(ev.target)) _gymSetFiltroMovilActivo(null);
                 });
                 window.addEventListener('resize', function() {
@@ -8112,6 +8053,8 @@
                 cdEl.textContent = totCardio > 0 ? totCardio.toFixed(1) : '0.0';
             }
             if (_esMultiple && _histCont) {
+                var filtrosActivos = _gymLeerFiltrosActivos();
+                var filtrosEnUso = _gymFiltrosActivosTieneValor(filtrosActivos);
                 var _DIAS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
                 var _MESES_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
                 var _MESES_FULL = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -8125,6 +8068,7 @@
                 if (fechasConSesion.length === 0) {
                     html = '<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">interests</span><p style="color:#475569;font-size:14px;margin:0;">Sin sesiones en este período</p></div>';
                 } else {
+                    var historicoRenderizado = 0;
                     fechasConSesion.slice().reverse().forEach(function(fechaKey) {
                         var s = sesiones[fechaKey];
                         var d = new Date(fechaKey + 'T12:00:00');
@@ -8151,6 +8095,16 @@
                         }).join('');
                         var todosEj = [];
                         _paneles.forEach(function(p) { if (s.cards && s.cards[p]) todosEj = todosEj.concat(s.cards[p].map(function(e) { return Object.assign({}, e, { _panel: p }); })); });
+                        if (filtrosEnUso) {
+                            todosEj = todosEj.filter(function(ej) {
+                                var badge = _gymFilterText(ej.badge);
+                                var maquina = _gymFilterText(ej.badgeMaquina);
+                                if (filtrosActivos.badge && badge.indexOf(filtrosActivos.badge) === -1) return false;
+                                if (filtrosActivos.maquina && maquina.indexOf(filtrosActivos.maquina) === -1) return false;
+                                return true;
+                            });
+                        }
+                        if (filtrosEnUso && todosEj.length === 0) return;
                         var ejHtml = todosEj.map(function(ej) {
                             var label = ej.nombre || '—';
                             var tieneMetricasCardio = !!(ej.cardioSeriesLabel || ej.cardioRepsLabel || ej.cardioRirLabel || ej.cardioRpeLabel);
@@ -8190,10 +8144,12 @@
                                  + '</span>';
                         }).join('');
 
-                        html += '<div style="background:rgba(15,23,42,0.5);border:1px solid rgba(234,179,8,0.1);border-radius:14px;padding:14px 16px;margin-bottom:10px;">';
+                            historicoRenderizado++;
+                            html += '<div onclick="_gymIrAFechaKey(\'' + fechaKey + '\')" style="background:rgba(15,23,42,0.5);border:1px solid rgba(234,179,8,0.1);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:border-color 0.15s,transform 0.15s;" onmouseover="this.style.borderColor=\'rgba(234,179,8,0.35)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'rgba(234,179,8,0.1)\';this.style.transform=\'translateY(0)\'">';
                         html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
                               + '<span style="color:#f1f5f9;font-size:14px;font-weight:800;">'+diaSem+' '+diaMes+' '+mes+'</span>'
                               + esHoyBadge
+                                + '<span style="margin-left:auto;color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;">Abrir día</span>'
                               + '</div>';
                         if (chipsHtml) {
                             html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">'+chipsHtml+'</div>';
@@ -8203,6 +8159,9 @@
                         }
                         html += '</div>';
                     });
+                    if (historicoRenderizado === 0) {
+                        html = '<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">filter_alt_off</span><p style="color:#475569;font-size:14px;margin:0;">No hay ejercicios que coincidan con esos filtros en este período</p></div>';
+                    }
                 }
                 _histCont.innerHTML = html;
             }
