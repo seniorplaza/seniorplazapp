@@ -2595,24 +2595,28 @@
         const modal = document.getElementById(modalId);
         if (!modal) return;
         const card = modal.querySelector('.finanzas-scroll-modal-card');
-        const nav = document.getElementById('mobileBottomNav');
-        const navOffset = nav && window.getComputedStyle(nav).display !== 'none' ? (nav.offsetHeight + 24 + 16) : 16;
+        const body = modal.querySelector('.finanzas-scroll-modal-body');
         modal.style.overflowY = 'auto';
         modal.style.overflowX = 'hidden';
         modal.style.alignItems = 'center';
         modal.style.justifyContent = 'center';
         modal.style.paddingTop = '16px';
-        modal.style.paddingBottom = navOffset + 'px';
+        modal.style.paddingBottom = '16px';
         modal.style.touchAction = 'pan-y';
+        modal.style.boxSizing = 'border-box';
         modal.scrollTop = 0;
         if (!card) return;
-        card.style.overflowY = 'auto';
-        card.style.overflowX = 'hidden';
-        card.style.touchAction = 'pan-y';
-        card.style.webkitOverflowScrolling = 'touch';
-        card.style.overscrollBehavior = 'contain';
-        card.style.maxHeight = 'calc(100dvh - 32px - ' + navOffset + 'px)';
+        card.style.overflow = 'hidden';
+        card.style.margin = 'auto';
+        card.style.maxHeight = '92dvh';
         card.scrollTop = 0;
+        if (!body) return;
+        body.style.overflowY = 'auto';
+        body.style.overflowX = 'hidden';
+        body.style.touchAction = 'pan-y';
+        body.style.webkitOverflowScrolling = 'touch';
+        body.style.overscrollBehavior = 'contain';
+        body.scrollTop = 0;
     }
 
     function abrirModalAddMovimiento(tipo, desdeOperaciones = true, mostrarSwitch = false) {
