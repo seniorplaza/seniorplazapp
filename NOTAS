@@ -1,3 +1,5 @@
+npx cap sync android ; npx cap run android
+
 seniorplazapp to seniorplazapk -> npm run sync
 
 Abrir Terminal
