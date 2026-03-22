@@ -6208,6 +6208,31 @@
         </div>
     </div>
 
+    <!-- MODAL: EDITAR TIEMPO GYM (REUTILIZABLE) -->
+    <div id="modal-gym-editar-tiempo" onclick="if(event.target===this)this.style.display='none'"
+        style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10200;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow:auto;">
+        <div onclick="event.stopPropagation()"
+            style="background:#0f172a;border:1px solid rgba(59,130,246,0.3);border-radius:20px;padding:28px 24px;width:280px;display:flex;flex-direction:column;gap:16px;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="modal-gym-editar-tiempo-icon" class="material-symbols-rounded" style="font-size:22px;color:#3b82f6;">timer</span>
+                <span id="modal-gym-editar-tiempo-title" style="color:#f1f5f9;font-size:15px;font-weight:800;">Editar tiempo</span>
+            </div>
+            <div style="color:#64748b;font-size:12px;line-height:1.5;">Introduce el tiempo en formato mm:ss o minutos</div>
+            <div
+                style="display:flex;align-items:center;justify-content:center;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:10px 14px;">
+                <input type="text" inputmode="numeric" id="modal-gym-editar-tiempo-inp" placeholder="00:00"
+                    onfocus="this.select()" onkeydown="if(event.key==='Enter')document.getElementById('modal-gym-editar-tiempo-btn').click()"
+                    style="background:transparent;border:none;color:#60a5fa;font-size:28px !important;font-weight:900;font-family:Manrope,sans-serif;outline:none;text-align:center;width:100%;min-width:0;box-sizing:border-box;">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button onclick="document.getElementById('modal-gym-editar-tiempo').style.display='none'"
+                    style="padding:13px;border-radius:13px;border:1px solid rgba(71,85,105,0.4);background:transparent;color:#94a3b8;font-size:14px;font-weight:700;cursor:pointer;">Cancelar</button>
+                <button id="modal-gym-editar-tiempo-btn"
+                    style="padding:13px;border-radius:13px;border:1px solid rgba(59,130,246,0.6);background:rgba(59,130,246,0.15);color:#60a5fa;font-size:14px;font-weight:700;cursor:pointer;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalIntervaloTiempo" onclick="if(event.target===this)cerrarModalIntervalo()"
         style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10100;align-items:center;justify-content:center;padding:16px;">
         <div onclick="event.stopPropagation()"

@@ -7342,7 +7342,6 @@
         }
 
         function gymEditarTiempoTotal() {
-            alert('Edit Total Time');
             if (window._gymLongPressFired) { window._gymLongPressFired = false; return; }
             var el = document.getElementById('gym-stat-tiempo');
             if (!el) return;
@@ -7351,19 +7350,16 @@
             var ss = currentSecs % 60;
             var currentStr = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
             
-            var modal = document.getElementById('modal-gym-reposo');
-            var inp = document.getElementById('modal-gym-reposo-inp');
-            if (!modal || !inp) return;
+            var modal = document.getElementById('modal-gym-editar-tiempo');
+            var inp = document.getElementById('modal-gym-editar-tiempo-inp');
+            var title = document.getElementById('modal-gym-editar-tiempo-title');
+            var icon = document.getElementById('modal-gym-editar-tiempo-icon');
+            var confirmBtn = document.getElementById('modal-gym-editar-tiempo-btn');
+            if (!modal || !inp || !title || !icon || !confirmBtn) return;
             
-            // Reusamos el modal de reposo pero configurado para tiempo total
-            var originalTitle = modal.querySelector('span[style*="font-weight:800"]')?.textContent;
-            var originalIcon = modal.querySelector('.material-symbols-rounded')?.textContent;
-            var originalOnclick = modal.querySelector('button[onclick*="gymConfirmarReposo"]')?.getAttribute('onclick');
+            title.textContent = 'Tiempo de sesión';
+            icon.textContent = 'timer';
             
-            modal.querySelector('span[style*="font-weight:800"]').textContent = 'Tiempo de sesión';
-            modal.querySelector('.material-symbols-rounded').textContent = 'timer';
-            
-            var confirmBtn = modal.querySelector('button[onclick*="gymConfirmarReposo"]');
             confirmBtn.onclick = function() {
                 var val = inp.value.trim();
                 var parts = val.split(':');
@@ -7386,23 +7382,9 @@
                     if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(fechaKey);
                 }
                 
-                // Restaurar modal y cerrar
-                restaurarModal();
                 modal.style.display = 'none';
             };
             
-            function restaurarModal() {
-                modal.querySelector('span[style*="font-weight:800"]').textContent = originalTitle;
-                modal.querySelector('.material-symbols-rounded').textContent = originalIcon;
-                confirmBtn.onclick = null;
-                confirmBtn.setAttribute('onclick', originalOnclick);
-            }
-            
-            modal.querySelector('button[onclick*="this.closest"]').addEventListener('click', function _handler() {
-                restaurarModal();
-                this.removeEventListener('click', _handler);
-            }, {once:true});
-
             inp.value = currentStr;
             modal.style.display = 'flex';
             setTimeout(function() { inp.focus(); inp.select(); }, 100);
@@ -7416,18 +7398,16 @@
             var ss = currentSecs % 60;
             var currentStr = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
             
-            var modal = document.getElementById('modal-gym-reposo');
-            var inp = document.getElementById('modal-gym-reposo-inp');
-            if (!modal || !inp) return;
+            var modal = document.getElementById('modal-gym-editar-tiempo');
+            var inp = document.getElementById('modal-gym-editar-tiempo-inp');
+            var title = document.getElementById('modal-gym-editar-tiempo-title');
+            var icon = document.getElementById('modal-gym-editar-tiempo-icon');
+            var confirmBtn = document.getElementById('modal-gym-editar-tiempo-btn');
+            if (!modal || !inp || !title || !icon || !confirmBtn) return;
             
-            var originalTitle = modal.querySelector('span[style*="font-weight:800"]')?.textContent;
-            var originalIcon = modal.querySelector('.material-symbols-rounded')?.textContent;
-            var originalOnclick = modal.querySelector('button[onclick*="gymConfirmarReposo"]')?.getAttribute('onclick');
+            title.textContent = 'Tiempo ejercicio';
+            icon.textContent = 'schedule';
             
-            modal.querySelector('span[style*="font-weight:800"]').textContent = 'Tiempo ejercicio';
-            modal.querySelector('.material-symbols-rounded').textContent = 'schedule';
-            
-            var confirmBtn = modal.querySelector('button[onclick*="gymConfirmarReposo"]');
             confirmBtn.onclick = function() {
                 var val = inp.value.trim();
                 var parts = val.split(':');
@@ -7458,22 +7438,9 @@
                     if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(fechaKey);
                 }
                 
-                restaurarModal();
                 modal.style.display = 'none';
             };
             
-            function restaurarModal() {
-                modal.querySelector('span[style*="font-weight:800"]').textContent = originalTitle;
-                modal.querySelector('.material-symbols-rounded').textContent = originalIcon;
-                confirmBtn.onclick = null;
-                confirmBtn.setAttribute('onclick', originalOnclick);
-            }
-            
-            modal.querySelector('button[onclick*="this.closest"]').addEventListener('click', function _handler() {
-                restaurarModal();
-                this.removeEventListener('click', _handler);
-            }, {once:true});
-
             inp.value = currentStr;
             modal.style.display = 'flex';
             setTimeout(function() { inp.focus(); inp.select(); }, 100);
