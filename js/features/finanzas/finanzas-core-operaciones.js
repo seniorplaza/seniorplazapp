@@ -2635,6 +2635,7 @@
         window._modalGastoCatSeleccionada = null;
         window._modalGastoFrecSeleccionada = 'mensual';
         window._modalGastoSubtag = null;
+        _resetModalSubtags();
         const catNombreReset = document.getElementById('modalGastoCatNombre');
         const catThumbReset = document.getElementById('modalGastoCatThumb');
         if (catNombreReset) { catNombreReset.textContent = 'Sin seleccionar'; catNombreReset.style.color = '#e2e8f0'; }
@@ -2801,6 +2802,7 @@
         const grid = document.getElementById('modalGastoCatGrid');
         if (!grid) return;
         grid.innerHTML = '';
+        if (!window._modalGastoCatSeleccionada) _resetModalSubtags();
         const cats = (window.finanzasData && window.finanzasData.categorias)
             ? window.finanzasData.categorias.filter(c => esBook ? true : c.type === tipo)
             : [];
@@ -2839,11 +2841,22 @@
         });
     }
 
+    function _resetModalSubtags() {
+        const subtagSection = document.getElementById('modalSubtagSection');
+        const subtagGrid = document.getElementById('modalSubtagGrid');
+        if (subtagGrid) subtagGrid.innerHTML = '';
+        if (subtagSection) subtagSection.style.display = 'none';
+    }
+
     function _renderModalSubtags(cat) {
         const subtagSection = document.getElementById('modalSubtagSection');
         const subtagGrid = document.getElementById('modalSubtagGrid');
         if (!subtagSection || !subtagGrid) return;
         const tags = cat.tags || [];
+        if (tags.length === 0) {
+            _resetModalSubtags();
+            return;
+        }
         subtagGrid.innerHTML = '';
         subtagSection.style.display = 'block';
         const ninguna = document.createElement('button');
