@@ -1,4 +1,4 @@
-﻿
+
 window._actState = {
     tipo: null,          // 'habito' | 'tareaRecurrente' | 'tarea'
     subtipo: null,       // para hábito: 'sino' | 'cantidad' | 'lista'
@@ -1696,7 +1696,7 @@ function renderTareasSection() {
         return;
     }
     if (mostrarRecordatorios && recordatorios.length === 0) {
-        container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">notifications_active</span><p style="color:#475569;font-size:14px;margin:0 0 4px 0;">No hay recordatorios en este periodo</p><p style="color:#334155;font-size:12px;margin:0;">Añade una nota rápida para verla aquí</p></div>`;
+        container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">notifications_active</span><p style="color:#475569;font-size:14px;margin:0;">No hay recordatorios en este periodo</p></div>`;
         return;
     }
     if (!mostrarRecurrentes && !mostrarTareas && !mostrarRecordatorios) { container.innerHTML = ''; return; }
