@@ -193,7 +193,7 @@ function _ensureNuevoRecordatorioModal() {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;">
             <div style="display:flex;align-items:center;gap:12px;min-width:0;">
                 <div style="width:44px;height:44px;border-radius:14px;background:rgba(34,211,238,0.12);border:1px solid rgba(34,211,238,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <span class="material-symbols-rounded" style="font-size:22px;color:#22d3ee;">notifications</span>
+                    <span class="material-symbols-rounded" style="font-size:22px;color:#22d3ee;">notifications_active</span>
                 </div>
                 <div>
                     <div style="color:white;font-size:16px;font-weight:800;line-height:1.2;">Nuevo recordatorio</div>
@@ -272,7 +272,7 @@ function guardarNuevoRecordatorio() {
         nota: texto,
         desc: texto,
         completada: false,
-        categoria: { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' },
+        categoria: { icono: 'notifications_active', color: '#22d3ee', nombre: 'Recordatorios' },
         categoriaId: null,
         creadoEn: new Date().toISOString(),
         esRecordatorio: true,
@@ -285,7 +285,7 @@ function guardarNuevoRecordatorio() {
     cerrarNuevoRecordatorio();
     if (typeof renderDiario === 'function') renderDiario();
     if (typeof renderTareasSection === 'function') renderTareasSection();
-    if (typeof _mostrarToast === 'function') _mostrarToast('notifications', '#22d3ee', timerData ? ('Recordatorio añadido: ' + _agendaFormatReminderTimer(timerData.targetAt)) : 'Recordatorio añadido');
+    if (typeof _mostrarToast === 'function') _mostrarToast('notifications_active', '#22d3ee', timerData ? ('Recordatorio añadido: ' + _agendaFormatReminderTimer(timerData.targetAt)) : 'Recordatorio añadido');
 }
 function abrirNuevaTareaDiario()     {
     _mostrarSelectorTipoAgenda(['habito','tareaRecurrente','tarea']);
@@ -1696,7 +1696,7 @@ function renderTareasSection() {
         return;
     }
     if (mostrarRecordatorios && recordatorios.length === 0) {
-        container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">notifications</span><p style="color:#475569;font-size:14px;margin:0 0 4px 0;">No hay recordatorios en este periodo</p><p style="color:#334155;font-size:12px;margin:0;">Añade una nota rápida para verla aquí</p></div>`;
+        container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">notifications_active</span><p style="color:#475569;font-size:14px;margin:0 0 4px 0;">No hay recordatorios en este periodo</p><p style="color:#334155;font-size:12px;margin:0;">Añade una nota rápida para verla aquí</p></div>`;
         return;
     }
     if (!mostrarRecurrentes && !mostrarTareas && !mostrarRecordatorios) { container.innerHTML = ''; return; }
@@ -2066,7 +2066,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
     }
     const completado = esRecordatorio ? false : (tipo === 'tarea' ? (estadoTarea === 'completada') : (registroHoy && registroHoy.completado));
 
-    const catIcono = item.categoria?.icono || (tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':(esRecordatorio?'notifications':'task_alt'));
+    const catIcono = item.categoria?.icono || (tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':(esRecordatorio?'notifications_active':'task_alt'));
     const catColor = item.categoria?.color || c;
     const _allCatsD = (window.finanzasData?.categorias||[]);
     const _catFullD = item.categoriaId ? _allCatsD.find(c => c.id === item.categoriaId)
