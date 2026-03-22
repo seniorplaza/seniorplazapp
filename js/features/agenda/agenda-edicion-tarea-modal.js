@@ -1,4 +1,4 @@
-﻿
+
 window._editTareaId   = null;
 window._editTareaTipo = null;
 window._editTareaFrecSel  = 'todos_dias';
@@ -185,7 +185,7 @@ function abrirEditarTarea(id, tipo) {
     if (subitemsWrap) subitemsWrap.style.display = esRecordatorio ? 'none' : 'block';
     if (recordatoriosWrap) recordatoriosWrap.style.display = esRecordatorio ? 'none' : 'block';
     if (recordatorioTimerWrap) recordatorioTimerWrap.style.display = esRecordatorio ? 'block' : 'none';
-    document.getElementById('editTareaFechaWrap').style.display = esRecurrente || esRecordatorio ? 'none' : 'block';
+    document.getElementById('editTareaFechaWrap').style.display = esRecordatorio ? 'none' : 'block';
     if (esRecordatorio) {
         const recList = document.getElementById('editTareaRecList');
         if (recList) recList.innerHTML = '';
@@ -196,7 +196,7 @@ function abrirEditarTarea(id, tipo) {
         window._editRecordatorioTimerTargetAt = futureMinutes > 0 && targetDate ? targetDate.toISOString() : '';
         _renderEditRecordatorioTimerUI();
     }
-    if (!esRecurrente) {
+    if (!esRecordatorio) {
         document.getElementById('editTareaFecha').value = item.fecha || '';
         const fmt = item.fecha ? new Date(item.fecha + 'T00:00:00').toLocaleDateString('es-ES', {day:'numeric',month:'short',year:'numeric'}) : 'Sin fecha';
         document.getElementById('editTareaFechaDisp').textContent = fmt;
@@ -333,10 +333,12 @@ function guardarEditarTarea() {
     }
     if (!item.esRecordatorio && window._editTareaEtiqueta !== undefined) item.etiqueta = window._editTareaEtiqueta;
 
-    if (tipo === 'tarea' && !item.esRecordatorio) {
+    if (!item.esRecordatorio) {
         const fechaVal = document.getElementById('editTareaFecha').value;
         if (fechaVal) item.fecha = fechaVal;
-    } else if (tipo === 'tareaRecurrente') {
+    }
+
+    if (tipo === 'tareaRecurrente') {
         item.frecuencia = window._editTareaFrecSel;
         item.diasSemana = window._editTareaFrecSel === 'dias_semana' ? [...window._editTareaDiasSel] : [];
         item.cadaXDias = window._editTareaFrecSel === 'cada_x_dias' ? Math.max(2, Number(window._editTareaCadaXDias) || 2) : null;

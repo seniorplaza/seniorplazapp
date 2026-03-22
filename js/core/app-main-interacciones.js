@@ -1,4 +1,4 @@
-﻿
+
         function toggleMobileMenu(event) {
             if (event) {
                 event.stopPropagation();
@@ -1771,24 +1771,64 @@
 
         function _mostrarToast(icono, color, texto) {
             const t = document.createElement('div');
+            t.className = 'app-toast';
             t.style.cssText = `position:fixed;bottom:${_toastBottomOffsetPx()}px;left:50%;transform:translateX(-50%) translateY(60px);
                 background:#0f172a;border:1px solid ${color}66;border-radius:14px;
                 padding:12px 20px;display:flex;align-items:center;gap:10px;
                 color:#f1f5f9;font-size:14px;font-weight:600;z-index:99999;
                 box-shadow:0 8px 30px rgba(0,0,0,0.4);white-space:nowrap;max-width:min(calc(100vw - 32px), 420px);
-                opacity:0;transition:opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);`;
+                opacity:0;transition:opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+                touch-action:none;user-select:none;`;
             t.innerHTML = `<span class="material-symbols-rounded" style="color:${color};font-size:20px;">${icono}</span>${texto}`;
             document.body.appendChild(t);
+
+            let startX = 0, currentX = 0, isDragging = false;
+            let autoHideTimeout = setTimeout(() => { _cerrar(); }, 3200);
+
+            function _cerrar(swipeDir = 0) {
+                if (t._closed) return; t._closed = true;
+                clearTimeout(autoHideTimeout);
+                t.style.transition = 'all 0.3s ease';
+                t.style.opacity = '0';
+                if (swipeDir !== 0) {
+                    t.style.transform = `translateX(${-50 + (swipeDir * 100)}%) translateY(0)`;
+                } else {
+                    t.style.transform = 'translateX(-50%) translateY(60px)';
+                }
+                setTimeout(() => t.remove(), 300);
+            }
+
+            t.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                isDragging = true;
+                t.style.transition = 'none';
+            });
+
+            t.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentX = e.touches[0].clientX - startX;
+                const rotation = currentX * 0.1;
+                t.style.transform = `translateX(calc(-50% + ${currentX}px)) translateY(0) rotate(${rotation}deg)`;
+                t.style.opacity = 1 - Math.abs(currentX) / 240;
+            });
+
+            t.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                if (Math.abs(currentX) > 60) {
+                    _cerrar(currentX > 0 ? 1 : -1);
+                } else {
+                    t.style.transition = 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+                    t.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+                    t.style.opacity = '1';
+                }
+                currentX = 0;
+            });
+
             requestAnimationFrame(() => requestAnimationFrame(() => {
                 t.style.opacity = '1';
                 t.style.transform = 'translateX(-50%) translateY(0)';
             }));
-            setTimeout(() => {
-                t.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                t.style.opacity = '0';
-                t.style.transform = 'translateX(-50%) translateY(60px)';
-                setTimeout(() => t.remove(), 300);
-            }, 3200);
         }
         window._mostrarToast = _mostrarToast;
 
