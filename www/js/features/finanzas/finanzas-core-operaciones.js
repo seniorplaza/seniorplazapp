@@ -3381,7 +3381,6 @@
         if (typeof gymCargarStatsParaIntervalo === 'function') gymCargarStatsParaIntervalo();
     }
     function _gymActualizarBtnAnadir(filtro, offset) {
-        if (typeof _GYM_ALLOW_ADD_HISTORIAL === 'undefined' || _GYM_ALLOW_ADD_HISTORIAL) return;
         var btn = document.querySelector('#gym-botones-edicion button[onclick="abrirNuevoEjercicio()"]');
         if (!btn) return;
         btn.style.opacity = '';
