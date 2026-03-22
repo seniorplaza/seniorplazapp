@@ -7,8 +7,9 @@
                 let visor360Initialized = false;
                 let gyroEnabled360 = false;
                 let gyroPermissionRequested360 = false;
-                let gyroBaseBeta360 = null, gyroBaseGamma360 = null;
+                let gyroBaseAlpha360 = null, gyroBaseBeta360 = null, gyroBaseGamma360 = null;
                 let gyroAnchorLon360 = 0, gyroAnchorLat360 = 0;
+                let gyroTargetLon360 = 0, gyroTargetLat360 = 0;
                 let immersiveFallback360 = false;
                 window.rooms360 = [{ texture: null, textureData: null, name: 'Sin foto', lon: 0, lat: 0 }];
                 window.currentRoomIndex = 0;
@@ -26,10 +27,33 @@
                 }
 
                 function resetGyro360() {
+                    gyroBaseAlpha360 = null;
                     gyroBaseBeta360 = null;
                     gyroBaseGamma360 = null;
                     gyroAnchorLon360 = lon360;
                     gyroAnchorLat360 = lat360;
+                    gyroTargetLon360 = lon360;
+                    gyroTargetLat360 = lat360;
+                }
+
+                function shortestAngleDelta360(current, base) {
+                    let delta = current - base;
+                    while (delta > 180) delta -= 360;
+                    while (delta < -180) delta += 360;
+                    return delta;
+                }
+
+                function applyGyroDeadZone360(delta, deadZone) {
+                    return Math.abs(delta) < deadZone ? 0 : delta;
+                }
+
+                function getScreenAngle360() {
+                    const rawAngle = (screen.orientation && typeof screen.orientation.angle === 'number')
+                        ? screen.orientation.angle
+                        : (typeof window.orientation === 'number' ? window.orientation : 0);
+                    let angle = rawAngle % 360;
+                    if (angle < 0) angle += 360;
+                    return angle;
                 }
 
                 function syncImmersive360State(forceActive) {
@@ -68,20 +92,36 @@
 
                 function onDeviceOrientation360(event) {
                     if (!gyroEnabled360 || !isFullscreen360() || isUserInteracting360) return;
-                    if (typeof event.beta !== 'number' || typeof event.gamma !== 'number') return;
-                    if (gyroBaseBeta360 === null || gyroBaseGamma360 === null) {
-                        gyroBaseBeta360 = event.beta;
-                        gyroBaseGamma360 = event.gamma;
+                    if (typeof event.alpha !== 'number' || typeof event.beta !== 'number' || typeof event.gamma !== 'number') return;
+                    const screenAngle = getScreenAngle360();
+                    let horizontalRaw = event.gamma;
+                    let verticalRaw = event.beta;
+
+                    if (screenAngle === 90) {
+                        horizontalRaw = -event.beta;
+                        verticalRaw = event.gamma;
+                    } else if (screenAngle === 270) {
+                        horizontalRaw = event.beta;
+                        verticalRaw = -event.gamma;
+                    } else if (screenAngle === 180) {
+                        horizontalRaw = -event.gamma;
+                        verticalRaw = -event.beta;
+                    }
+
+                    if (gyroBaseAlpha360 === null || gyroBaseBeta360 === null || gyroBaseGamma360 === null) {
+                        gyroBaseAlpha360 = event.alpha;
+                        gyroBaseBeta360 = verticalRaw;
+                        gyroBaseGamma360 = horizontalRaw;
                         gyroAnchorLon360 = lon360;
                         gyroAnchorLat360 = lat360;
+                        gyroTargetLon360 = lon360;
+                        gyroTargetLat360 = lat360;
                         return;
                     }
-                    const deltaGamma = Math.max(-45, Math.min(45, event.gamma - gyroBaseGamma360));
-                    const deltaBeta = Math.max(-45, Math.min(45, event.beta - gyroBaseBeta360));
-                    const targetLon = gyroAnchorLon360 + deltaGamma * 1.6;
-                    const targetLat = gyroAnchorLat360 - deltaBeta * 1.1;
-                    lon360 += (targetLon - lon360) * 0.16;
-                    lat360 += (targetLat - lat360) * 0.16;
+                    const deltaAlpha = applyGyroDeadZone360(Math.max(-50, Math.min(50, horizontalRaw - gyroBaseGamma360)), 0.9);
+                    const deltaBeta = applyGyroDeadZone360(Math.max(-55, Math.min(55, verticalRaw - gyroBaseBeta360)), 0.8);
+                    gyroTargetLon360 = gyroAnchorLon360 - deltaAlpha * 1.45;
+                    gyroTargetLat360 = gyroAnchorLat360 - deltaBeta * 0.85;
                 }
 
                 async function enterNativeFullscreen360() {
@@ -530,6 +570,9 @@
                     if (canvas) {
                         canvas.style.cursor = 'grab';
                     }
+                    if (gyroEnabled360 && isFullscreen360()) {
+                        resetGyro360();
+                    }
                 }
 
                 function onDocumentMouseWheel360(event) {
@@ -586,6 +629,11 @@
 
                 function update360() {
                     if (!camera360 || !renderer360 || !scene360) return;
+
+                    if (gyroEnabled360 && isFullscreen360() && !isUserInteracting360) {
+                        lon360 += (gyroTargetLon360 - lon360) * 0.12;
+                        lat360 += (gyroTargetLat360 - lat360) * 0.12;
+                    }
                     
                     lat360 = Math.max(-85, Math.min(85, lat360));
                     phi360 = THREE.MathUtils.degToRad(90 - lat360);

@@ -288,7 +288,7 @@ function guardarEditarTarea() {
         delete item.subitems;
         delete item.categoriaId;
         delete item.etiqueta;
-        item.categoria = { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' };
+        item.categoria = { icono: 'notifications_active', color: '#22d3ee', nombre: 'Recordatorios' };
         if (window._editRecordatorioTimerTargetAt) {
             var timerData = _editRecordatorioBuildData(window._editRecordatorioTimerMinutes || 1);
             if (timerData) {
