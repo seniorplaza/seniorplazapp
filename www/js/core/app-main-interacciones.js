@@ -9357,7 +9357,7 @@
             return _gymNormalizarMetricasCardio({ top: top, bottom: bottom });
         }
 
-        var _GYM_ALLOW_ADD_HISTORIAL = false;
+        var _GYM_ALLOW_ADD_HISTORIAL = true;
 
         var _overlayNuevoEjercicio = null;
         function abrirNuevoEjercicio() {

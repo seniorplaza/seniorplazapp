@@ -3384,10 +3384,9 @@
         if (typeof _GYM_ALLOW_ADD_HISTORIAL === 'undefined' || _GYM_ALLOW_ADD_HISTORIAL) return;
         var btn = document.querySelector('#gym-botones-edicion button[onclick="abrirNuevoEjercicio()"]');
         if (!btn) return;
-        var esHistorico = (filtro === 'dia' && offset < 0);
-        btn.style.opacity = esHistorico ? '0.3' : '';
-        btn.style.pointerEvents = esHistorico ? 'none' : '';
-        btn.title = esHistorico ? 'No se puede añadir en días anteriores' : '';
+        btn.style.opacity = '';
+        btn.style.pointerEvents = '';
+        btn.title = '';
     }
     function diarioNavIntervalo(dir) {
         const el = document.getElementById('diario-intervalo-label');
