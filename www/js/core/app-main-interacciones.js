@@ -7030,6 +7030,8 @@
                 if (checkBtn) { checkBtn.style.position = 'relative'; checkBtn.style.zIndex = '20'; }
                 if (menuBtn) { menuBtn.style.position = 'relative'; menuBtn.style.zIndex = '20'; }
                 if (dragHandle) { dragHandle.style.position = 'relative'; dragHandle.style.zIndex = '20'; }
+                var timeBadge = card.querySelector('.gym-card-time-badge');
+                if (timeBadge) { timeBadge.style.position = 'relative'; timeBadge.style.zIndex = '20'; }
             } else {
                 if (body) body.style.opacity = '';
                 if (checkBtn) { checkBtn.style.position = ''; checkBtn.style.zIndex = ''; }
@@ -7337,6 +7339,144 @@
             document.querySelectorAll('.gym-timer-btn').forEach(function(b){ b.dataset.prevUploaded = '0'; });
             gymRecalcularCalorias();
             gymGuardarSesionHoy();
+        }
+
+        function gymEditarTiempoTotal() {
+            alert('Edit Total Time');
+            if (window._gymLongPressFired) { window._gymLongPressFired = false; return; }
+            var el = document.getElementById('gym-stat-tiempo');
+            if (!el) return;
+            var currentSecs = parseInt(el.dataset.totalSecs || 0);
+            var mm = Math.floor(currentSecs / 60);
+            var ss = currentSecs % 60;
+            var currentStr = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+            
+            var modal = document.getElementById('modal-gym-reposo');
+            var inp = document.getElementById('modal-gym-reposo-inp');
+            if (!modal || !inp) return;
+            
+            // Reusamos el modal de reposo pero configurado para tiempo total
+            var originalTitle = modal.querySelector('span[style*="font-weight:800"]')?.textContent;
+            var originalIcon = modal.querySelector('.material-symbols-rounded')?.textContent;
+            var originalOnclick = modal.querySelector('button[onclick*="gymConfirmarReposo"]')?.getAttribute('onclick');
+            
+            modal.querySelector('span[style*="font-weight:800"]').textContent = 'Tiempo de sesión';
+            modal.querySelector('.material-symbols-rounded').textContent = 'timer';
+            
+            var confirmBtn = modal.querySelector('button[onclick*="gymConfirmarReposo"]');
+            confirmBtn.onclick = function() {
+                var val = inp.value.trim();
+                var parts = val.split(':');
+                var total = 0;
+                if (parts.length === 2) {
+                    total = (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+                } else {
+                    total = (parseInt(val) || 0) * 60;
+                }
+                el.dataset.totalSecs = total;
+                el.textContent = _gymSecsToLabel(total);
+                
+                // Guardar
+                var elInt = document.getElementById('gym-intervalo-label');
+                var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
+                var fechaKey = _gymFechaKey(offset);
+                if (offset === 0) {
+                    gymGuardarSesionHoy();
+                } else {
+                    if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(fechaKey);
+                }
+                
+                // Restaurar modal y cerrar
+                restaurarModal();
+                modal.style.display = 'none';
+            };
+            
+            function restaurarModal() {
+                modal.querySelector('span[style*="font-weight:800"]').textContent = originalTitle;
+                modal.querySelector('.material-symbols-rounded').textContent = originalIcon;
+                confirmBtn.onclick = null;
+                confirmBtn.setAttribute('onclick', originalOnclick);
+            }
+            
+            modal.querySelector('button[onclick*="this.closest"]').addEventListener('click', function _handler() {
+                restaurarModal();
+                this.removeEventListener('click', _handler);
+            }, {once:true});
+
+            inp.value = currentStr;
+            modal.style.display = 'flex';
+            setTimeout(function() { inp.focus(); inp.select(); }, 100);
+        }
+
+        function gymEditarTiempoCard(badgeEl) {
+            var card = badgeEl.closest('.gym-card');
+            if (!card) return;
+            var currentSecs = parseInt(badgeEl.dataset.totalSecs || 0);
+            var mm = Math.floor(currentSecs / 60);
+            var ss = currentSecs % 60;
+            var currentStr = String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+            
+            var modal = document.getElementById('modal-gym-reposo');
+            var inp = document.getElementById('modal-gym-reposo-inp');
+            if (!modal || !inp) return;
+            
+            var originalTitle = modal.querySelector('span[style*="font-weight:800"]')?.textContent;
+            var originalIcon = modal.querySelector('.material-symbols-rounded')?.textContent;
+            var originalOnclick = modal.querySelector('button[onclick*="gymConfirmarReposo"]')?.getAttribute('onclick');
+            
+            modal.querySelector('span[style*="font-weight:800"]').textContent = 'Tiempo ejercicio';
+            modal.querySelector('.material-symbols-rounded').textContent = 'schedule';
+            
+            var confirmBtn = modal.querySelector('button[onclick*="gymConfirmarReposo"]');
+            confirmBtn.onclick = function() {
+                var val = inp.value.trim();
+                var parts = val.split(':');
+                var total = 0;
+                if (parts.length === 2) {
+                    total = (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
+                } else {
+                    total = (parseInt(val) || 0) * 60;
+                }
+                badgeEl.dataset.totalSecs = total;
+                var label = badgeEl.querySelector('.gym-card-time-label');
+                if (label) label.textContent = _gymSecsToLabel(total);
+                if (total > 0) {
+                    badgeEl.style.display = 'flex';
+                    badgeEl.removeAttribute('data-hidden');
+                } else {
+                    badgeEl.style.display = 'none';
+                    badgeEl.setAttribute('data-hidden', '1');
+                }
+                
+                // Guardar
+                var elInt = document.getElementById('gym-intervalo-label');
+                var offset = elInt ? parseInt(elInt.dataset.offset || 0) : 0;
+                var fechaKey = _gymFechaKey(offset);
+                if (offset === 0) {
+                    gymGuardarSesionHoy();
+                } else {
+                    if (typeof gymGuardarSesionDia === 'function') gymGuardarSesionDia(fechaKey);
+                }
+                
+                restaurarModal();
+                modal.style.display = 'none';
+            };
+            
+            function restaurarModal() {
+                modal.querySelector('span[style*="font-weight:800"]').textContent = originalTitle;
+                modal.querySelector('.material-symbols-rounded').textContent = originalIcon;
+                confirmBtn.onclick = null;
+                confirmBtn.setAttribute('onclick', originalOnclick);
+            }
+            
+            modal.querySelector('button[onclick*="this.closest"]').addEventListener('click', function _handler() {
+                restaurarModal();
+                this.removeEventListener('click', _handler);
+            }, {once:true});
+
+            inp.value = currentStr;
+            modal.style.display = 'flex';
+            setTimeout(function() { inp.focus(); inp.select(); }, 100);
         }
         function gymEditarReposo() {
             if (window._gymLongPressFired) { window._gymLongPressFired = false; return; }
@@ -9584,7 +9724,7 @@
          + '</div>'
          + '<div class="gym-col-kg" style="flex-shrink:0;width:150px;height:150px;display:flex;flex-direction:column;gap:6px;">'
          + '<div style="flex:1;border:1px solid rgba(234,179,8,0.4);' + cellKG + '"><span class="gym-stat-lbl" style="' + lblS + '">KG</span><input type="number" inputmode="decimal" step="0.5" value="' + kg + '" class="gym-card-kg gym-stat-inp gym-stat-kg" ' + focusBlur + ' style="color:#eab308;font-size:25px;font-weight:900;width:auto;background:transparent;border:none;font-family:Manrope,sans-serif;outline:none;padding:0;line-height:1;text-align:center;"></div>'
-         + '<div class="gym-card-time-badge" style="display:none;align-items:center;justify-content:center;gap:4px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);border-radius:9px;padding:8px 6px;flex-shrink:0;transition:background 0.2s;touch-action:none;user-select:none;" data-hidden="1">'
+         + '<div class="gym-card-time-badge" onclick="gymEditarTiempoCard(this)" style="display:none;align-items:center;justify-content:center;gap:4px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.35);border-radius:9px;padding:8px 6px;flex-shrink:0;transition:background 0.2s;touch-action:none;user-select:none;" data-hidden="1">'
          + '<span class="material-symbols-rounded" style="font-size:14px;color:#60a5fa;line-height:1;display:flex;align-items:center;">schedule</span>'
          // --- CAMBIO AQUÍ ---
          + '<span class="gym-card-time-label" style="color:#93c5fd;font-size:11px;font-weight:800;font-family:Manrope,sans-serif;font-variant-numeric:tabular-nums;line-height:1;display:flex;align-items:center;">' + tiempoDisplay + '</span>'
