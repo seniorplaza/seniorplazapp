@@ -2610,18 +2610,25 @@
             /* MENÚ DESPLEGABLE MÓVIL - OVERLAY COMPLETO */
             .mobile-dropdown {
                 position: fixed !important;
-                top: 70px !important;
+                top: calc(85px + env(safe-area-inset-top, 0px)) !important;
                 bottom: auto !important;
-                right: 1rem !important;
+                right: 12px !important;
                 left: auto !important;
                 margin: 0 !important;
                 background: rgba(15, 23, 42, 0.98);
-                border: 1px solid rgba(59, 130, 246, 0.3);
-                border-radius: 1rem;
-                padding: 0.5rem;
-                min-width: 200px;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-                z-index: 10002 !important;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 1.25rem;
+                padding: 0.5rem 0;
+                min-width: 220px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+                z-index: 100002 !important;
+                transform-origin: top right;
+                animation: dropdownScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            @keyframes dropdownScaleIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to   { opacity: 1; transform: scale(1); }
             }
             
             /* Backdrop del menú */
@@ -4132,15 +4139,18 @@
         .mobile-header {
             display: none;
             position: fixed;
-            top: 0; /* Fondo cubre desde arriba del todo */
+            top: 0;
             left: 0;
             right: 0;
-            z-index: 200;
-            background: rgba(15, 23, 42, 0.95);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            z-index: 10001;
+            background: rgba(10, 15, 30, 0.75) !important;
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding: 1rem;
-            padding-top: calc(0.5rem + env(safe-area-inset-top, 0px)); /* Contenido debajo de la status bar */
-            min-height: calc(80px + env(safe-area-inset-top, 0px));
+            padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+            min-height: calc(85px + env(safe-area-inset-top, 0px));
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
         
         /* Mostrar mobile-header en móvil real */
@@ -4160,14 +4170,24 @@
                 top: calc(94px + env(safe-area-inset-top, 0px)) !important;
                 left: 16px !important;
                 right: 16px !important;
-                z-index: 90 !important;
+                z-index: 100 !important;
+                background: rgba(255, 255, 255, 0.08) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
             }
             #filtros-bar-nutri {
                 position: fixed !important;
                 top: calc(94px + env(safe-area-inset-top, 0px)) !important;
                 left: 16px !important;
                 right: 16px !important;
-                z-index: 90 !important;
+                z-index: 100 !important;
+                background: rgba(255, 255, 255, 0.08) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
             }
             
             /* Espacio justo bajo la barra fija, sin empujar el contenido demasiado */
