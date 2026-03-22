@@ -36,16 +36,16 @@
                     pointer-events: auto !important;
                 }
                 
-                /* En móvil, hacer que el visor ocupe toda la pantalla menos header y navbar */
+                /* En móvil, hacer que el visor quede justo bajo el header y por encima del nav */
                 @media (max-width: 768px) {
                     #visor-main-container {
-                        height: calc(100vh - 80px - 94px) !important; /* 80px header + 94px navbar (70px + 24px margin) */
+                        height: calc(100dvh - 80px - env(safe-area-inset-top, 0px) - 94px) !important;
                         border-radius: 0 !important;
                         border: none !important;
                         margin: 0 !important;
                         width: 100vw !important;
                         position: fixed !important;
-                        top: 80px !important;
+                        top: calc(80px + env(safe-area-inset-top, 0px)) !important;
                         left: 0 !important;
                         right: 0 !important;
                     }
@@ -54,10 +54,39 @@
                         padding: 0 !important;
                         margin: 0 !important;
                     }
+
+                    .ui-overlay360 {
+                        top: 8px !important;
+                        left: 12px !important;
+                        right: 12px !important;
+                    }
                     
                     /* Quitar border-radius del canvas en móvil */
                     #canvas-container-360 canvas {
                         border-radius: 0 !important;
+                    }
+
+                    body.visor360-immersive .mobile-header,
+                    body.visor360-immersive #mobileBottomNav {
+                        display: none !important;
+                    }
+
+                    body.visor360-immersive #visor-main-container,
+                    #visor-main-container.visor360-faux-fullscreen {
+                        top: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        bottom: 0 !important;
+                        width: 100vw !important;
+                        height: 100dvh !important;
+                        z-index: 10060 !important;
+                    }
+
+                    body.visor360-immersive .ui-overlay360,
+                    #visor-main-container.visor360-faux-fullscreen .ui-overlay360 {
+                        top: calc(12px + env(safe-area-inset-top, 0px)) !important;
+                        left: 12px !important;
+                        right: 12px !important;
                     }
                 }
 

@@ -174,6 +174,8 @@ function abrirEditarTarea(id, tipo) {
     if (recordatorioTimerWrap) recordatorioTimerWrap.style.display = esRecordatorio ? 'block' : 'none';
     document.getElementById('editTareaFechaWrap').style.display = esRecurrente || esRecordatorio ? 'none' : 'block';
     if (esRecordatorio) {
+        const recList = document.getElementById('editTareaRecList');
+        if (recList) recList.innerHTML = '';
         var targetAt = item.timerTargetAt || ((item.fecha && item.hora) ? (item.fecha + 'T' + item.hora + ':00') : '');
         var targetDate = targetAt ? new Date(targetAt) : null;
         var futureMinutes = targetDate && !isNaN(targetDate.getTime()) ? Math.max(1, Math.ceil((targetDate.getTime() - Date.now()) / 60000)) : 0;
