@@ -88,6 +88,101 @@ function abrirNuevaEntradaTareasActiva() {
     }
     abrirNuevaTarea();
 }
+
+function _agendaPad2(v) {
+    return String(v).padStart(2, '0');
+}
+
+function _agendaDateToLocalYMD(date) {
+    return date.getFullYear() + '-' + _agendaPad2(date.getMonth() + 1) + '-' + _agendaPad2(date.getDate());
+}
+
+function _agendaBuildReminderTimerData(totalMinutes) {
+    var mins = Math.max(1, parseInt(totalMinutes, 10) || 0);
+    if (!mins) return null;
+    var target = new Date(Date.now() + mins * 60000);
+    return {
+        minutes: mins,
+        targetAt: target.toISOString(),
+        fecha: _agendaDateToLocalYMD(target),
+        hora: _agendaPad2(target.getHours()) + ':' + _agendaPad2(target.getMinutes())
+    };
+}
+
+function _agendaGetReminderTargetAt(item) {
+    if (!item) return null;
+    if (item.timerTargetAt) {
+        var direct = new Date(item.timerTargetAt);
+        if (!isNaN(direct.getTime())) return direct;
+    }
+    if (item.fecha && item.hora) {
+        var combined = new Date(item.fecha + 'T' + item.hora + ':00');
+        if (!isNaN(combined.getTime())) return combined;
+    }
+    return null;
+}
+
+function _agendaFormatReminderTimer(targetAt) {
+    var target = targetAt instanceof Date ? targetAt : new Date(targetAt);
+    if (isNaN(target.getTime())) return '';
+    var diffMs = target.getTime() - Date.now();
+    if (diffMs <= 0) return 'Vencido';
+    var totalMinutes = Math.ceil(diffMs / 60000);
+    if (totalMinutes < 60) return 'En ' + totalMinutes + ' min';
+    if (totalMinutes < 1440) {
+        var hours = Math.floor(totalMinutes / 60);
+        var mins = totalMinutes % 60;
+        return 'En ' + hours + ' h' + (mins ? ' ' + mins + ' min' : '');
+    }
+    var days = Math.floor(totalMinutes / 1440);
+    var remHours = Math.round((totalMinutes % 1440) / 60);
+    return 'En ' + days + ' d' + (remHours ? ' ' + remHours + ' h' : '');
+}
+
+function _nuevoRecordatorioActualizarTimerUI() {
+    var modal = document.getElementById('_nuevoRecordatorioModal');
+    if (!modal) return;
+    var chips = modal.querySelectorAll('[data-recordatorio-timer-chip]');
+    chips.forEach(function (chip) {
+        var mins = parseInt(chip.getAttribute('data-mins') || '0', 10);
+        var active = mins === (window._nuevoRecordatorioTimerMinutes || 0);
+        chip.style.borderColor = active ? 'rgba(34,211,238,0.7)' : 'rgba(71,85,105,0.45)';
+        chip.style.background = active ? 'rgba(34,211,238,0.14)' : 'rgba(15,23,42,0.72)';
+        chip.style.color = active ? '#67e8f9' : '#94a3b8';
+        chip.style.boxShadow = active ? '0 0 0 3px rgba(34,211,238,0.12)' : 'none';
+    });
+    var summary = modal.querySelector('#_nuevoRecordatorioTimerSummary');
+    if (summary) {
+        if (window._nuevoRecordatorioTimerMinutes) {
+            var data = _agendaBuildReminderTimerData(window._nuevoRecordatorioTimerMinutes);
+            summary.textContent = 'Avisará ' + _agendaFormatReminderTimer(data.targetAt) + ' (' + data.fecha.split('-').reverse().join('/') + ' ' + data.hora + ')';
+            summary.style.color = '#67e8f9';
+        } else {
+            summary.textContent = 'Sin timer';
+            summary.style.color = '#64748b';
+        }
+    }
+}
+
+function nuevoRecordatorioSetTimer(minutes) {
+    window._nuevoRecordatorioTimerMinutes = Math.max(1, parseInt(minutes, 10) || 0) || null;
+    _nuevoRecordatorioActualizarTimerUI();
+}
+
+function nuevoRecordatorioAplicarTimerCustom() {
+    var input = document.getElementById('_nuevoRecordatorioTimerCustom');
+    var mins = input ? Math.max(1, parseInt(input.value, 10) || 0) : 0;
+    if (!mins) return;
+    window._nuevoRecordatorioTimerMinutes = mins;
+    if (input) input.value = '';
+    _nuevoRecordatorioActualizarTimerUI();
+}
+
+function nuevoRecordatorioClearTimer() {
+    window._nuevoRecordatorioTimerMinutes = null;
+    _nuevoRecordatorioActualizarTimerUI();
+}
+
 function _ensureNuevoRecordatorioModal() {
     let modal = document.getElementById('_nuevoRecordatorioModal');
     if (modal) return modal;
@@ -102,13 +197,28 @@ function _ensureNuevoRecordatorioModal() {
                 </div>
                 <div>
                     <div style="color:white;font-size:16px;font-weight:800;line-height:1.2;">Nuevo recordatorio</div>
-                    <div style="color:#64748b;font-size:12px;margin-top:3px;">Solo titulo y nota para este recordatorio</div>
+                    <div style="color:#64748b;font-size:12px;margin-top:3px;">Nota rápida con timer opcional y aviso local</div>
                 </div>
             </div>
             <button onclick="cerrarNuevoRecordatorio()" style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;">close</span></button>
         </div>
         <input id="_nuevoRecordatorioTitulo" type="text" rows="1" maxlength="80" placeholder="Titulo del recordatorio" style="width:100%;background:#0f172a;border:1px solid rgba(34,211,238,0.16);border-radius:16px;color:#f1f5f9;font-size:14px;line-height:1.2;padding:14px 16px;outline:none;box-sizing:border-box;margin-bottom:10px;">
         <textarea id="_nuevoRecordatorioTexto" rows="5" maxlength="280" placeholder="Ej: Comprar pilas para el mando" style="width:100%;background:#0f172a;border:1px solid rgba(34,211,238,0.16);border-radius:16px;color:#f1f5f9;font-size:14px;line-height:1.45;padding:14px 16px;outline:none;box-sizing:border-box;resize:none;"></textarea>
+        <div style="margin-top:14px;padding:14px;border-radius:18px;background:rgba(8,47,73,0.28);border:1px solid rgba(34,211,238,0.16);">
+            <div style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">Timer del recordatorio</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                <button type="button" data-recordatorio-timer-chip="1" data-mins="10" onclick="nuevoRecordatorioSetTimer(10)" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(71,85,105,0.45);background:rgba(15,23,42,0.72);color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;">10 min</button>
+                <button type="button" data-recordatorio-timer-chip="1" data-mins="30" onclick="nuevoRecordatorioSetTimer(30)" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(71,85,105,0.45);background:rgba(15,23,42,0.72);color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;">30 min</button>
+                <button type="button" data-recordatorio-timer-chip="1" data-mins="60" onclick="nuevoRecordatorioSetTimer(60)" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(71,85,105,0.45);background:rgba(15,23,42,0.72);color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;">1 hora</button>
+                <button type="button" data-recordatorio-timer-chip="1" data-mins="120" onclick="nuevoRecordatorioSetTimer(120)" style="height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(71,85,105,0.45);background:rgba(15,23,42,0.72);color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;">2 horas</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input id="_nuevoRecordatorioTimerCustom" type="number" min="1" max="10080" placeholder="Minutos" style="flex:1;background:#0f172a;border:1px solid rgba(34,211,238,0.16);border-radius:12px;color:#f1f5f9;font-size:13px;font-weight:600;padding:10px 12px;outline:none;box-sizing:border-box;">
+                <button type="button" onclick="nuevoRecordatorioAplicarTimerCustom()" style="height:38px;padding:0 14px;border-radius:12px;background:rgba(34,211,238,0.14);border:1px solid rgba(34,211,238,0.28);color:#67e8f9;font-size:12px;font-weight:800;cursor:pointer;">Aplicar</button>
+                <button type="button" onclick="nuevoRecordatorioClearTimer()" style="height:38px;padding:0 12px;border-radius:12px;background:transparent;border:1px solid rgba(71,85,105,0.45);color:#94a3b8;font-size:12px;font-weight:700;cursor:pointer;">Quitar</button>
+            </div>
+            <div id="_nuevoRecordatorioTimerSummary" style="margin-top:10px;color:#64748b;font-size:12px;font-weight:700;">Sin timer</div>
+        </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;">
             <span style="color:#475569;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Visible siempre en recordatorios</span>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -126,6 +236,8 @@ function abrirNuevoRecordatorio() {
     const textarea = modal.querySelector('#_nuevoRecordatorioTexto');
     if (inputTitulo) inputTitulo.value = '';
     if (textarea) textarea.value = '';
+    window._nuevoRecordatorioTimerMinutes = null;
+    _nuevoRecordatorioActualizarTimerUI();
     modal.style.display = 'flex';
     setTimeout(function() {
         if (inputTitulo) inputTitulo.focus();
@@ -140,6 +252,7 @@ function guardarNuevoRecordatorio() {
     const textarea = document.getElementById('_nuevoRecordatorioTexto');
     const titulo = inputTitulo ? inputTitulo.value.trim() : '';
     const texto = textarea ? textarea.value.trim() : '';
+    const timerData = window._nuevoRecordatorioTimerMinutes ? _agendaBuildReminderTimerData(window._nuevoRecordatorioTimerMinutes) : null;
     if (!titulo || !texto) {
         const objetivo = !titulo ? inputTitulo : textarea;
         if (objetivo) {
@@ -154,22 +267,25 @@ function guardarNuevoRecordatorio() {
     const recordatorio = {
         id: 'recordatorio_' + Date.now(),
         nombre: titulo,
-        fecha: '',
-        hora: '',
+        fecha: timerData ? timerData.fecha : '',
+        hora: timerData ? timerData.hora : '',
         nota: texto,
         desc: texto,
         completada: false,
         categoria: { icono: 'notifications', color: '#22d3ee', nombre: 'Recordatorios' },
         categoriaId: null,
         creadoEn: new Date().toISOString(),
-        esRecordatorio: true
+        esRecordatorio: true,
+        recordatorios: timerData ? [timerData.hora] : [],
+        timerTargetAt: timerData ? timerData.targetAt : '',
+        timerMinutes: timerData ? timerData.minutes : null
     };
     window.agendaData.tareas.push(recordatorio);
     guardarAgendaData();
     cerrarNuevoRecordatorio();
     if (typeof renderDiario === 'function') renderDiario();
     if (typeof renderTareasSection === 'function') renderTareasSection();
-    if (typeof _mostrarToast === 'function') _mostrarToast('notifications', '#22d3ee', 'Recordatorio añadido');
+    if (typeof _mostrarToast === 'function') _mostrarToast('notifications', '#22d3ee', timerData ? ('Recordatorio añadido: ' + _agendaFormatReminderTimer(timerData.targetAt)) : 'Recordatorio añadido');
 }
 function abrirNuevaTareaDiario()     {
     _mostrarSelectorTipoAgenda(['habito','tareaRecurrente','tarea']);
@@ -1965,6 +2081,10 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         : ((item.desc && String(item.desc).trim()) ? String(item.desc).trim() : '');
 
     const _recs = (item.recordatorios && item.recordatorios.length) ? item.recordatorios : (item.hora ? [item.hora] : []);
+    const reminderTargetAt = esRecordatorio ? _agendaGetReminderTargetAt(item) : null;
+    const timerBadge = (esRecordatorio && reminderTargetAt)
+        ? `<span style="color:white;font-size:10px;font-weight:700;background:${reminderTargetAt.getTime() > Date.now() ? '#0891b2' : '#ef4444'};border:1.5px solid ${reminderTargetAt.getTime() > Date.now() ? 'rgba(103,232,249,0.5)' : 'rgba(255,255,255,0.4)'};border-radius:6px;padding:2px 7px;white-space:nowrap;flex-shrink:0;">${_agendaFormatReminderTimer(reminderTargetAt)}</span>`
+        : '';
     const horasBadges = _recs.map(r => {
         const [hh,mm] = r.split(':').map(Number);
         const ahora = new Date();
@@ -1975,6 +2095,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         else { bg='#1e3a5f'; border='rgba(96,165,250,0.4)'; }
         return `<span style="color:white;font-size:10px;font-weight:700;background:${bg};border:1.5px solid ${border};border-radius:6px;padding:2px 7px;white-space:nowrap;flex-shrink:0;">${r}</span>`;
     }).join('');
+    const reminderBadges = timerBadge + horasBadges;
 
     const subitemsStr = (item.subitems && item.subitems.length) ? `<div style="display:flex;flex-direction:column;gap:4px;">${item.subitems.map((s,i) => `<div style="display:inline-flex;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:50%;border:2px solid ${s.completado?catColor:catColor+'88'};background:${s.completado?catColor:'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;cursor:pointer;" onclick="event.stopPropagation();_tryToggleSubitem(event,'${item.id}','${tipo}',${i},${!s.completado},${esFechaFutura})" ontouchend="event.stopPropagation();">${s.completado?'<span class="material-symbols-rounded" style="color:white;font-size:13px;">check</span>':''}</div><span style="color:${s.completado?'#475569':'#cbd5e1'};font-size:12px;text-decoration:${s.completado?'line-through':'none'};">${s.texto}</span></div>`).join('')}</div>` : '';
 
@@ -2021,7 +2142,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
                         ${flagBadge}
                         ${typeBadgeDesktop}
-                        ${horasBadges ? `<div style="display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0;">${horasBadges}</div>` : ''}
+                        ${reminderBadges ? `<div style="display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0;">${reminderBadges}</div>` : ''}
                         ${moreBtn}
                         ${checkBtn}
                     </div>
@@ -2029,7 +2150,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
             </div>
             <div class="diario-item-mobile" style="flex:1;min-width:0;display:none;flex-direction:column;gap:0;" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)">
                 <span style="color:${completado?'#475569':'#f1f5f9'};font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:${completado?'line-through':'none'};cursor:pointer;-webkit-tap-highlight-color:transparent;">${item.nombre}</span>
-                ${(horasBadges || item.etiqueta) ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin-top:2px;">${horasBadges}${item.etiqueta ? `<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;background:${catColor}22;color:${catColor};border:1px solid ${catColor}55;">${item.etiqueta}</span>` : ''}</div>` : ''}
+                ${(reminderBadges || item.etiqueta) ? `<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap;margin-top:2px;">${reminderBadges}${item.etiqueta ? `<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;background:${catColor}22;color:${catColor};border:1px solid ${catColor}55;">${item.etiqueta}</span>` : ''}</div>` : ''}
             </div>
             <div class="diario-item-mobile" style="display:none;align-items:center;gap:6px;flex-shrink:0;">
                 ${flagBadge}
