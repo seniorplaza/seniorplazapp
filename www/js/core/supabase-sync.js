@@ -155,7 +155,7 @@
             auth: { badge: 'LOGIN', icon: 'mail', badgeBg: 'rgba(30,41,59,0.8)', badgeBorder: 'rgba(148,163,184,0.2)', badgeColor: '#cbd5e1', iconColor: '#93c5fd' },
             disconnected: { badge: 'LOCAL', icon: 'cloud_off', badgeBg: 'rgba(30,41,59,0.8)', badgeBorder: 'rgba(148,163,184,0.2)', badgeColor: '#cbd5e1', iconColor: '#94a3b8' },
             offline: { badge: 'OFFLINE', icon: 'cloud_off', badgeBg: 'rgba(120,53,15,0.45)', badgeBorder: 'rgba(251,191,36,0.28)', badgeColor: '#fbbf24', iconColor: '#fbbf24' },
-            syncing: { badge: 'SYNC', icon: 'sync', badgeBg: 'rgba(30,64,175,0.32)', badgeBorder: 'rgba(96,165,250,0.32)', badgeColor: '#93c5fd', iconColor: '#93c5fd' },
+            syncing: { badge: 'SYNC', icon: 'autorenew', badgeBg: 'rgba(30,64,175,0.32)', badgeBorder: 'rgba(96,165,250,0.32)', badgeColor: '#93c5fd', iconColor: '#93c5fd' },
             synced: { badge: 'ACTIVO', icon: 'cloud_done', badgeBg: 'rgba(6,95,70,0.35)', badgeBorder: 'rgba(16,185,129,0.3)', badgeColor: '#6ee7b7', iconColor: '#6ee7b7' },
             error: { badge: 'ERROR', icon: 'error', badgeBg: 'rgba(127,29,29,0.4)', badgeBorder: 'rgba(248,113,113,0.28)', badgeColor: '#fca5a5', iconColor: '#fca5a5' }
         };
@@ -633,7 +633,9 @@
             }
 
             const localHash = await computeLocalSnapshotHash(localSnapshot);
-            if (localHash && localHash === lastLocalSnapshotHash) {
+            const isForce = reason === 'manual-push';
+            
+            if (!isForce && localHash && localHash === lastLocalSnapshotHash) {
                 initialSyncDone = true;
                 setStatus('synced', 'Sincronizacion activa', 'No habia cambios reales para subir.');
                 return;
@@ -655,7 +657,7 @@
                 remoteHash = lastSyncedHash || '';
             }
 
-            if (cloudHash === remoteHash) {
+            if (!isForce && cloudHash === remoteHash) {
                 lastSyncedHash = remoteHash;
                 lastSeenRemoteHash = remoteHash;
                 lastLocalSnapshotHash = localHash;
