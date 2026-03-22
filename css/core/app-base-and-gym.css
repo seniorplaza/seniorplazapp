@@ -2610,7 +2610,7 @@
             /* MENÚ DESPLEGABLE MÓVIL - OVERLAY COMPLETO */
             .mobile-dropdown {
                 position: fixed !important;
-                top: calc(85px + env(safe-area-inset-top, 0px)) !important;
+                top: calc(65px + env(safe-area-inset-top, 0px)) !important;
                 bottom: auto !important;
                 right: 12px !important;
                 left: auto !important;
@@ -2621,7 +2621,7 @@
                 padding: 0.5rem 0;
                 min-width: 220px;
                 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-                z-index: 100002 !important;
+                z-index: 100001 !important;
                 transform-origin: top right;
                 animation: dropdownScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             }
