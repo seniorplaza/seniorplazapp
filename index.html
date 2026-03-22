@@ -6161,7 +6161,7 @@
                     <input type="text" id="editar-cat-tags" placeholder="Ej: supermercado, restaurante..."
                         maxlength="50"
                         style="flex:1;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:12px;color:#f1f5f9;font-size:14px;font-weight:500;padding:13px 16px;outline:none;box-sizing:border-box;"
-                        onkeydown="if(event.key==='Enter'){event.preventDefault();}">
+                        onkeydown="if(event.key==='Enter'){event.preventDefault(); var inp=document.getElementById('editar-cat-tags');_addTagEditar(inp.value);inp.value='';inp.focus();}">
                     <button type="button"
                         onclick="var inp=document.getElementById('editar-cat-tags');_addTagEditar(inp.value);inp.value='';inp.focus();"
                         style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;">

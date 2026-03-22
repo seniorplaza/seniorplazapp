@@ -1,4 +1,4 @@
-﻿
+
     function _undoActualizarBtn() {
         if (typeof _undoActualizarBtnSnapshots === 'function') _undoActualizarBtnSnapshots();
     }
@@ -1930,8 +1930,14 @@
         preview.innerHTML = '';
         (tags || []).forEach((tag, idx) => {
             const chip = document.createElement('span');
-            chip.style.cssText = `display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 6px 4px 12px;border-radius:20px;background:${c}22;color:${c};border:1.5px solid ${c}55;`;
+            chip.style.cssText = `display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 6px 4px 12px;border-radius:20px;background:${c}22;color:${c};border:1.5px solid ${c}55;cursor:pointer;user-select:none;-webkit-user-select:none;`;
+            chip.title = 'Mantén pulsado para editar';
             chip.innerHTML = `<span>${tag}</span><button onclick="_removeTagEditar(${idx})" style="background:none;border:none;cursor:pointer;color:${c};padding:0;margin:0;opacity:0.75;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;" title="Eliminar"><span class="material-symbols-rounded" style="font-size:14px;line-height:1;">close</span></button>`;
+            
+            if (typeof attachIconLongPress === 'function') {
+                attachIconLongPress(chip, () => _editTagEditar(idx));
+            }
+
             preview.appendChild(chip);
         });
     }
@@ -1949,6 +1955,83 @@
         if (!window._editarCatTags) return;
         window._editarCatTags.splice(idx, 1);
         _renderTagChips(window._editarCatTags);
+    }
+
+    function _editTagEditar(idx) {
+        if (!window._editarCatTags || window._editarCatTags[idx] === undefined) return;
+        const oldTag = window._editarCatTags[idx];
+        
+        var prev = document.getElementById('_modalEditarTagOverlay');
+        if (prev) prev.remove();
+
+        var overlay = document.createElement('div');
+        overlay.id = '_modalEditarTagOverlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:11000;display:flex;align-items:center;justify-content:center;padding:24px;';
+
+        overlay.innerHTML = `
+            <div id="_modalEditarTagBox" style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:1px solid rgba(59,130,246,0.25);border-radius:24px;width:100%;max-width:320px;padding:28px 24px;box-shadow:0 25px 60px rgba(0,0,0,0.7);animation:slideUp 0.15s ease-out;position:relative;overflow:hidden;">
+                <!-- Decoración sutil -->
+                <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:radial-gradient(circle,rgba(59,130,246,0.1) 0%,transparent 70%);pointer-events:none;"></div>
+                
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+                    <span class="material-symbols-rounded" style="color:#64748b;font-size:20px;">edit_note</span>
+                    <span style="color:#94a3b8;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;">Editar Etiqueta</span>
+                </div>
+
+                <div style="margin-bottom:24px;position:relative;">
+                    <input id="_modalEditarTagInput" type="text" value="${oldTag}" placeholder="Nombre de la etiqueta"
+                        style="width:100%;background:rgba(15,23,42,0.6);border:1.5px solid rgba(59,130,246,0.25);border-radius:14px;color:#f1f5f9;font-size:16px;font-weight:600;padding:14px 16px;outline:none;box-sizing:border-box;transition:border-color 0.2s,box-shadow 0.2s;"
+                        onfocus="this.style.borderColor='rgba(59,130,246,0.6)';this.style.boxShadow='0 0 15px rgba(59,130,246,0.15)'"
+                        onblur="this.style.borderColor='rgba(59,130,246,0.25)';this.style.boxShadow='none'">
+                </div>
+
+                <div style="display:flex;gap:12px;">
+                    <button id="_modalEditarTagCancelar" style="flex:1;height:48px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(15,23,42,0.3);color:#64748b;font-size:13px;font-weight:700;cursor:pointer;font-family:Manrope,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.05)';this.style.color='#94a3b8'" onmouseout="this.style.background='rgba(15,23,42,0.3)';this.style.color='#64748b'">Cancelar</button>
+                    <button id="_modalEditarTagConfirmar" style="flex:1.8;height:48px;border-radius:14px;border:1.5px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.1);color:#60a5fa;font-size:13px;font-weight:800;cursor:pointer;font-family:Manrope,sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 20px rgba(59,130,246,0.1);transition:transform 0.1s,background 0.15s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'" onmouseover="this.style.background='rgba(59,130,246,0.2)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">
+                        <span class="material-symbols-rounded" style="font-size:20px;">save</span>Guardar
+                    </button>
+                </div>
+            </div>`;
+
+        document.body.appendChild(overlay);
+
+        var modalInput = overlay.querySelector('#_modalEditarTagInput');
+        requestAnimationFrame(() => { modalInput.focus(); modalInput.select(); });
+
+        var _cerrar = function() {
+             var box = document.getElementById('_modalEditarTagBox');
+             if (box) {
+                 box.style.transition = 'all 0.15s ease-in';
+                 box.style.transform = 'scale(0.9) translateY(20px)';
+                 box.style.opacity = '0';
+             }
+             overlay.style.transition = 'opacity 0.15s ease-in';
+             overlay.style.opacity = '0';
+             setTimeout(() => overlay.remove(), 150);
+        };
+
+        overlay.querySelector('#_modalEditarTagCancelar').onclick = _cerrar;
+
+        var _guardar = function() {
+            var newTag = modalInput.value.trim();
+            if (newTag === '') { modalInput.focus(); return; }
+            if (newTag !== oldTag) {
+                if (window._editarCatTags.includes(newTag)) {
+                    if (typeof _mostrarToast === 'function') _mostrarToast('warning', '#fb923c', 'Ya existe esa etiqueta');
+                    return;
+                }
+                window._editarCatTags[idx] = newTag;
+                _renderTagChips(window._editarCatTags);
+            }
+            _cerrar();
+        };
+
+        overlay.querySelector('#_modalEditarTagConfirmar').onclick = _guardar;
+        modalInput.onkeydown = function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); _guardar(); }
+            if (e.key === 'Escape') _cerrar();
+        };
+        overlay.onclick = function(e) { if (e.target === overlay) _cerrar(); };
     }
 
     function borrarTodasCategorias() {
