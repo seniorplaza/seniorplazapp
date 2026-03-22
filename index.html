@@ -5269,18 +5269,19 @@
     <!-- ══════════════════════════════════════════════════════
          BOTTOM SHEET: EDITAR MOVIMIENTO
          ══════════════════════════════════════════════════════ -->
-    <div id="modalEditarOp"
-        style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10000;align-items:center;justify-content:center;padding:16px;">
+    <div id="modalEditarOp" class="finanzas-scroll-modal"
+        style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:999999;align-items:center;justify-content:center;padding:16px;touch-action:auto;">
         <div onclick="event.stopPropagation()"
-            style="background:#111b2e;border-radius:24px;width:100%;max-width:560px;max-height:90%;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,16px);">
+            style="background:#111b2e;border-radius:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,16px);position:relative;touch-action:auto;">
 
-            <!-- Drag handle -->
-            <div style="display:flex;justify-content:center;padding:12px 0 4px;">
-                <div style="width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);"></div>
-            </div>
+            <!-- Close button instead of Drag handle -->
+            <button onclick="document.getElementById('modalEditarOp').style.display='none'"
+                style="position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.05);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:100;">
+                <span class="material-symbols-rounded" style="color:#94a3b8;font-size:20px;">close</span>
+            </button>
 
             <!-- SECCIÓN: De cuenta → A categoría (o De categoría → A cuenta para ingresos) -->
-            <div id="eop-flow-header" style="border-bottom:1px solid rgba(255,255,255,0.07);padding:16px 20px 16px;">
+            <div id="eop-flow-header" style="border-bottom:1px solid rgba(255,255,255,0.07);padding:24px 20px 16px;margin-top:10px;">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <!-- LADO IZQUIERDO: "De cuenta" (gasto) o "De categoría" (ingreso) -->
                     <div id="eop-col-origen"
@@ -5382,7 +5383,7 @@
                     <div
                         style="color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">
                         Selecciona categoría</div>
-                    <div id="eop-cat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"></div>
+                    <div id="eop-cat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-height:300px;overflow-y:auto;padding-right:4px;"></div>
                 </div>
                 <!-- Panel comentario: solo nota, sin título -->
                 <div id="eop-panel-comentario" style="display:none;padding:16px 20px;">
