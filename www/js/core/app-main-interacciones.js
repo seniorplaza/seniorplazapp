@@ -8244,8 +8244,22 @@
             if (wasSameButtonOpen) return;
 
             var floatingMenu = sourceMenu.cloneNode(true);
+            var sourceButtons = Array.from(sourceMenu.querySelectorAll('button'));
+            var floatingButtons = Array.from(floatingMenu.querySelectorAll('button'));
+            var isMobileMenu = window.innerWidth <= 768;
 
-            floatingMenu.style.cssText = 'position:fixed;display:flex;flex-direction:column;gap:2px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:10080;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:min(220px, calc(100vw - 20px));';
+            floatingButtons.forEach(function(floatingButton, index) {
+                floatingButton.removeAttribute('onclick');
+                floatingButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var sourceButton = sourceButtons[index];
+                    if (sourceButton) sourceButton.click();
+                    closeMenu();
+                });
+            });
+
+            floatingMenu.style.cssText = 'position:fixed;display:flex;flex-direction:column;gap:2px;background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:4px;min-width:150px;z-index:' + (isMobileMenu ? '90' : '10080') + ';box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:min(220px, calc(100vw - 20px));';
             document.body.appendChild(floatingMenu);
 
             function updatePosition() {
@@ -8265,9 +8279,11 @@
                     left = Math.max(10, viewportWidth - menuRect.width - 10);
                 }
 
-                if (top + menuRect.height > viewportHeight - 10) {
+                if (!isMobileMenu && top + menuRect.height > viewportHeight - 10) {
                     var aboveTop = btnRect.top - menuRect.height - 6;
                     top = aboveTop >= 10 ? aboveTop : Math.max(10, viewportHeight - menuRect.height - 10);
+                } else if (isMobileMenu && top + menuRect.height > viewportHeight - 10) {
+                    top = Math.max(10, viewportHeight - menuRect.height - 10);
                 }
 
                 floatingMenu.style.left = left + 'px';
@@ -8294,12 +8310,6 @@
                     closeMenu();
                 }
             }
-
-            floatingMenu.addEventListener('click', function(e) {
-                if (e.target.closest('button')) {
-                    setTimeout(closeMenu, 0);
-                }
-            }, true);
 
             updatePosition();
             window.addEventListener('scroll', updatePosition, true);
@@ -10257,9 +10267,9 @@
                 swapThreshold: 0.65,
                 handle: '.gym-drag-handle',
                 preventOnFilter: true,
-                delay: 0,
-                delayOnTouchOnly: false,
-                touchStartThreshold: 3,
+                delay: 320,
+                delayOnTouchOnly: true,
+                touchStartThreshold: 8,
                 forceFallback: true,
                 fallbackTolerance: 0,
                 onChoose: function() {
@@ -10284,9 +10294,9 @@
                             fallback.style.background = 'rgba(15, 23, 42, 0.95)';
                             fallback.style.backdropFilter = 'blur(8px)';
                             fallback.style.webkitBackdropFilter = 'blur(8px)';
-                            fallback.style.border = '2px solid rgba(99, 102, 241, 0.5)';
+                            fallback.style.border = '2px solid rgba(234, 179, 8, 0.9)';
                             fallback.style.borderRadius = '20px';
-                            fallback.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
+                            fallback.style.boxShadow = '0 0 0 3px rgba(234, 179, 8, 0.22), 0 20px 60px rgba(0, 0, 0, 0.5)';
                             fallback.style.transform = 'scale(1.05)';
                             fallback.style.transition = 'none';
                             fallback.style.cursor = 'grabbing';
