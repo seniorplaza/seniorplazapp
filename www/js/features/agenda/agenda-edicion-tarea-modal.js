@@ -37,6 +37,19 @@ function _editRecordatorioFmtTarget(targetAt) {
     return 'En ' + hours + ' h' + (mins ? ' ' + mins + ' min' : '');
 }
 
+function _editRecordatorioDataFromTarget(targetAt, minutesFallback) {
+    var target = targetAt ? new Date(targetAt) : null;
+    if (!target || isNaN(target.getTime())) return null;
+    var mins = Math.max(1, parseInt(minutesFallback, 10) || Math.ceil((target.getTime() - Date.now()) / 60000) || 1);
+    var pad = function(v) { return String(v).padStart(2, '0'); };
+    return {
+        minutes: mins,
+        targetAt: target.toISOString(),
+        fecha: target.getFullYear() + '-' + pad(target.getMonth() + 1) + '-' + pad(target.getDate()),
+        hora: pad(target.getHours()) + ':' + pad(target.getMinutes())
+    };
+}
+
 function _renderEditRecordatorioTimerUI() {
     var chips = document.getElementById('editRecordatorioTimerChips');
     var summary = document.getElementById('editRecordatorioTimerSummary');
@@ -290,7 +303,7 @@ function guardarEditarTarea() {
         delete item.etiqueta;
         item.categoria = { icono: 'notifications_active', color: '#22d3ee', nombre: 'Recordatorios' };
         if (window._editRecordatorioTimerTargetAt) {
-            var timerData = _editRecordatorioBuildData(window._editRecordatorioTimerMinutes || 1);
+            var timerData = _editRecordatorioDataFromTarget(window._editRecordatorioTimerTargetAt, window._editRecordatorioTimerMinutes || 1);
             if (timerData) {
                 item.fecha = timerData.fecha;
                 item.hora = timerData.hora;
@@ -316,7 +329,7 @@ function guardarEditarTarea() {
     if (!item.esRecordatorio && window._editTareaCatId) {
         const cats = (window.finanzasData && window.finanzasData.categorias) || [];
         const cat = cats.find(c => c.id === window._editTareaCatId);
-        if (cat) { item.categoriaId = cat.id; item.categoria = { icono: cat.icon, color: cat.color, nombre: cat.name }; }
+        if (cat) { item.categoriaId = cat.id; item.categoria = { icono: cat.icon, color: cat.color, nombre: cat.name, svgData: cat.svgData || null }; }
     }
     if (!item.esRecordatorio && window._editTareaEtiqueta !== undefined) item.etiqueta = window._editTareaEtiqueta;
 
