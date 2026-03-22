@@ -90,6 +90,7 @@
             for (const id of modalIds) {
                 const el = document.getElementById(id);
                 if (!el || el.style.display === 'none') continue;
+                if (el.classList.contains('finanzas-scroll-modal')) continue;
                 const rect = el.getBoundingClientRect();
                 if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
                     touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {

@@ -1208,19 +1208,30 @@
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
+            box-sizing: border-box;
+            padding: 16px;
+            z-index: 10031 !important;
         }
         .finanzas-scroll-modal-card {
-            width: min(100%, 520px);
+            width: min(96vw, 520px);
             max-width: 100%;
             margin: auto;
             box-sizing: border-box;
-            max-height: min(calc(100vh - 32px - var(--nav-offset, 0px)), 92dvh) !important;
-            overflow-y: auto !important;
+            max-height: min(calc(100vh - 32px), 92dvh) !important;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden !important;
+            min-height: 0;
+        }
+        .finanzas-scroll-modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
             overflow-x: hidden;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
             touch-action: pan-y;
-            padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+            padding: 12px 24px calc(22px + env(safe-area-inset-bottom, 0px));
         }
         
         @media (max-width: 768px) {
@@ -1289,12 +1300,15 @@
             .finanzas-scroll-modal {
                 align-items: center !important;
                 justify-content: center !important;
-                padding-top: 16px !important;
-                padding-bottom: calc(16px + var(--nav-offset, 0px)) !important;
+                padding: 16px !important;
             }
             .finanzas-scroll-modal-card {
-                max-height: calc(100dvh - 32px - var(--nav-offset, 0px)) !important;
-                min-height: min-content;
+                margin: auto !important;
+                max-height: calc(92dvh) !important;
+                min-height: 0;
+            }
+            .finanzas-scroll-modal-body {
+                padding: 12px 18px calc(22px + env(safe-area-inset-bottom, 0px)) !important;
             }
         }
         .gym-card-menu {
