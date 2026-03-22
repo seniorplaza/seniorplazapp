@@ -919,6 +919,33 @@
             transition: border-color 0s, box-shadow 0s !important;
         }
 
+        .gym-card.sortable-chosen,
+        .gym-card.sortable-drag,
+        .gym-card.sortable-fallback,
+        .gym-card.sortable-chosen.sortable-drag,
+        .gym-card.sortable-chosen.sortable-fallback {
+            opacity: 1 !important;
+            visibility: visible !important;
+            border: 2px solid rgba(234, 179, 8, 0.92) !important;
+            box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.22), 0 20px 60px rgba(0,0,0,0.5) !important;
+            outline: none !important;
+        }
+
+        .gym-card.sortable-drag,
+        .gym-card.sortable-fallback,
+        .gym-card.sortable-chosen.sortable-drag,
+        .gym-card.sortable-chosen.sortable-fallback {
+            background: rgba(15, 23, 42, 0.96) !important;
+            overflow: hidden !important;
+        }
+
+        .gym-card.sortable-drag *,
+        .gym-card.sortable-fallback *,
+        .gym-card.sortable-chosen * {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
         /* Ghost amarillo para tarjetas gym */
 
         .reforma-preview-card {
@@ -1136,6 +1163,9 @@
             box-sizing: border-box;
             overflow: visible;
         }
+        #gym-botones-edicion {
+            justify-content: flex-start;
+        }
         #filtros-bar {
             position: sticky !important;
             top: calc(var(--main-nav-height, 0px) + var(--section-sticky-gap, 12px)) !important;
@@ -1151,6 +1181,9 @@
             gap: 8px;
             min-width: 0;
             flex: 0 1 auto;
+        }
+        #gym-filtros-inline {
+            flex: 0 0 auto;
         }
         #gym-filtros-inline .gym-filter-toggle {
             height: 36px !important;
