@@ -1407,7 +1407,6 @@
                                         class="bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 px-4 py-3 rounded-xl flex items-center gap-2 transition-all"
                                         title="Buscar en Catastro">
                                         <span class="material-symbols-rounded text-yellow-400">search</span>
-                                        <span class="text-yellow-400 text-xs font-bold">Buscar en Catastro</span>
                                     </button>
                                 </div>
                             </div>
@@ -1446,12 +1445,12 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- DATOS DESCRIPTIVOS -->
                                 <div class="space-y-4">
-                                    <h3
+                                    <h1
                                         class="text-xs text-yellow-400 uppercase tracking-widest font-bold mb-3 border-b border-yellow-500/30 pb-2">
                                         <span class="material-symbols-rounded"
                                             style="font-size: 14px; vertical-align: middle;">description</span> Datos
                                         Descriptivos del Inmueble
-                                    </h3>
+                                    </h1>
 
                                     <div>
                                         <label
@@ -1502,12 +1501,12 @@
 
                                 <!-- PARCELA Y VALOR -->
                                 <div class="space-y-4">
-                                    <h3
+                                    <h1
                                         class="text-xs text-yellow-400 uppercase tracking-widest font-bold mb-3 border-b border-yellow-500/30 pb-2">
                                         <span class="material-symbols-rounded"
                                             style="font-size: 14px; vertical-align: middle;">map</span> Parcela
                                         Catastral
-                                    </h3>
+                                    </h1>
 
                                     <div>
                                         <label
@@ -1544,16 +1543,19 @@
                                     </div>
 
                                     <div class="bg-yellow-500/10 border-2 border-yellow-500/30 p-4 rounded-xl mt-4">
-                                        <h3 class="text-xs text-yellow-400 uppercase tracking-widest font-bold mb-3">
+                                        <h1 class="text-xs text-yellow-400 uppercase tracking-widest font-bold mb-3">
                                             <span class="material-symbols-rounded"
                                                 style="font-size: 14px; vertical-align: middle;">account_balance</span>
                                             Valor Catastral
-                                        </h3>
-                                        <div class="flex items-center gap-3">
-                                            <input type="text" inputmode="numeric" id="catValor" value="0"
-                                                oninput="formatDonInput(this); guardarDatos()"
-                                                class="flex-1 bg-slate-800 text-white font-mono font-black text-2xl py-3 px-4 rounded-lg border border-slate-700 focus:border-yellow-500 transition-all text-right">
-                                            <span class="text-white font-bold text-2xl">€</span>
+                                        </h1>
+                                        <div class="flex items-center justify-center bg-slate-800 rounded-xl border border-slate-700 focus-within:border-yellow-500 transition-all px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" inputmode="numeric" id="catValor" value="0"
+                                                    oninput="formatDonInput(this); this.style.width = (this.value.length || 1) + 'ch'; guardarDatos()"
+                                                    class="bg-transparent text-white font-mono font-black text-4xl border-none focus:outline-none text-right p-0"
+                                                    style="width: 1ch; min-width: 1ch;">
+                                                <span class="text-white font-bold text-4xl">€</span>
+                                            </div>
                                         </div>
                                         <p class="text-xs text-slate-500 mt-2">Base para cálculo de IBI y otros
                                             impuestos</p>
