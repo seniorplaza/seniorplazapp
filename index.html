@@ -1548,12 +1548,11 @@
                                                 style="font-size: 14px; vertical-align: middle;">account_balance</span>
                                             Valor Catastral
                                         </h1>
-                                        <div class="flex items-center justify-center bg-slate-800 rounded-xl border border-slate-700 focus-within:border-yellow-500 transition-all px-4 py-3">
-                                            <div class="flex items-center gap-2">
-                                                <input type="text" inputmode="numeric" id="catValor" value="0"
-                                                    oninput="formatDonInput(this); this.style.width = (this.value.length || 1) + 'ch'; guardarDatos()"
-                                                    class="bg-transparent text-white font-mono font-black text-4xl border-none focus:outline-none text-right p-0"
-                                                    style="width: 1ch; min-width: 1ch;">
+                                        <div class="flex items-center w-full px-8">
+                                            <input type="text" inputmode="numeric" id="catValor" value="0"
+                                                oninput="formatDonInput(this); guardarDatos()"
+                                                class="flex-1 bg-slate-800 text-white font-mono font-black text-4xl py-4 rounded-xl border border-slate-700 focus:border-yellow-500 transition-all text-center">
+                                            <div class="w-0 overflow-visible translate-x-4">
                                                 <span class="text-white font-bold text-4xl">€</span>
                                             </div>
                                         </div>
