@@ -5272,7 +5272,7 @@
     <div id="modalEditarOp" class="finanzas-scroll-modal"
         style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:999999;align-items:center;justify-content:center;padding:16px;touch-action:auto;">
         <div onclick="event.stopPropagation()"
-            style="background:#111b2e;border-radius:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding-bottom:env(safe-area-inset-bottom,16px);position:relative;touch-action:auto;">
+            style="background:#111b2e;border-radius:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;overscroll-behavior:contain;padding-bottom:env(safe-area-inset-bottom,16px);position:relative;touch-action:auto;">
 
             <!-- Close button instead of Drag handle -->
             <button onclick="document.getElementById('modalEditarOp').style.display='none'"
@@ -5281,7 +5281,7 @@
             </button>
 
             <!-- SECCIÓN: De cuenta → A categoría (o De categoría → A cuenta para ingresos) -->
-            <div id="eop-flow-header" style="border-bottom:1px solid rgba(255,255,255,0.07);padding:24px 20px 16px;margin-top:10px;">
+            <div id="eop-flow-header" style="border-bottom:1px solid rgba(255,255,255,0.07);padding:16px 20px 16px;margin-top:44px;">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <!-- LADO IZQUIERDO: "De cuenta" (gasto) o "De categoría" (ingreso) -->
                     <div id="eop-col-origen"
@@ -5530,7 +5530,7 @@
 
     <!-- BOTTOM SHEET selector de cuenta -->
     <div id="modalSelectorCuenta"
-        style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10001;align-items:center;justify-content:center;padding:16px;">
+        style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000001;align-items:center;justify-content:center;padding:16px;">
         <div
             style="background:#111b2e;border-radius:20px;width:100%;max-width:440px;max-height:70vh;overflow-y:auto;padding:20px 20px 24px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -5548,8 +5548,8 @@
 
     <!-- MODAL TIPO MOVIMIENTO (desde Operaciones) -->
     <div id="modalTipoMovimientoOp"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center" style="display:none;">
-        <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl">
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center" style="display:none;z-index:1000000;touch-action:none;">
+        <div class="bg-slate-900 border-2 border-slate-700 rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl" onclick="event.stopPropagation()" style="overscroll-behavior:contain;">
             <h3 class="text-xl font-black text-white mb-2 flex items-center gap-2">
                 <span class="material-symbols-rounded text-blue-400">add_circle</span>
                 Añadir movimiento
@@ -5989,20 +5989,27 @@
             <div data-euro-field="1" style="margin-bottom:20px;">
                 <label
                     style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:10px;">Icono</label>
-                <button onclick="nuevaCatElegirIcono()"
-                    style="display:flex;align-items:center;gap:14px;width:100%;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:14px 18px;cursor:pointer;transition:border-color 0.2s;">
-                    <div id="nueva-cat-icono-bg"
-                        style="width:48px;height:48px;border-radius:14px;background:rgba(30,41,59,0.6);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <span class="material-symbols-rounded" id="nueva-cat-icono-preview"
-                            style="font-size:26px;color:#3b82f6;">category</span>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="color:#e2e8f0;font-size:14px;font-weight:700;">Elegir icono y color</div>
-                        <div style="color:#64748b;font-size:12px;">Toca para abrir el selector</div>
-                    </div>
-                    <span class="material-symbols-rounded"
-                        style="color:#475569;font-size:20px;margin-left:auto;">chevron_right</span>
-                </button>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="nuevaCatElegirIcono()" id="nuevaCatBtnIcono"
+                        style="display:flex;align-items:center;gap:14px;flex:1;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:14px 18px;cursor:pointer;transition:border-color 0.2s;">
+                        <div id="nueva-cat-icono-bg"
+                            style="width:48px;height:48px;border-radius:14px;background:rgba(30,41,59,0.6);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+                            <span class="material-symbols-rounded" id="nueva-cat-icono-preview"
+                                style="font-size:26px;color:#3b82f6;">category</span>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="color:#e2e8f0;font-size:14px;font-weight:700;">Icono y color</div>
+                            <div style="color:#64748b;font-size:12px;">Toca para elegir</div>
+                        </div>
+                    </button>
+                    <button onclick="nuevaCatElegirFoto()" id="nuevaCatBtnFoto"
+                        style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:80px;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:10px;cursor:pointer;flex-shrink:0;position:relative;overflow:hidden;">
+                        <img id="nueva-cat-foto-preview" src="" alt="" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:14px;">
+                        <span class="material-symbols-rounded" id="nueva-cat-foto-icon" style="font-size:26px;color:#64748b;">add_photo_alternate</span>
+                        <span id="nueva-cat-foto-label" style="color:#64748b;font-size:10px;font-weight:600;">FOTO</span>
+                    </button>
+                </div>
+                <input type="file" id="nueva-cat-foto-input" accept="image/*" style="display:none;" onchange="nuevaCatOnFotoChange(this)">
             </div>
 
             <!-- Nombre -->
@@ -6116,20 +6123,27 @@
             <div style="margin-bottom:20px;">
                 <label
                     style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:10px;">Icono</label>
-                <button onclick="editarCatElegirIcono()"
-                    style="display:flex;align-items:center;gap:14px;width:100%;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:14px 18px;cursor:pointer;">
-                    <div id="editar-cat-icono-bg"
-                        style="width:48px;height:48px;border-radius:14px;background:rgba(30,41,59,0.6);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <span class="material-symbols-rounded" id="editar-cat-icono-preview"
-                            style="font-size:26px;color:#60a5fa;">category</span>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="color:#e2e8f0;font-size:14px;font-weight:700;">Cambiar icono y color</div>
-                        <div style="color:#64748b;font-size:12px;">Toca para abrir el selector</div>
-                    </div>
-                    <span class="material-symbols-rounded"
-                        style="color:#475569;font-size:20px;margin-left:auto;">chevron_right</span>
-                </button>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="editarCatElegirIcono()"
+                        style="display:flex;align-items:center;gap:14px;flex:1;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:14px 18px;cursor:pointer;">
+                        <div id="editar-cat-icono-bg"
+                            style="width:48px;height:48px;border-radius:14px;background:rgba(30,41,59,0.6);border:1.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+                            <span class="material-symbols-rounded" id="editar-cat-icono-preview"
+                                style="font-size:26px;color:#60a5fa;">category</span>
+                        </div>
+                        <div style="text-align:left;">
+                            <div style="color:#e2e8f0;font-size:14px;font-weight:700;">Icono y color</div>
+                            <div style="color:#64748b;font-size:12px;">Toca para cambiar</div>
+                        </div>
+                    </button>
+                    <button onclick="editarCatElegirFoto()" id="editarCatBtnFoto"
+                        style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:80px;background:#1e293b;border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:10px;cursor:pointer;flex-shrink:0;position:relative;overflow:hidden;">
+                        <img id="editar-cat-foto-preview" src="" alt="" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:14px;">
+                        <span class="material-symbols-rounded" id="editar-cat-foto-icon" style="font-size:26px;color:#64748b;">add_photo_alternate</span>
+                        <span id="editar-cat-foto-label" style="color:#64748b;font-size:10px;font-weight:600;">FOTO</span>
+                    </button>
+                </div>
+                <input type="file" id="editar-cat-foto-input" accept="image/*" style="display:none;" onchange="editarCatOnFotoChange(this)">
             </div>
             <div style="margin-bottom:20px;">
                 <label
@@ -6336,7 +6350,7 @@
         style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:10500;">
     </div>
     <div id="modal-filtro-op-panel"
-        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);z-index:10501;background:linear-gradient(160deg,#0d1628 0%,#0f172a 100%);border:1px solid rgba(59,130,246,0.25);border-radius:24px;padding:0;width:min(480px,92%);overflow-y:auto;opacity:0;transition:transform 0.35s cubic-bezier(.32,1,.48,1),opacity 0.3s ease;">
+        style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-60%);z-index:10501;background:linear-gradient(160deg,#0d1628 0%,#0f172a 100%);border:1px solid rgba(59,130,246,0.25);border-radius:24px;padding:0;width:min(480px,92%);overflow-y:auto;overscroll-behavior:contain;opacity:0;transition:transform 0.35s cubic-bezier(.32,1,.48,1),opacity 0.3s ease;">
 
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 16px;">

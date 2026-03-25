@@ -250,39 +250,8 @@
     }
 
     window._actualizarBadgeFiltroNota = _actualizarBadgeFiltro;
-    const _origRender = window.renderHistorialOperaciones;
-    window.renderHistorialOperaciones = function() {
-        if (!window.finanzasData) return;
-        const f = window._filtroOp;
-        const _origFiltrar = window.filtrarOperacionesPorPeriodo;
-        const _wrappedFiltrar = function(ops, ...args) {
-            let result = _origFiltrar(ops, ...args);
-            if (f.cuentas !== null) {
-                result = result.filter(op =>
-                    f.cuentas.has(op.accountId) ||
-                    f.cuentas.has(op.toAccountId) ||
-                    f.cuentas.has(op.fromAccountId)
-                );
-            }
-            if (f.categorias !== null) {
-                result = result.filter(op => f.categorias.has(op.categoryId));
-            }
-            if (f.tipos !== null) {
-                result = result.filter(op => f.tipos.has(op.type));
-            }
-            if (f.etiquetas !== null) {
-                result = result.filter(op => op.subtag && f.etiquetas.has(op.subtag));
-            }
-            if (f.nota && f.nota.length > 0) {
-                result = result.filter(op => (op.comment && op.comment.toLowerCase().includes(f.nota)) || (op.note && op.note.toLowerCase().includes(f.nota)));
-            }
-            return result;
-        };
-        const backup = window.filtrarOperacionesPorPeriodo;
-        window.filtrarOperacionesPorPeriodo = _wrappedFiltrar;
-        _origRender();
-        window.filtrarOperacionesPorPeriodo = backup;
-    };
+    // El filtro se aplica directamente en renderHistorialOperaciones (finanzas-core-operaciones.js)
+    // leyendo window._filtroOp inline. No es necesario envolver la función.
 
 })();
 

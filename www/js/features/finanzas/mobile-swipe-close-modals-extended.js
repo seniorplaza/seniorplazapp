@@ -1,5 +1,7 @@
 ﻿
 (function() {
+    // Swipe-to-close desactivado: los modales solo se cierran con X o Guardar/Confirmar
+    return;
     const closeFns = {
         'modalEditarOp':           () => { document.getElementById('modalEditarOp').style.display = 'none'; },
         'modalAddGasto':           () => { if (typeof cerrarModalAddGasto === 'function') cerrarModalAddGasto(); else document.getElementById('modalAddGasto').style.display = 'none'; },

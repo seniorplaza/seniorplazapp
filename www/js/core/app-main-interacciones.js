@@ -5724,6 +5724,7 @@
                                 cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
                                 cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
                                 cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
+                                gymPace: card.querySelector('input.gym-card-pace')?.value || '',
                                 imgSrc:  imgEl ? imgEl.src : '',
                                 cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                                 completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
@@ -5771,6 +5772,7 @@
                                     cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
                                     cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
                                     cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
+                                    gymPace: card.querySelector('input.gym-card-pace')?.value || '',
                                     imgSrc:  imgEl ? imgEl.src : '',
                                     cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                                     completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
@@ -6547,6 +6549,7 @@
                                 var newCard = grid.lastElementChild;
                                 if (newCard && (_gymObjetoTieneMetricasCardio(e) || p === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, e);
                                 if (newCard && typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
+                                if (newCard && e.gymPace) { var _pI = newCard.querySelector('input.gym-card-pace'); if (_pI) _pI.value = e.gymPace; }
                                 if (e.cardTimeSecs && e.cardTimeSecs > 0) {
                                     var badge = newCard.querySelector('.gym-card-time-badge');
                                     var label = newCard.querySelector('.gym-card-time-label');
@@ -7936,6 +7939,7 @@
                         cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
                         cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
                         cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
+                        gymPace: card.querySelector('input.gym-card-pace')?.value || '',
                         imgSrc: imgEl ? imgEl.src : '',
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
@@ -7997,6 +8001,7 @@
                         cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
                         cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
                         cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
+                        gymPace: card.querySelector('input.gym-card-pace')?.value || '',
                         imgSrc: imgEl ? imgEl.src : '',
                         cardTimeSecs: timeBadge ? parseInt(timeBadge.dataset.totalSecs || 0) : 0,
                         completado: (function(c){ var cb = c.querySelector('.gym-check-btn'); return cb ? cb.dataset.completado === '1' : false; })(card),
@@ -8040,6 +8045,7 @@
                 var newCard = grid.lastElementChild;
                 if (newCard && (_gymObjetoTieneMetricasCardio(e) || panelCategory === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, e);
                 if (newCard && typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
+                if (newCard && e.gymPace) { var _pI2 = newCard.querySelector('input.gym-card-pace'); if (_pI2) _pI2.value = e.gymPace; }
                 if (e.cardTimeSecs && e.cardTimeSecs > 0) {
                     var badge = newCard.querySelector('.gym-card-time-badge');
                     var label = newCard.querySelector('.gym-card-time-label');
@@ -8620,7 +8626,8 @@
                 if (el) el.textContent = Math.max(0, parseInt(el.textContent||0) - 1);
             }
             var _vistaCat = window._vistaGymActiva || 'pecho';
-            _gymArchivadosEnCategoria(_vistaCat).push({ nombre, desc, badge, badgeMaquina, series, reps, kg, rir, rpe, cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '', cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '', cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '', cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '', cardTimeSecs: cardTimeSecs, cardTimeLabel: cardTimeLabel, imgSrc, imgHTML, id: Date.now() });
+            var _archPace = card.querySelector('input.gym-card-pace')?.value || '';
+            _gymArchivadosEnCategoria(_vistaCat).push({ nombre, desc, badge, badgeMaquina, series, reps, kg, rir, rpe, cardioSeriesLabel: metricasCardio ? metricasCardio.cardioSeriesLabel : '', cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '', cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '', cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '', gymPace: _archPace, cardTimeSecs: cardTimeSecs, cardTimeLabel: cardTimeLabel, imgSrc, imgHTML, id: Date.now() });
             _actualizarBadgeGym();
             card.style.transition = 'opacity 0.3s, transform 0.3s';
             card.style.opacity = '0';
@@ -9207,7 +9214,7 @@
             var archivados = _gymArchivadosEnCategoria(window._vistaGymActiva || 'pecho').slice();
             var overlay = document.createElement('div');
             overlay.id = '_modalArchivadosGym';
-            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100002;display:flex;align-items:center;justify-content:center;padding:16px;touch-action:none;';
             overlay.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(71,85,105,0.3);border-radius:20px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 14px;flex-shrink:0;">
@@ -9270,6 +9277,7 @@
             }
             if ((_gymObjetoTieneMetricasCardio(e) || vistaActiva === 'cardio') && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(cardDiv, e);
             if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(cardDiv);
+            if (e.gymPace) { var _pI3 = cardDiv.querySelector('input.gym-card-pace'); if (_pI3) _pI3.value = e.gymPace; }
             if (typeof _initGymCardDrag === 'function') _initGymCardDrag(cardDiv);
             if (typeof _initGymSwipeCells === 'function') _initGymSwipeCells(cardDiv);
             if (typeof initTooltips === 'function') setTimeout(initTooltips, 50);
@@ -9340,8 +9348,8 @@
 
         function _gymNormalizarMetricasCardio(metricas) {
             metricas = metricas || {};
-            var top = metricas.top || [metricas.series || metricas.cardioSeriesLabel, metricas.reps || metricas.cardioRepsLabel];
-            var bottom = metricas.bottom || [metricas.rir || metricas.cardioRirLabel, metricas.rpe || metricas.cardioRpeLabel];
+            var top = metricas.top || [metricas.cardioSeriesLabel || metricas.series, metricas.cardioRepsLabel || metricas.reps];
+            var bottom = metricas.bottom || [metricas.cardioRirLabel || metricas.rir, metricas.cardioRpeLabel || metricas.rpe];
             var topNorm = _gymNormalizarGrupoMetricasCardio(top, _GYM_CARDIO_TOP_OPTIONS, [_GYM_CARDIO_DEFAULT_LABELS.series, _GYM_CARDIO_DEFAULT_LABELS.reps]);
             var bottomNorm = _gymNormalizarGrupoMetricasCardio(bottom, _GYM_CARDIO_BOTTOM_OPTIONS, [_GYM_CARDIO_DEFAULT_LABELS.rir, _GYM_CARDIO_DEFAULT_LABELS.rpe]);
             return {
@@ -9474,7 +9482,7 @@
             if (!_GYM_ALLOW_ADD_HISTORIAL && _filA === 'dia' && _offA !== 0) return;
             var overlay = document.createElement('div');
             overlay.id = '_overlayNuevoEjercicio';
-            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:100002;display:flex;align-items:center;justify-content:center;padding:16px;touch-action:none;';
             overlay.innerHTML = `
                 <div style="background:#0f172a;border:1px solid rgba(71,85,105,0.3);border-radius:20px;width:100%;max-width:420px;display:flex;flex-direction:column;overflow:hidden;">
                     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;flex-shrink:0;">
@@ -9698,6 +9706,12 @@
          + '</div>'
          + '</div>'
          + '</div>'
+         + '<div class="gym-card-pace-row" style="display:none;border-top:1px solid rgba(249,115,22,0.15);padding:8px 16px;align-items:center;gap:8px;background:rgba(249,115,22,0.03);">'
+         + '<span class="material-symbols-rounded" style="font-size:15px;color:#fb923c;flex-shrink:0;">speed</span>'
+         + '<span style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;">RITMO</span>'
+         + '<input type="text" class="gym-card-pace" placeholder="0:00" value="" inputmode="text" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fb923c;font-size:13px;font-weight:800;font-family:Manrope,sans-serif;text-align:center;">'
+         + '<span style="font-size:10px;color:#64748b;flex-shrink:0;">/km</span>'
+         + '</div>'
          + '<div style="border-top:1px solid rgba(255,255,255,0.05);padding:12px 18px 14px;display:flex;gap:6px;align-items:center;">'
          + '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.2);border-radius:14px;padding:6px 10px;flex-shrink:0;">'
          + '<button onclick="toggleCronometroGym(this)" class="gym-timer-btn" style="width:32px;height:32px;border-radius:50%;border:1.5px solid rgba(234,179,8,0.5);background:rgba(234,179,8,0.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:18px;color:#eab308;">timer</span></button>'
@@ -9764,6 +9778,7 @@
                     cardioRepsLabel: metricasCardio ? metricasCardio.cardioRepsLabel : '',
                     cardioRirLabel: metricasCardio ? metricasCardio.cardioRirLabel : '',
                     cardioRpeLabel: metricasCardio ? metricasCardio.cardioRpeLabel : '',
+                    gymPace: c.querySelector('input.gym-card-pace')?.value || '',
                     imgHTML:      imgEl ? '<img src="' + imgEl.src + '" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">' : (c.querySelector('.gym-card-img')?.innerHTML || '')
                 };
             }
@@ -9777,6 +9792,7 @@
                 else refCard.appendChild(newCard);
                 if ((_gymObjetoTieneMetricasCardio(e) || _gymEsCardioCard(newCard)) && typeof _gymAsignarMetricasCardioEnCard === 'function') _gymAsignarMetricasCardioEnCard(newCard, e);
                 if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(newCard);
+                if (e.gymPace) { var _pI4 = newCard.querySelector('input.gym-card-pace'); if (_pI4) _pI4.value = e.gymPace; }
                 if (typeof _initGymCardDrag === 'function') _initGymCardDrag(newCard);
                 if (typeof _initGymSwipeCells === 'function') _initGymSwipeCells(newCard);
                 var _parentGrid = insertAfter ? refCard.parentNode : refCard;
@@ -9825,6 +9841,7 @@
                     reps: e.reps, kg: e.kg, rir: e.rir, rpe: e.rpe,
                     cardioSeriesLabel: e.cardioSeriesLabel || '', cardioRepsLabel: e.cardioRepsLabel || '',
                     cardioRirLabel: e.cardioRirLabel || '', cardioRpeLabel: e.cardioRpeLabel || '',
+                    gymPace: e.gymPace || '',
                     imgHTML: e.imgHTML, completado: false, cardTimeSecs: 0
                 });
                 _gymIrAFechaKey(targetKey);
@@ -10161,6 +10178,7 @@
             var curKg     = card.querySelector('.gym-card-kg')?.value || '';
             var curRir    = card.querySelector('.gym-card-rir')?.value || '';
             var curRpe    = card.querySelector('.gym-card-rpe')?.value || '';
+            var curPace   = card.querySelector('input.gym-card-pace')?.value || '';
             var esCardioEdit = typeof _gymEsCardioCard === 'function' && _gymEsCardioCard(card);
             var curMetricasCardio = esCardioEdit && typeof _gymMetricasCardioDesdeCard === 'function'
                 ? _gymMetricasCardioDesdeCard(card)
@@ -10199,6 +10217,12 @@
                             <div><label style="color:${esCardioEdit ? '#fb923c' : '#94a3b8'};font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;display:block;margin-bottom:4px;">${esCardioEdit ? 'KM' : 'KG'}</label><input id="_edit_kg" type="number" inputmode="decimal" value="${curKg}" min="0" step="${esCardioEdit ? '0.1' : '0.5'}" style="width:100%;box-sizing:border-box;background:rgba(15,23,42,0.8);border:1px solid ${esCardioEdit ? 'rgba(249,115,22,0.35)' : 'rgba(234,179,8,0.3)'};border-radius:9px;padding:8px 6px;color:${esCardioEdit ? '#fb923c' : '#eab308'};font-size:14px;font-weight:800;outline:none;font-family:Manrope,sans-serif;text-align:center;"></div>
                         </div>
                         <div id="_edit_metricas_cardio_wrap" style="display:${esCardioEdit ? 'block' : 'none'};"></div>
+                        <div id="_edit_pace_wrap" style="display:${esCardioEdit ? 'flex' : 'none'};align-items:center;gap:8px;background:rgba(249,115,22,0.05);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:8px 12px;">
+                            <span class="material-symbols-rounded" style="font-size:15px;color:#fb923c;flex-shrink:0;">speed</span>
+                            <label style="color:#94a3b8;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;">RITMO</label>
+                            <input id="_edit_pace" type="text" value="${curPace}" placeholder="0:00" inputmode="text" style="flex:1;background:transparent;border:none;outline:none;color:#fb923c;font-size:13px;font-weight:800;font-family:Manrope,sans-serif;text-align:center;">
+                            <span style="font-size:10px;color:#64748b;flex-shrink:0;">/km</span>
+                        </div>
                         <button id="_edit_save_btn" style="width:100%;height:40px;border-radius:12px;border:1px solid rgba(59,130,246,0.5);background:rgba(59,130,246,0.15);color:#60a5fa;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;margin-top:4px;">Guardar cambios</button>
                     </div>
                 </div>`;
@@ -10263,6 +10287,7 @@
     var newMetricasCardio = esCardioEdit && typeof _gymLeerSelectorMetricasCardio === 'function'
         ? _gymLeerSelectorMetricasCardio(overlay.querySelector('#_edit_metricas_cardio_wrap'))
         : null;
+    var newPace = esCardioEdit ? (overlay.querySelector('#_edit_pace')?.value || '') : '';
     var finalImgHTML = pendingImgHTML || (imgBox ? imgBox.innerHTML : '');
 
     card.innerHTML = _gymCardInnerHTML(newNombre, newDesc, newBadge, newSeries, newReps, finalImgHTML, newKg, newMaq, newRir, newRpe, savedCompletado, '00:00');
@@ -10289,6 +10314,7 @@
     if (newTimerDisplay) newTimerDisplay.textContent = savedTimerDisplay;
 
     if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(card);
+    if (esCardioEdit) { var _newPaceInp = card.querySelector('input.gym-card-pace'); if (_newPaceInp) _newPaceInp.value = newPace; }
     if (typeof _initGymCardDrag === 'function') _initGymCardDrag(card);
     var _ctxEdit = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
     if (_ctxEdit && _ctxEdit.esDia && typeof _gymActualizarStatCardioKm === 'function') {
@@ -10388,6 +10414,8 @@
             card.dataset.cardioMode = isCardio ? '1' : '0';
             var rutaBtn = card.querySelector('.gym-menu-ruta');
             if (rutaBtn) rutaBtn.style.display = isCardio ? 'flex' : 'none';
+            var paceRow = card.querySelector('.gym-card-pace-row');
+            if (paceRow) paceRow.style.display = isCardio ? 'flex' : 'none';
         }
 
         function _syncGymGridCardMeta(grid) {
