@@ -175,14 +175,19 @@
             wrapper._scrollTimer = setTimeout(() => { wrapper._programmaticScroll = false; }, 600);
         }
 
+        var _centrarCardRaf = null;
         function centrarCard(card) {
             const seccion = card.dataset.tipoReforma === 'mobiliario' ? 'mobiliario' : 'reforma';
             const track = document.getElementById(carruselConfig[seccion].track);
             if (!track) return;
             const cards = track.querySelectorAll('.reforma-preview-card');
             const dotsEl = document.getElementById(carruselConfig[seccion].dots);
-            cards.forEach(c => c.classList.remove('active-card'));
-            requestAnimationFrame(() => {
+            // Desactivar todas las tarjetas de todas las secciones para evitar acumulación
+            document.querySelectorAll('.reforma-preview-card').forEach(c => c.classList.remove('active-card'));
+            // Cancelar RAF pendiente para evitar race condition entre clicks rápidos
+            if (_centrarCardRaf) { cancelAnimationFrame(_centrarCardRaf); _centrarCardRaf = null; }
+            _centrarCardRaf = requestAnimationFrame(() => {
+                _centrarCardRaf = null;
                 card.classList.add('active-card');
                 if (dotsEl) {
                     const idx = Array.from(cards).indexOf(card);

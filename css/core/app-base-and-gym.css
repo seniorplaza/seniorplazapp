@@ -1824,12 +1824,21 @@
             transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: inherit;
         }
-        .reforma-preview-card:hover:not(.active-card) .card-shine::before,
-        .reforma-preview-card.touch-active .card-shine::before,
-        .reforma-preview-card.active-card .card-shine::before {
-            transform: translateX(140%);
-            /* Ida: 1s diagonal de izquierda a derecha */
-            transition: transform 1s cubic-bezier(0.2, 0, 0.1, 1);
+        /* Efecto ola (shine): solo en móvil */
+        @media (max-width: 768px) {
+            .reforma-preview-card.touch-active .card-shine::before,
+            .reforma-preview-card.active-card .card-shine::before {
+                transform: translateX(140%);
+                transition: transform 1s cubic-bezier(0.2, 0, 0.1, 1);
+            }
+        }
+        /* Desktop: sin efecto ola */
+        @media (min-width: 769px) {
+            .reforma-preview-card:hover:not(.active-card) .card-shine::before,
+            .reforma-preview-card.active-card .card-shine::before {
+                transform: translateX(-140%);
+                transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            }
         }
 
         /* Imagen de fondo ocupa toda la card */

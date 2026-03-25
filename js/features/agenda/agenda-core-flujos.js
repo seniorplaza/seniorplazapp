@@ -2055,7 +2055,8 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
     const labelMobile = labelsMobile[tipo] || tipo;
     const hoy = _localDateStr(new Date());
     const esFechaFutura = viewDate ? _localDateStr(viewDate) > hoy : false;
-    const registroHoy = (item.registros || []).find(r => r.fecha === hoy);
+    const viewDateStr = viewDate ? _localDateStr(viewDate) : hoy;
+    const registroHoy = (item.registros || []).find(r => r.fecha === viewDateStr);
     let estadoTarea = null;
     if (tipo === 'tarea' && !esRecordatorio) {
         const hoyStr = _localDateStr(new Date());
@@ -2112,7 +2113,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
     const descAttrs = descAnyWidth === '1'
         ? 'data-desc-any-width="1"'
         : 'data-desc-any-width="0" data-mobile-only="1"';
-        const checkOnclick = esFechaFutura ? '_lockShakeDiario(this)' : ('actToggleCompletado(\'' + item.id + '\',\'' + tipo + '\',this)');
+        const checkOnclick = esFechaFutura ? '_lockShakeDiario(this)' : ('actToggleCompletado(\'' + item.id + '\',\'' + tipo + '\',this,\'' + viewDateStr + '\')');
         const checkBorder = esFechaFutura ? 'rgba(71,85,105,0.5)' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'#f59e0b':'rgba(71,85,105,0.5)') : (completado?'#10b981':'rgba(71,85,105,0.5)'));
         const checkBg = esFechaFutura ? 'transparent' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'rgba(245,158,11,0.15)':'transparent') : (completado?'#10b981':'transparent'));
         const checkInner = esFechaFutura
@@ -2255,13 +2256,13 @@ function _renderPreservandoDesc() {
     abiertos.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
 }
 
-function actToggleCompletado(id, tipo, btnEl) {
+function actToggleCompletado(id, tipo, btnEl, fechaStr) {
     if (btnEl) {
         btnEl.style.transition = 'transform 0.15s cubic-bezier(0.34,1.56,0.64,1)';
         btnEl.style.transform = 'scale(1.25)';
         setTimeout(() => { btnEl.style.transform = 'scale(1)'; }, 200);
     }
-    const hoy = _localDateStr(new Date());
+    const hoy = fechaStr || _localDateStr(new Date());
     const _HITOS = [1, 7, 15, 30, 60, 100, 200, 365];
 
     if (tipo === 'tarea') {

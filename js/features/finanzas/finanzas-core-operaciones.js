@@ -2064,6 +2064,7 @@
         var wrapperNueva = document.getElementById('cat-tipo-nueva-wrapper');
         if (wrapperNueva) wrapperNueva.style.display = 'none';
         catSwitchTipo(null, window._nuevaCatTipo, 'nueva');
+        _nuevaCatResetFoto();
         document.getElementById('modalNuevaCategoria').style.display = 'flex';
     }
     
@@ -2091,6 +2092,87 @@
         abrirModalIconos();
     }
     
+    function nuevaCatElegirFoto() {
+        if (window._nuevaCatImagenUrl) {
+            // Ya tiene foto — quitar
+            _nuevaCatResetFoto();
+        } else {
+            document.getElementById('nueva-cat-foto-input').click();
+        }
+    }
+    function nuevaCatOnFotoChange(input) {
+        if (!input.files.length) return;
+        const file = input.files[0];
+        // Mostrar preview local inmediatamente
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('nueva-cat-foto-preview');
+            const icon = document.getElementById('nueva-cat-foto-icon');
+            const label = document.getElementById('nueva-cat-foto-label');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+            label.style.display = 'none';
+            window._nuevaCatImagenUrl = e.target.result; // fallback local
+        };
+        reader.readAsDataURL(file);
+        // Subir a Cloudinary si está disponible
+        if (typeof subirACloudinary === 'function') {
+            subirACloudinary(file).then(url => {
+                window._nuevaCatImagenUrl = url;
+                document.getElementById('nueva-cat-foto-preview').src = url;
+            }).catch(() => { /* mantener data URL local */ });
+        }
+        input.value = '';
+    }
+    function _nuevaCatResetFoto() {
+        window._nuevaCatImagenUrl = null;
+        const preview = document.getElementById('nueva-cat-foto-preview');
+        const icon = document.getElementById('nueva-cat-foto-icon');
+        const label = document.getElementById('nueva-cat-foto-label');
+        if (preview) { preview.src = ''; preview.style.display = 'none'; }
+        if (icon) icon.style.display = '';
+        if (label) label.style.display = '';
+    }
+
+    function editarCatElegirFoto() {
+        if (window._editarCatImagenUrl) {
+            // Ya tiene foto — quitar
+            window._editarCatImagenUrl = null;
+            const preview = document.getElementById('editar-cat-foto-preview');
+            const icon = document.getElementById('editar-cat-foto-icon');
+            const label = document.getElementById('editar-cat-foto-label');
+            if (preview) { preview.src = ''; preview.style.display = 'none'; }
+            if (icon) icon.style.display = '';
+            if (label) label.style.display = '';
+        } else {
+            document.getElementById('editar-cat-foto-input').click();
+        }
+    }
+    function editarCatOnFotoChange(input) {
+        if (!input.files.length) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('editar-cat-foto-preview');
+            const icon = document.getElementById('editar-cat-foto-icon');
+            const label = document.getElementById('editar-cat-foto-label');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+            label.style.display = 'none';
+            window._editarCatImagenUrl = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        if (typeof subirACloudinary === 'function') {
+            subirACloudinary(file).then(url => {
+                window._editarCatImagenUrl = url;
+                document.getElementById('editar-cat-foto-preview').src = url;
+            }).catch(() => {});
+        }
+        input.value = '';
+    }
+
     function guardarNuevaCategoria() {
         const nombre = document.getElementById('nueva-cat-nombre').value.trim();
         if (!nombre) { document.getElementById('nueva-cat-nombre').focus(); return; }
@@ -2100,7 +2182,7 @@
         const iconColor = window._nuevaCatIconColor || '#ffffff';
         const bgOpacity = 100;
         const id = 'cat_custom_' + Date.now();
-        window.finanzasData.categorias.push({ id, name: nombre, type: tipo, icon: icono, color: color, iconColor: iconColor, bgOpacity: bgOpacity, tags: [], isDefault: false, orderIndex: 999, svgData: window._nuevaCatSvgData || null });
+        window.finanzasData.categorias.push({ id, name: nombre, type: tipo, icon: icono, color: color, iconColor: iconColor, bgOpacity: bgOpacity, tags: [], isDefault: false, orderIndex: 999, svgData: window._nuevaCatSvgData || null, iconoImagen: window._nuevaCatImagenUrl || null });
         guardarFinanzasData();
         guardarDatos && guardarDatos();
         filtrarCategorias(tipo);
@@ -2121,6 +2203,7 @@
                 if (modal) modal.style.display = 'none';
                 if (card) { card.classList.remove('closing'); card.style.borderColor = ''; card.style.boxShadow = ''; }
                 if (animBar) animBar.classList.remove('playing');
+                _nuevaCatResetFoto();
                 _mostrarToast('check_circle', color || '#3b82f6', 'Categoría creada');
             }, 450);
         }, 1100);
@@ -2149,9 +2232,21 @@
             }
         }
         const prevBg = document.getElementById('editar-cat-icono-bg');
-        if (prevBg) { const _hx = previewBgColor.replace('#',''); const _r=parseInt(_hx.slice(0,2),16),_g=parseInt(_hx.slice(2,4),16),_b=parseInt(_hx.slice(4,6),16); prevBg.setAttribute('style',`width:48px;height:48px;border-radius:14px;background:rgba(${_r},${_g},${_b},${previewBgAlpha.toFixed(2)});border:1.5px solid rgba(${_r},${_g},${_b},0.6);display:flex;align-items:center;justify-content:center;flex-shrink:0;`); }
-        const expBtn = document.getElementById('editar-cat-tipo-expense');
-        const incBtn = document.getElementById('editar-cat-tipo-income');
+        if (prevBg) { const _hx = previewBgColor.replace('#',''); const _r=parseInt(_hx.slice(0,2),16),_g=parseInt(_hx.slice(2,4),16),_b=parseInt(_hx.slice(4,6),16); prevBg.setAttribute('style',`width:48px;height:48px;border-radius:14px;background:rgba(${_r},${_g},${_b},${previewBgAlpha.toFixed(2)});border:1.5px solid rgba(${_r},${_g},${_b},0.6);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;`); }
+        // Inicializar foto existente
+        window._editarCatImagenUrl = cat.iconoImagen || null;
+        const _fotoPreview = document.getElementById('editar-cat-foto-preview');
+        const _fotoIcon = document.getElementById('editar-cat-foto-icon');
+        const _fotoLabel = document.getElementById('editar-cat-foto-label');
+        if (cat.iconoImagen) {
+            if (_fotoPreview) { _fotoPreview.src = cat.iconoImagen; _fotoPreview.style.display = 'block'; }
+            if (_fotoIcon) _fotoIcon.style.display = 'none';
+            if (_fotoLabel) _fotoLabel.style.display = 'none';
+        } else {
+            if (_fotoPreview) { _fotoPreview.src = ''; _fotoPreview.style.display = 'none'; }
+            if (_fotoIcon) _fotoIcon.style.display = '';
+            if (_fotoLabel) _fotoLabel.style.display = '';
+        }
         catSwitchTipo(null, cat.type, 'editar');
         document.getElementById('modalEditarCategoria').style.display = 'flex';
     }
@@ -2187,6 +2282,7 @@
         if (!cat) return;
         cat.name = nombre;
         cat.tags = window._editarCatTags || [];
+        if (window._editarCatImagenUrl !== undefined) cat.iconoImagen = window._editarCatImagenUrl || null;
         guardarFinanzasData();
         guardarDatos && guardarDatos();
         filtrarCategorias(cat.type);
@@ -3490,10 +3586,17 @@
     function renderHistorialOperaciones() {
         if (!window.finanzasData) return;
         if (typeof _ejecutarProgramadosVencidos === 'function') _ejecutarProgramadosVencidos();
-        const ops = filtrarOperacionesPorPeriodo(
-            [...window.finanzasData.operaciones].sort((a,b) => new Date(b.date)-new Date(a.date)),
-            window._opFiltro, 'op-fecha-desde', 'op-fecha-hasta'
-        );
+        var _allOps = [...window.finanzasData.operaciones].sort((a,b) => new Date(b.date)-new Date(a.date));
+        var ops = filtrarOperacionesPorPeriodo(_allOps, window._opFiltro, 'op-fecha-desde', 'op-fecha-hasta');
+        // Aplicar filtros adicionales de _filtroOp si están activos
+        var _f = window._filtroOp;
+        if (_f) {
+            if (_f.cuentas !== null) ops = ops.filter(op => _f.cuentas.has(op.accountId) || _f.cuentas.has(op.toAccountId) || _f.cuentas.has(op.fromAccountId));
+            if (_f.categorias !== null) ops = ops.filter(op => _f.categorias.has(op.categoryId));
+            if (_f.tipos !== null) ops = ops.filter(op => _f.tipos.has(op.type));
+            if (_f.etiquetas !== null) ops = ops.filter(op => op.subtag && _f.etiquetas.has(op.subtag));
+            if (_f.nota && _f.nota.length > 0) ops = ops.filter(op => (op.comment && op.comment.toLowerCase().includes(_f.nota)) || (op.note && op.note.toLowerCase().includes(_f.nota)));
+        }
         const programados = (window.finanzasData.programados || []).map(p => ({
             ...p, _isProgramado: true,
             date: p.scheduledDate + 'T12:00:00.000Z'

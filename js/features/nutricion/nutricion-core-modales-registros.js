@@ -1284,10 +1284,12 @@ function _nutriRenderWidgets() {
     const totCarbs = comidashoy.reduce((s,c) => s + (parseFloat(c.carbs)||0), 0);
     const totGras  = comidashoy.reduce((s,c) => s + (parseFloat(c.grasas)||0), 0);
 
-    // Calorías quemadas en gym hoy — leer del historial guardado (funciona aunque no esté en la sección gym)
-    const hoyKey = (function(){ const d=new Date(); const off=d.getTimezoneOffset(); const l=new Date(d.getTime()-off*60000); return l.toISOString().slice(0,10); })();
-    const sesionHoy = window._gymSesionesHistorial?.[hoyKey];
-    const gymCalRaw = sesionHoy?.calorias ?? document.getElementById('gym-stat-calorias')?.textContent ?? '—';
+    // Calorías quemadas en gym — usar la fecha del día navegado (no siempre hoy)
+    const diaGymBase = new Date(); diaGymBase.setDate(diaGymBase.getDate() + offset);
+    const gymKey = (function(d){ const off=d.getTimezoneOffset(); const l=new Date(d.getTime()-off*60000); return l.toISOString().slice(0,10); })(diaGymBase);
+    const sesionDia = window._gymSesionesHistorial?.[gymKey];
+    // Para hoy (offset 0) también intentar leer del DOM si no hay historial
+    const gymCalRaw = sesionDia?.calorias ?? (offset === 0 ? (document.getElementById('gym-stat-calorias')?.textContent ?? '0') : '0');
     const gymCal = parseFloat(gymCalRaw) || 0;
 
     const kcalRestantes = obj.kcal - totKcal + gymCal;
@@ -1493,6 +1495,9 @@ function renderNutricion() {
 
     if (!esMultiple) {
         // ── Modo diario: carrusel único ──────────────────────────────
+        // Eliminar bloques de días anteriores si venimos de modo múltiple
+        const _container = document.getElementById('nutri-carrusel-col');
+        if (_container) _container.querySelectorAll('._nutriDiaBlock').forEach(el => el.remove());
         if (comidas.length === 0) {
             if (trackEl) trackEl.innerHTML = '';
             if (wrapperEl) wrapperEl.style.display = 'none';
@@ -1506,6 +1511,14 @@ function renderNutricion() {
                 comidas.forEach(c => trackEl.appendChild(_renderComidaRow(c)));
             }
             _nutriRenderDots(comidas.length);
+            // Marcar la primera card como activa al renderizar
+            setTimeout(() => {
+                const firstCard = trackEl && trackEl.querySelector('.reforma-preview-card');
+                if (firstCard) {
+                    trackEl.querySelectorAll('.reforma-preview-card').forEach(c => { c.classList.remove('active-card'); c.style.transform = ''; c.style.zIndex = ''; });
+                    firstCard.classList.add('active-card');
+                }
+            }, 0);
             if (window.innerWidth >= 768) {
                 setTimeout(() => {
                     const w = document.getElementById('carrusel-comidas-wrapper');
@@ -1585,6 +1598,49 @@ function renderNutricion() {
                     card.style.flexShrink = '0';
                     track.appendChild(card);
                 });
+
+                // Marcar primera card como activa
+                const firstCard = track.querySelector('.reforma-preview-card');
+                if (firstCard) firstCard.classList.add('active-card');
+
+                // Efecto ola en móvil al hacer scroll
+                const diaWrapper = bloque.querySelector('._nutriDiaWrapper');
+                if (diaWrapper) {
+                    diaWrapper.addEventListener('scroll', function() {
+                        if (!this._rafPending) {
+                            this._rafPending = true;
+                            const wr = this;
+                            requestAnimationFrame(() => {
+                                wr._rafPending = false;
+                                const wRect = wr.getBoundingClientRect();
+                                const wCenter = wRect.left + wRect.width / 2;
+                                const maxDist = wRect.width * 0.7;
+                                const cards = wr.querySelectorAll('.reforma-preview-card');
+                                cards.forEach(c => {
+                                    const rect = c.getBoundingClientRect();
+                                    const dist = Math.abs((rect.left + rect.width / 2) - wCenter);
+                                    const ratio = Math.max(0, 1 - dist / maxDist);
+                                    c.style.transform = `translateY(-${ratio * 14}px) scale(${1 + ratio * 0.03})`;
+                                    c.style.zIndex = Math.round(ratio * 10);
+                                });
+                            });
+                        }
+                        clearTimeout(this._snapTimer);
+                        this._snapTimer = setTimeout(() => {
+                            const wRect = this.getBoundingClientRect();
+                            const wCenter = wRect.left + wRect.width / 2;
+                            let closest = null, minDist = Infinity;
+                            const cards = this.querySelectorAll('.reforma-preview-card');
+                            cards.forEach(c => {
+                                const dist = Math.abs((c.getBoundingClientRect().left + c.offsetWidth / 2) - wCenter);
+                                if (dist < minDist) { minDist = dist; closest = c; }
+                            });
+                            if (closest) {
+                                cards.forEach(c => c.classList.toggle('active-card', c === closest));
+                            }
+                        }, 80);
+                    }, { passive: true });
+                }
 
                 // Drag-scroll solo en desktop; en móvil el scroll nativo es más fluido
                 if (window.innerWidth >= 768) {
