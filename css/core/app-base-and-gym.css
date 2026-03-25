@@ -1796,6 +1796,13 @@
                 transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                             box-shadow 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             }
+            /* Nutrición desktop: active-card NO levanta (solo hover) */
+            #carrusel-comidas.carrusel-lista-apilada .reforma-preview-card.active-card:not(:hover),
+            ._nutriDiaTrack .reforma-preview-card.active-card:not(:hover) {
+                transform: none !important;
+                box-shadow: none !important;
+                z-index: auto !important;
+            }
         }
 
         /* ── Reflejo diagonal ──

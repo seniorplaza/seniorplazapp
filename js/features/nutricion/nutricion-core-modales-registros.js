@@ -749,23 +749,27 @@ function onNutriCarruselScroll() {
     if (!allCards.length) return;
     wrapper.classList.toggle('nutri-scroll-left', wrapper.scrollLeft > 8);
 
-    // Efecto lift: la card más centrada se levanta igual que en reforma
-    if (!wrapper._rafPending) {
-        wrapper._rafPending = true;
-        requestAnimationFrame(() => {
-            wrapper._rafPending = false;
-            const wRect = wrapper.getBoundingClientRect();
-            const wCenter = wRect.left + wRect.width / 2;
-            const maxDist = wRect.width * 0.6;
-            allCards.forEach(c => {
-                const rect = c.getBoundingClientRect();
-                const dist = Math.abs((rect.left + rect.width / 2) - wCenter);
-                const ratio = Math.max(0, 1 - dist / maxDist);
-                const lift = ratio * 16;
-                c.style.transform = `translateY(-${lift}px) scale(${1 + ratio * 0.03})`;
-                c.style.zIndex = Math.round(ratio * 10);
+    // Efecto lift: solo en móvil. En desktop la elevación se maneja por CSS hover/active-card
+    if (window.innerWidth < 769) {
+        if (!wrapper._rafPending) {
+            wrapper._rafPending = true;
+            requestAnimationFrame(() => {
+                wrapper._rafPending = false;
+                const wRect = wrapper.getBoundingClientRect();
+                const wCenter = wRect.left + wRect.width / 2;
+                const maxDist = wRect.width * 0.6;
+                allCards.forEach(c => {
+                    const rect = c.getBoundingClientRect();
+                    const dist = Math.abs((rect.left + rect.width / 2) - wCenter);
+                    const ratio = Math.max(0, 1 - dist / maxDist);
+                    const lift = ratio * 16;
+                    c.style.transform = `translateY(-${lift}px) scale(${1 + ratio * 0.03})`;
+                    c.style.zIndex = Math.round(ratio * 10);
+                });
             });
-        });
+        }
+    } else {
+        allCards.forEach(c => { c.style.transform = ''; c.style.zIndex = ''; });
     }
 
     // Dots + active-card al parar el scroll
@@ -1578,16 +1582,21 @@ function renderNutricion() {
                 bloque.className = '_nutriDiaBlock';
                 bloque.style.cssText = 'margin-bottom:24px;';
 
+                const obj = window.nutricionData.objetivos || { kcal: 2000 };
                 bloque.innerHTML = `
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 2px;">
+                        <canvas id="_nutDnt_${fechaKey}" width="32" height="32" style="flex-shrink:0;"></canvas>
                         <span style="color:#f1f5f9;font-size:14px;font-weight:800;">${diaSem} ${diaMes} ${mes}</span>
                         ${esHoy ? '<span style="background:rgba(16,185,129,0.15);color:#10b981;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;padding:2px 7px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);">HOY</span>' : ''}
                         ${macroHtml ? `<span style="margin-left:auto;display:flex;align-items:center;gap:6px;">${macroHtml}</span>` : ''}
                     </div>
-                    <div class="_nutriDiaWrapper" style="overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:6px;">
-                        <div class="_nutriDiaTrack" style="display:flex;gap:14px;padding:2px 2px 6px;width:max-content;"></div>
+                    <div class="_nutriDiaWrapper" style="overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:6px;padding-top:18px;">
+                        <div class="_nutriDiaTrack" style="display:flex;gap:14px;padding:0 2px 6px;width:max-content;"></div>
                     </div>
                 `;
+                // Draw per-day kcal donut after DOM insertion (deferred)
+                const _dnutKey = fechaKey, _dnutKcal = totKcal, _dnutObj = obj.kcal;
+                requestAnimationFrame(() => _nutriDrawDonut('_nutDnt_' + _dnutKey, _dnutKcal, _dnutObj, _dnutKcal > _dnutObj ? '#ef4444' : '#10b981', 'rgba(255,255,255,0.08)'));
                 bloque.querySelector('._nutriDiaWrapper style') && bloque.querySelector('._nutriDiaWrapper style').remove();
 
                 const track = bloque.querySelector('._nutriDiaTrack');
@@ -1607,7 +1616,7 @@ function renderNutricion() {
                 const diaWrapper = bloque.querySelector('._nutriDiaWrapper');
                 if (diaWrapper) {
                     diaWrapper.addEventListener('scroll', function() {
-                        if (!this._rafPending) {
+                        if (window.innerWidth < 769 && !this._rafPending) {
                             this._rafPending = true;
                             const wr = this;
                             requestAnimationFrame(() => {
@@ -1624,6 +1633,8 @@ function renderNutricion() {
                                     c.style.zIndex = Math.round(ratio * 10);
                                 });
                             });
+                        } else if (window.innerWidth >= 769) {
+                            this.querySelectorAll('.reforma-preview-card').forEach(c => { c.style.transform = ''; c.style.zIndex = ''; });
                         }
                         clearTimeout(this._snapTimer);
                         this._snapTimer = setTimeout(() => {

@@ -1741,7 +1741,10 @@
         if (!containerEl || !cat) return;
         size = size || 20;
         const color = cat.iconColor || '#ffffff';
-        if (cat.svgData && cat.svgData.vb && cat.svgData.svg) {
+        if (cat.iconoImagen) {
+            containerEl.style.overflow = 'hidden';
+            containerEl.innerHTML = '<img src="' + cat.iconoImagen + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">';
+        } else if (cat.svgData && cat.svgData.vb && cat.svgData.svg) {
             containerEl.innerHTML = '<svg class="__svg_icon" viewBox="' + cat.svgData.vb + '" width="' + size + '" height="' + size + '" style="fill:' + color + ';flex-shrink:0;display:block;" xmlns="http://www.w3.org/2000/svg">' + cat.svgData.svg + '</svg>';
         } else {
             containerEl.querySelectorAll('.__svg_icon').forEach(function(el){ el.remove(); });
@@ -1763,10 +1766,15 @@
         if (!iconBg || !cat) return;
         var color = cat.color || '#64748b';
         var iconColor = cat.iconColor || '#ffffff';
-        iconBg.style.background = color;
-        if (cat.svgData && cat.svgData.vb && cat.svgData.svg) {
+        if (cat.iconoImagen) {
+            iconBg.style.background = '';
+            iconBg.style.overflow = 'hidden';
+            iconBg.innerHTML = '<img src="' + cat.iconoImagen + '" style="width:100%;height:100%;object-fit:cover;">';
+        } else if (cat.svgData && cat.svgData.vb && cat.svgData.svg) {
+            iconBg.style.background = color;
             iconBg.innerHTML = '<svg viewBox="' + cat.svgData.vb + '" width="22" height="22" style="fill:' + iconColor + ';flex-shrink:0;display:block;" xmlns="http://www.w3.org/2000/svg">' + cat.svgData.svg + '</svg>';
         } else {
+            iconBg.style.background = color;
             iconBg.innerHTML = '<span id="modalAddGastoIcono" class="material-symbols-rounded" style="font-size:22px;color:' + iconColor + ';">' + (cat.icon || 'category') + '</span>';
         }
     }
@@ -1806,7 +1814,13 @@
             const _icbRgb = _hexToRgb(cat.color);
             const _icbAlpha = '1.00';
             iconBox.style.cssText = `background:rgba(${_icbRgb},${_icbAlpha});border:1.5px solid rgba(${_icbRgb},0.6);`;
-            if (cat.svgData) {
+            if (cat.iconoImagen) {
+                iconBox.style.overflow = 'hidden';
+                const imgEl = document.createElement('img');
+                imgEl.src = cat.iconoImagen;
+                imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none;';
+                iconBox.appendChild(imgEl);
+            } else if (cat.svgData) {
                 const svgEl = document.createElementNS('http://www.w3.org/2000/svg','svg');
                 svgEl.setAttribute('viewBox', cat.svgData.vb);
                 svgEl.setAttribute('width','30'); svgEl.setAttribute('height','30');
@@ -4207,6 +4221,8 @@
             abrirSelectorCuenta('destino');
         } else if (window._eopTipo === 'EXPENSE') {
             toggleEopPanel('categoria');
+        } else if (window._eopTipo === 'INCOME') {
+            abrirSelectorCuenta('origen'); // Para INCOME el lado derecho muestra _eopOrigenIdx
         } else {
             abrirSelectorCuenta('destino');
         }

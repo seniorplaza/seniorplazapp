@@ -76,9 +76,11 @@
             rowCat.style.cssText = 'display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;';
             const leftPart = document.createElement('div');
             leftPart.style.cssText = 'display:flex;align-items:center;gap:10px;flex:1;min-width:0;';
-            const thumbHtml = cat?.svgData
-                ? `<div style="width:28px;height:28px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="${cat.svgData.vb}" width="16" height="16" style="fill:white;display:block;" xmlns="http://www.w3.org/2000/svg">${cat.svgData.svg}</svg></div>`
-                : `<div style="width:28px;height:28px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:17px;color:white;line-height:1;display:flex;">${cat.icon||'label'}</span></div>`;
+            const thumbHtml = cat?.iconoImagen
+                ? `<div style="width:28px;height:28px;border-radius:8px;overflow:hidden;flex-shrink:0;"><img src="${cat.iconoImagen}" style="width:100%;height:100%;object-fit:cover;"></div>`
+                : (cat?.svgData
+                    ? `<div style="width:28px;height:28px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="${cat.svgData.vb}" width="16" height="16" style="fill:white;display:block;" xmlns="http://www.w3.org/2000/svg">${cat.svgData.svg}</svg></div>`
+                    : `<div style="width:28px;height:28px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span class="material-symbols-rounded" style="font-size:17px;color:white;line-height:1;display:flex;">${cat.icon||'label'}</span></div>`);
             leftPart.innerHTML = `
                 ${thumbHtml}
                 <span style="color:white;font-size:14px;font-weight:600;flex:1;">${cat.name}</span>
