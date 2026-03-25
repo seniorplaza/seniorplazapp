@@ -8279,12 +8279,13 @@
                                     { lbl: ej.cardioRirLabel,    val: ej.rir },
                                     { lbl: ej.cardioRpeLabel,    val: ej.rpe }
                                 ].filter(function(p) { return p.lbl && p.val && p.val !== '0'; });
-                                if (metPairs.length > 0) {
+                                if (metPairs.length > 0 || ej.gymPace) {
                                     detalleHtml = ' <span style="color:#64748b;font-size:10px;display:inline-flex;flex-wrap:wrap;gap:3px;">'
                                         + metPairs.map(function(p) {
                                             return '<span style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:5px;padding:1px 5px;color:#fb923c;font-size:9px;font-weight:700;">'
                                                  + p.lbl + ' <span style="color:#94a3b8;font-weight:600;">' + p.val + '</span></span>';
                                           }).join('')
+                                        + (ej.gymPace ? '<span style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:5px;padding:1px 5px;color:#fb923c;font-size:9px;font-weight:700;">RITMO <span style="color:#94a3b8;font-weight:600;">' + ej.gymPace + '/km</span></span>' : '')
                                         + '</span>';
                                 }
                             } else {
