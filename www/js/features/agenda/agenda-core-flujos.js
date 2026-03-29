@@ -1510,13 +1510,16 @@ function habitoToggleDia(id, fechaStr) {
     const idx = habito.registros.findIndex(r => r.fecha === fechaStr);
     const marcandoCompletadoHabito = (idx < 0);
     if (idx < 0) {
+        // Sin registro → verde
         habito.registros.push({ fecha: fechaStr, completado: true });
     } else {
         const reg = habito.registros[idx];
         if (reg.completado === true) {
+            // Verde → rojo
             reg.completado = false;
             reg.explicit = true;
         } else if (reg.completado === false && reg.explicit) {
+            // Rojo → sin registro (naranja en pasado, nada en hoy)
             habito.registros.splice(idx, 1);
         }
     }
@@ -1576,7 +1579,7 @@ function habitoToggleDia(id, fechaStr) {
             swapThreshold: 0.65,
             handle: '.agenda-drag-thumb',
             filter: 'button, input, a',
-            preventOnFilter: true,
+            preventOnFilter: false,
             delay: 0,
             delayOnTouchOnly: false,
             touchStartThreshold: 3,
@@ -1802,7 +1805,7 @@ function renderTareasSection() {
             fallbackOnBody: true,
             swapThreshold: 0.65,
             handle: '.agenda-drag-thumb',
-            preventOnFilter: true,
+            preventOnFilter: false,
             forceFallback: true,
             fallbackTolerance: 0,
             touchStartThreshold: 3,
@@ -2089,7 +2092,8 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         else if (item.fecha && item.fecha < hoyStr) estadoTarea = 'pendiente';
         else estadoTarea = null;
     }
-    const completado = esRecordatorio ? false : (tipo === 'tarea' ? (estadoTarea === 'completada') : (registroHoy && registroHoy.completado));
+    const completado = esRecordatorio ? false : (tipo === 'tarea' ? (estadoTarea === 'completada') : (registroHoy && registroHoy.completado === true));
+    const fallido = tipo === 'habito' && registroHoy && registroHoy.completado === false && registroHoy.explicit === true;
 
     const catIcono = item.categoria?.icono || (tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':(esRecordatorio?'notifications_active':'task_alt'));
     const catColor = item.categoria?.color || c;
@@ -2145,15 +2149,15 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         ? 'data-desc-any-width="1"'
         : 'data-desc-any-width="0" data-mobile-only="1"';
         const checkOnclick = esFechaFutura ? '_lockShakeDiario(this)' : ('actToggleCompletado(\'' + item.id + '\',\'' + tipo + '\',this,\'' + viewDateStr + '\')');
-        const checkBorder = esFechaFutura ? 'rgba(71,85,105,0.5)' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'#f59e0b':'rgba(71,85,105,0.5)') : (completado?'#10b981':'rgba(71,85,105,0.5)'));
-        const checkBg = esFechaFutura ? 'transparent' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'rgba(245,158,11,0.15)':'transparent') : (completado?'#10b981':'transparent'));
+        const checkBorder = esFechaFutura ? 'rgba(71,85,105,0.5)' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'#f59e0b':'rgba(71,85,105,0.5)') : (completado?'#10b981':fallido?'#ef4444':'rgba(71,85,105,0.5)'));
+        const checkBg = esFechaFutura ? 'transparent' : (tipo==='tarea' ? (estadoTarea==='completada'?'#10b981':estadoTarea==='no_completada'?'#ef4444':estadoTarea==='pendiente'?'rgba(245,158,11,0.15)':'transparent') : (completado?'#10b981':fallido?'#ef4444':'transparent'));
         const checkInner = esFechaFutura
                 ? '<span class="material-symbols-rounded" style="color:#64748b;font-size:14px;">lock_clock</span>'
                 : (tipo==='tarea'
                         ? (estadoTarea==='completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>'
                             : estadoTarea==='no_completada' ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">close</span>'
                             : estadoTarea==='pendiente' ? '<span class="material-symbols-rounded" style="color:#f59e0b;font-size:15px;">schedule</span>' : '')
-                        : (completado ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>' : ''));
+                        : (completado ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">check</span>' : fallido ? '<span class="material-symbols-rounded" style="color:white;font-size:15px;">close</span>' : ''));
         const checkBtn = esRecordatorio ? '' : ('<button onclick="event.stopPropagation();' + checkOnclick + '" ontouchend="event.stopPropagation();" style="width:30px;height:30px;border-radius:50%;border:2px solid ' + checkBorder + ';background:' + checkBg + ';display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:1;box-shadow:none;">' + checkInner + '</button>');
     const moreBtn = '<button onclick="event.stopPropagation();_abrirMenuDiarioItem(event,\'' + item.id + '\',\'' + tipo + '\')" ontouchend="event.stopPropagation();" style="background:none;border:none;color:#475569;cursor:pointer;padding:2px;display:flex;align-items:center;border-radius:6px;" onmouseover="this.style.color=\'#94a3b8\'" onmouseout="this.style.color=\'#475569\'"><span class="material-symbols-rounded" style="font-size:18px;">more_vert</span></button>';
 
@@ -2169,7 +2173,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                             <span style="color:${completado?'#475569':'#f1f5f9'};font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:${completado?'line-through':'none'};">${item.nombre}</span>
                             ${item.etiqueta ? `<span style="flex-shrink:0;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;background:${catColor}22;color:${catColor};border:1px solid ${catColor}55;">${item.etiqueta}</span>` : ''}
                         </div>
-                        ${itemDesc && !esRecordatorio ? `<div style="color:#64748b;font-size:11px;font-style:italic;margin-top:2px;word-break:break-word;">${itemDesc}</div>` : ''}
+                        ${itemDesc && !esRecordatorio ? `<div style="color:#64748b;font-size:11px;font-style:italic;margin-top:2px;word-break:break-word;white-space:pre-wrap;">${itemDesc}</div>` : ''}
                     </div>
                     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
                         ${flagBadge}
@@ -2191,7 +2195,7 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
                 ${checkBtn}
             </div>
         </div>
-        ${(itemDesc || (!esRecordatorio && item.subitems && item.subitems.length)) ? `<div id="${uid}_desc" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ${descAttrs} style="display:none;margin-top:6px;margin-left:54px;">${itemDesc ? `<span style="color:#64748b;font-size:11px;font-style:italic;display:block;word-break:break-word;">${itemDesc}</span>` : ''}${!esRecordatorio && subitemsStr ? `<div style="margin-top:${itemDesc?'8px':'0'};">${subitemsStr}</div>` : ''}</div>` : ''}
+        ${(itemDesc || (!esRecordatorio && item.subitems && item.subitems.length)) ? `<div id="${uid}_desc" onclick="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ontouchend="event.stopPropagation();_diarioToggleDesc('${uid}', event)" ${descAttrs} style="display:none;margin-top:6px;margin-left:54px;">${itemDesc ? `<span style="color:#64748b;font-size:11px;font-style:italic;display:block;word-break:break-word;white-space:pre-wrap;">${itemDesc}</span>` : ''}${!esRecordatorio && subitemsStr ? `<div style="margin-top:${itemDesc?'8px':'0'};">${subitemsStr}</div>` : ''}</div>` : ''}
         ${!esRecordatorio && subitemsStr ? `<div class="diario-item-desktop" style="margin-top:16px;margin-left:32px;">${subitemsStr}</div>` : ''}
     </div>`;
 }
@@ -2339,9 +2343,27 @@ function actToggleCompletado(id, tipo, btnEl, fechaStr) {
     const rachaAntes = typeof _calcRachaHabito === 'function' ? _calcRachaHabito(item) : 0;
     if (!item.registros) item.registros = [];
     const idx = item.registros.findIndex(r => r.fecha === hoy);
-    const marcandoCompletado = idx < 0 || !item.registros[idx].completado;
-    if (idx >= 0) item.registros[idx].completado = !item.registros[idx].completado;
-    else item.registros.push({ fecha: hoy, completado: true });
+    let marcandoCompletado = false;
+    let marcandoFallido = false;
+    if (tipo === 'habito') {
+        // Ciclo 3 estados: sin registro → verde → rojo → sin registro
+        if (idx < 0) {
+            item.registros.push({ fecha: hoy, completado: true });
+            marcandoCompletado = true;
+        } else {
+            const reg = item.registros[idx];
+            if (reg.completado === true) {
+                reg.completado = false; reg.explicit = true;
+                marcandoFallido = true;
+            } else if (reg.completado === false && reg.explicit) {
+                item.registros.splice(idx, 1);
+            }
+        }
+    } else {
+        marcandoCompletado = idx < 0 || !item.registros[idx].completado;
+        if (idx >= 0) item.registros[idx].completado = !item.registros[idx].completado;
+        else item.registros.push({ fecha: hoy, completado: true });
+    }
     const rachaDespues = typeof _calcRachaHabito === 'function' ? _calcRachaHabito(item) : 0;
     guardarAgendaData();
     if (marcandoCompletado && navigator.vibrate) navigator.vibrate([40, 30, 80]);
@@ -2351,6 +2373,10 @@ function actToggleCompletado(id, tipo, btnEl, fechaStr) {
             btnEl.style.borderColor = '#10b981';
             btnEl.innerHTML = '<span class="material-symbols-rounded" style="color:white;font-size:16px;">check</span>';
             _animarCheckCompletado(btnEl);
+        } else if (marcandoFallido) {
+            btnEl.style.background = '#ef4444';
+            btnEl.style.borderColor = '#ef4444';
+            btnEl.innerHTML = '<span class="material-symbols-rounded" style="color:white;font-size:16px;">close</span>';
         } else {
             btnEl.style.background = 'transparent';
             btnEl.style.borderColor = 'rgba(71,85,105,0.5)';

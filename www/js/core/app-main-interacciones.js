@@ -114,8 +114,14 @@
                 }
             }
         });
+        window._tabNavHistory = [];
         function showTab(id, button, origen) {
             if (!window._restoringTab) { try { sessionStorage.setItem('_lastTab', id); } catch(e) {} }
+            if (!origen || origen !== 'popstate' && origen !== 'back') {
+                var _prev = window._tabNavHistory.length > 0 ? window._tabNavHistory[window._tabNavHistory.length - 1] : null;
+                if (_prev !== id) window._tabNavHistory.push(id);
+                if (window._tabNavHistory.length > 20) window._tabNavHistory.shift();
+            }
             document.querySelectorAll('.tab-content').forEach(el => { el.classList.remove('active'); el.classList.remove('pre-restore'); });
             document.getElementById(id).classList.add('active');
             if (id === 'analisis') {
@@ -136,9 +142,7 @@
             if (mobileBtn) {
                 mobileBtn.classList.add('active');
             }
-            if (!origen || origen !== 'popstate') {
-                try { history.pushState({ tab: id }, '', '#' + id); } catch(e) {}
-            }
+            try { history.replaceState({ tab: id }, '', '#' + id); } catch(e) {}
             if (id === 'vivienda' && typeof window.init360Visor === 'function') {
                 setTimeout(function() {
                     window.init360Visor();
@@ -158,6 +162,7 @@
                 }, 50);
             }
         }
+        window.showTab = showTab;
         window.addEventListener('popstate', function(e) {
             var active = document.activeElement;
             if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
@@ -175,7 +180,86 @@
             const activeTab = document.querySelector('.tab-content.active');
             const initialId = activeTab ? activeTab.id : 'mis-activos';
             try { history.replaceState({ tab: initialId }, '', '#' + initialId); } catch(e) {}
+            if (window._tabNavHistory && window._tabNavHistory.length === 0) {
+                window._tabNavHistory.push(initialId);
+            }
         })();
+
+        // ── Botón atrás Android ──────────────────────────────────────────
+        (function() {
+            var _backPressCount = 0;
+            var _backPressTimer = null;
+
+            function _cerrarModalVisible() {
+                var candidates = Array.from(document.querySelectorAll('body > div'));
+                var visibles = candidates.filter(function(el) {
+                    var cs = getComputedStyle(el);
+                    return cs.position === 'fixed' && cs.display !== 'none' && (parseInt(cs.zIndex) || 0) >= 1000;
+                });
+                if (visibles.length === 0) return false;
+                visibles.sort(function(a, b) {
+                    return (parseInt(getComputedStyle(b).zIndex) || 0) - (parseInt(getComputedStyle(a).zIndex) || 0);
+                });
+                var top = visibles[0];
+                var closeBtn = top.querySelector('[onclick*="cerrar"], [onclick*="Cerrar"], [onclick*="close"], [onclick*="Close"]');
+                if (!closeBtn) {
+                    var btns = Array.from(top.querySelectorAll('button'));
+                    closeBtn = btns.find(function(b) {
+                        var t = b.textContent || '';
+                        return t.trim() === 'close' || t.includes('×') || t.includes('✕');
+                    });
+                }
+                if (closeBtn) { closeBtn.click(); return true; }
+                if (top.onclick) { top.click(); return true; }
+                top.style.display = 'none';
+                return true;
+            }
+
+            function _handleBack() {
+                var active = document.activeElement;
+                if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+                    active.blur(); return;
+                }
+                if (_cerrarModalVisible()) return;
+                var hist = window._tabNavHistory || [];
+                if (hist.length > 1) {
+                    hist.pop(); // quitar tab actual
+                    var prevTab = hist[hist.length - 1];
+                    if (typeof window.showTab === 'function') { window.showTab(prevTab, null, 'back'); return; }
+                }
+                _backPressCount++;
+                if (_backPressCount === 1) {
+                    if (typeof window._mostrarToast === 'function') window._mostrarToast('logout', '#94a3b8', 'Pulsa atrás de nuevo para salir');
+                    _backPressTimer = setTimeout(function() { _backPressCount = 0; }, 2000);
+                } else {
+                    clearTimeout(_backPressTimer);
+                    var App = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App;
+                    if (App && App.exitApp) { App.exitApp(); }
+                    else if (window.navigator && navigator.app && navigator.app.exitApp) { navigator.app.exitApp(); }
+                }
+            }
+
+            // Exponer para que MainActivity.kt pueda llamarlo via evaluateJavascript
+            window._handleBack = _handleBack;
+
+            // Evento Cordova (funciona en Capacitor también)
+            document.addEventListener('backbutton', function(e) {
+                e.preventDefault();
+                _handleBack();
+            }, false);
+
+            // Fallback: Capacitor App plugin (se registra cuando esté disponible)
+            document.addEventListener('deviceready', function() {
+                var App = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App;
+                if (App && App.addListener) {
+                    App.addListener('backButton', function(data) {
+                        if (!data.canGoBack) _handleBack();
+                        else history.back();
+                    });
+                }
+            }, false);
+        })();
+        // ────────────────────────────────────────────────────────────────
 
         function fmt(num) {
             const rounded = Math.round(num * 100) / 100;
@@ -1802,15 +1886,18 @@
                 startX = e.touches[0].clientX;
                 isDragging = true;
                 t.style.transition = 'none';
-            });
+                e.stopPropagation();
+            }, { passive: false });
 
             t.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
+                e.preventDefault();
+                e.stopPropagation();
                 currentX = e.touches[0].clientX - startX;
                 const rotation = currentX * 0.1;
                 t.style.transform = `translateX(calc(-50% + ${currentX}px)) translateY(0) rotate(${rotation}deg)`;
                 t.style.opacity = 1 - Math.abs(currentX) / 240;
-            });
+            }, { passive: false });
 
             t.addEventListener('touchend', () => {
                 if (!isDragging) return;

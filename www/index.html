@@ -336,6 +336,12 @@
                             </button>
                         </div>
                         <div class="tab-separator mobile-menu-separator"></div>
+                        <!-- Botón calendario laboral (móvil) -->
+                        <button onclick="abrirCalendarioLaboral()"
+                            class="tab-button mobile-menu-button-inline flex items-center justify-center px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
+                            title="Horario laboral">
+                            <span class="material-symbols-rounded opacity-70" style="font-size: 18px;">calendar_month</span>
+                        </button>
                         <!-- Botón menú móvil integrado -->
                         <button onclick="toggleMobileMenu(event)"
                             class="tab-button mobile-menu-button-inline flex items-center justify-center px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
@@ -347,6 +353,12 @@
                     <!-- Botones de acciones a la derecha (Desktop) -->
                     <div class="desktop-actions flex items-center gap-2 bg-slate-950/80 rounded-2xl border border-slate-800/50 p-2"
                         style="flex-shrink:0; margin-left:auto;">
+                        <!-- Calendario laboral (Desktop) -->
+                        <button onclick="abrirCalendarioLaboral()" title="Horario laboral"
+                            style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
+                            <span class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">calendar_month</span>
+                        </button>
+
                         <!-- Pantalla Completa -->
                         <button onclick="toggleFullscreen()" title="Pantalla completa"
                             style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
@@ -485,8 +497,14 @@
                     </div>
                 </div>
 
-                <!-- Solo botón de 3 puntos -->
+                <!-- Botones header derecha -->
                 <div class="flex items-center gap-2">
+                    <button onclick="abrirCalendarioLaboral()"
+                        class="mobile-menu-button-inline p-2 rounded-lg transition-all"
+                        style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.2);"
+                        title="Horario laboral">
+                        <span class="material-symbols-rounded text-blue-400" style="font-size: 20px;">calendar_month</span>
+                    </button>
                     <button onclick="toggleMobileMenu(event)"
                         class="mobile-menu-button-inline p-2 rounded-lg transition-all"
                         style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.2);"
@@ -5145,7 +5163,7 @@
                     <div id="modalGastoCatDropdown"
                         style="display:none;margin-top:6px;background:rgba(10,18,35,0.98);border:1px solid rgba(59,130,246,0.2);border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
                         <div id="modalGastoCatGrid"
-                            style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:8px;"></div>
+                            style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;"></div>
                     </div>
                 </div>
 
@@ -5383,7 +5401,7 @@
                     <div
                         style="color:#64748b;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">
                         Selecciona categoría</div>
-                    <div id="eop-cat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-height:300px;overflow-y:auto;padding-right:4px;"></div>
+                    <div id="eop-cat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:300px;overflow-y:auto;overflow-x:hidden;"></div>
                 </div>
                 <!-- Panel comentario: solo nota, sin título -->
                 <div id="eop-panel-comentario" style="display:none;padding:16px 20px;">
@@ -5686,7 +5704,7 @@
                     <div id="prog-cat-dropdown"
                         style="display:none;margin-top:6px;background:rgba(10,18,35,0.98);border:1px solid rgba(100,116,139,0.2);border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
                         <div id="prog-cat-grid"
-                            style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:8px;"></div>
+                            style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;"></div>
                     </div>
                 </div>
 
@@ -5849,7 +5867,7 @@
                     <div id="eprog-cat-dropdown"
                         style="display:none;margin-top:6px;background:rgba(10,18,35,0.98);border:1px solid rgba(100,116,139,0.2);border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
                         <div id="eprog-cat-grid"
-                            style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:8px;"></div>
+                            style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;"></div>
                     </div>
                 </div>
 
@@ -7401,6 +7419,68 @@
         });
     </script>
 
+    <!-- MODAL CALENDARIO LABORAL -->
+    <div id="modalCalendarioLaboral" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10050;align-items:center;justify-content:center;">
+        <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:400px;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="display:flex;justify-content:center;padding:10px 0 4px;flex-shrink:0;">
+                <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.07);">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="material-symbols-rounded" style="color:#475569;font-size:22px;">calendar_month</span>
+                    <div style="color:white;font-size:15px;font-weight:800;">Horario laboral</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button onclick="abrirSelectorTurno()" title="Asignar turno"
+                        style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-symbols-rounded" style="font-size:18px;">badge</span>
+                    </button>
+                    <button onclick="cerrarCalendarioLaboral()"
+                        style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                        <span class="material-symbols-rounded" style="font-size:18px;">close</span>
+                    </button>
+                </div>
+            </div>
+            <div id="calLaboralContenido" style="overflow-y:auto;overflow-x:hidden;padding:16px 20px;flex:none;max-height:70vh;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL SELECTOR DE TURNO -->
+    <div id="modalSelectorTurno" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10051;align-items:center;justify-content:center;">
+        <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.1);border-radius:20px;width:280px;padding:24px;display:flex;flex-direction:column;gap:12px;">
+            <div style="color:white;font-size:15px;font-weight:800;text-align:center;margin-bottom:4px;">Seleccionar turno</div>
+            <button onclick="seleccionarTurnoLaboral('mañana')"
+                style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1.5px solid #10b981;background:rgba(16,185,129,0.1);cursor:pointer;">
+                <span class="material-symbols-rounded" style="color:#10b981;font-size:22px;">wb_sunny</span>
+                <div style="text-align:left;">
+                    <div style="color:#10b981;font-size:14px;font-weight:800;">Turno de mañana</div>
+                    <div style="color:#64748b;font-size:11px;">Marca la semana en verde</div>
+                </div>
+            </button>
+            <button onclick="seleccionarTurnoLaboral('tarde')"
+                style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1.5px solid #3b82f6;background:rgba(59,130,246,0.1);cursor:pointer;">
+                <span class="material-symbols-rounded" style="color:#3b82f6;font-size:22px;">nights_stay</span>
+                <div style="text-align:left;">
+                    <div style="color:#3b82f6;font-size:14px;font-weight:800;">Turno de tarde</div>
+                    <div style="color:#64748b;font-size:11px;">Marca la semana en azul</div>
+                </div>
+            </button>
+            <button onclick="seleccionarTurnoLaboral('vacaciones')"
+                style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1.5px solid #eab308;background:rgba(234,179,8,0.1);cursor:pointer;">
+                <span class="material-symbols-rounded" style="color:#eab308;font-size:22px;">beach_access</span>
+                <div style="text-align:left;">
+                    <div style="color:#eab308;font-size:14px;font-weight:800;">Vacaciones</div>
+                    <div style="color:#64748b;font-size:11px;">Marca los días en amarillo</div>
+                </div>
+            </button>
+            <button onclick="cerrarSelectorTurno()"
+                style="padding:10px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;">
+                Cancelar
+            </button>
+        </div>
+    </div>
+
+    <script src="js/features/horario/horario-laboral.js"></script>
 </body>
 
 </html>
