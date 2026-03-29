@@ -5828,10 +5828,13 @@
                     var domHistorico = !!document.querySelector('.gym-panel-grid[data-historico="1"]');
                     if (domHistorico) {
                         out = histHoyCards || {};
-                    } else if (totalCardsDOM > 0 || histTotalCards === 0) {
+                    } else if (totalCardsDOM > 0 || histTotalCards === 0 || document.querySelector('.gym-empty-state')) {
                         if (!hist[hoy]) hist[hoy] = {};
                         hist[hoy].cards = out;
                     } else {
+                        // Si no hay tarjetas en el DOM pero tampoco hay un empty state, 
+                        // es probable que la sección aún no se haya renderizado.
+                        // En ese caso, para no borrar los datos por error, restauramos del historial.
                         out = histHoyCards;
                     }
                 } else {

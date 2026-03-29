@@ -1,4 +1,6 @@
 
+function _localDateStr(d) { if(!d) return ''; const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; }
+
 window._actState = {
     tipo: null,          // 'habito' | 'tareaRecurrente' | 'tarea'
     subtipo: null,       // para hábito: 'sino' | 'cantidad' | 'lista'
@@ -1029,12 +1031,14 @@ function _calcRachaHabito(habito) {
     const completados = _getCompletadosMap(registros);
     let racha = 0;
     const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const goal = (habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia') ? (habito.vecesPeriodo || 1) : 1;
     let offsetInicio = 0;
     for (let i = 0; i < 2; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
         if (_actAplicaHoy(habito, d, completados)) {
-            if (!completados.has(_localDateStr(d))) {
-                offsetInicio = i + 1; // empezar desde el día siguiente hacia atrás
+            const fStr = _localDateStr(d);
+            if (!((completados[fStr] || 0) >= goal)) {
+                offsetInicio = i + 1;
             }
             break;
         }
@@ -1042,10 +1046,8 @@ function _calcRachaHabito(habito) {
 
     for (let i = offsetInicio; i < 365; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
-        if (!_actAplicaHoy(habito, d, completados)) continue; // ese día no tocaba
-        const fStr = _localDateStr(d);
-        const goal = habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia' ? (habito.vecesPeriodo || 1) : 1;
-        if ((completados[fStr] || 0) >= goal) racha++;
+        if (!_actAplicaHoy(habito, d, completados)) continue;
+        if ((completados[_localDateStr(d)] || 0) >= goal) racha++;
         else break;
     }
     return racha;
@@ -1140,14 +1142,12 @@ function _renderHabitoCard(habito) {
         const fallido = fallidosSet.has(dStr);
         const pasadoSinHacer = !esFuturo && !esHoy && aplica && !completado && !fallido; // solo días pasados (no hoy)
 
-        let bg = 'transparent', border = '1.5px solid rgba(255,255,255,0.08)', txtColor = '#334155', fw = '600', inner = d.getDate();
-
-        if (completado && aplica) {
+        if (completado) {
             bg = 'rgba(16,185,129,0.18)'; border = '1.5px solid #10b981'; txtColor = '#10b981'; fw = '800';
-        } else if (fallido && aplica) {
+        } else if (fallido) {
             bg = 'rgba(239,68,68,0.12)'; border = '1.5px solid #ef4444'; txtColor = '#ef4444'; fw = '700';
         } else if (pasadoSinHacer) {
-            bg = 'rgba(245,158,11,0.12)'; border = '1.5px solid #f59e0b'; txtColor = '#f59e0b'; fw = '600';
+            bg = 'rgba(249,115,22,0.12)'; border = '1.5px solid #f59e0b'; txtColor = '#f59e0b'; fw = '600';
         } else if (esHoy && aplica) {
             border = '1.5px solid rgba(148,163,184,0.5)'; txtColor = '#94a3b8'; fw = '800';
         } else if (!aplica || esFuturo) {
@@ -1169,8 +1169,8 @@ function _renderHabitoCard(habito) {
             <span style="color:#475569;font-size:10px;font-weight:600;pointer-events:none;">${nombresDias[i]}</span>
             <button onclick="habitoToggleDia('${habito.id}','${dStr}')" style="width:30px;height:30px;border-radius:50%;background:${bg};border:${border};color:${txtColor};font-size:11px;font-weight:${fw};cursor:${!canClick?'default':'pointer'};display:flex;align-items:center;justify-content:center;transition:all 0.15s;position:relative;" ${!canClick?'disabled':''}>
                 <span style="pointer-events:none;">${inner}</span>
-                ${(isVecesPeriodo && habito.vecesPeriodoPer === 'dia' && goal > 1) ? `<div style="position:absolute;bottom:-4px;right:-4px;background:#1e293b;border:1px solid rgba(255,255,255,0.2);color:white;font-size:8px;padding:1px 3px;border-radius:4px;font-weight:800;pointer-events:none;">${doneCount}/${goal}</div>` : ''}
             </button>
+            ${(isVecesPeriodo && habito.vecesPeriodoPer === 'dia' && goal > 1) ? `<div style="background:rgba(255,255,255,0.05);color:#94a3b8;font-size:8px;padding:1px 4px;border-radius:4px;font-weight:800;pointer-events:none;margin-top:-1px;border:1px solid rgba(255,255,255,0.05);">${doneCount}/${goal}</div>` : '<div style="height:12px;"></div>'}
         </div>`;
     }).join('');
 
@@ -1180,7 +1180,7 @@ function _renderHabitoCard(habito) {
                 ${catMiniatura}
             </div>
             <div style="flex:1;min-width:0;">
-                <div style="color:white;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${habito.nombre}</div>
+                <div style="color:white;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${habito.nombre}</div>
                 ${habito.desc ? `<div style="color:#64748b;font-size:11px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${habito.desc}</div>` : ''}
             </div>
         </div>
@@ -1640,7 +1640,7 @@ function habitoToggleDia(id, fechaStr) {
 }
 (function() {
     function _getItems(listKey) {
-        const d = window.agendaData || {};
+        const d = window.agendaData || { habitos:[], tareas:[], tareasRecurrentes:[] };
         if (listKey === 'habitos')           return d.habitos ? d.habitos.filter(h => !h.archivado) : [];
         if (listKey === 'tareasRecurrentes') return d.tareasRecurrentes || [];
         if (listKey === 'tareas')            return d.tareas || [];
@@ -1758,11 +1758,13 @@ function renderHabitosSection() {
         container.innerHTML = `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:40px;text-align:center;"><span class="material-symbols-rounded" style="font-size:48px;color:#334155;display:block;margin-bottom:12px;">editor_choice</span><p style="color:#475569;font-size:14px;margin:0 0 4px 0;">No hay hábitos aún</p><p style="color:#334155;font-size:12px;margin:0;">¿A qué esperas para conseguir tu primer desafío de racha?</p></div>`;
         return;
     }
-    container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"class="habitos-grid-desktop">${habitos.map(h => _renderHabitoCard(h)).join('')}</div>`;
+    container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;" class="habitos-grid-desktop">${habitos.map(h => {
+        try { return _renderHabitoCard(h); } catch(err) { console.error('Error in _renderHabitoCard:', err); return ''; }
+    }).join('')}</div>`;
     setTimeout(() => window._initDragSortList && window._initDragSortList(container.firstElementChild, 'habitos'), 0);
 }
 
-function _localDateStr(d) { const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${dd}`; }
+
 
 function _formatFechaTareaHeader(iso) {
     if (!iso) return 'Sin fecha';
