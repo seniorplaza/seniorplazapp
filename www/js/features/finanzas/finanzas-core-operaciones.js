@@ -1815,7 +1815,9 @@
             const _icbAlpha = '1.00';
             iconBox.style.cssText = `background:rgba(${_icbRgb},${_icbAlpha});border:1.5px solid rgba(${_icbRgb},0.6);`;
             if (cat.iconoImagen) {
-                iconBox.style.cssText = `background:transparent;border:none;overflow:hidden;`;
+                iconBox.style.setProperty('background', 'transparent', 'important');
+                iconBox.style.setProperty('border', 'none', 'important');
+                iconBox.style.overflow = 'hidden';
                 const imgEl = document.createElement('img');
                 imgEl.src = cat.iconoImagen;
                 imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none;';
@@ -1824,8 +1826,8 @@
                 iconBox.style.cssText = `background:rgba(${_icbRgb},${_icbAlpha});border:1.5px solid rgba(${_icbRgb},0.6);`;
                 const svgEl = document.createElementNS('http://www.w3.org/2000/svg','svg');
                 svgEl.setAttribute('viewBox', cat.svgData.vb);
-                svgEl.setAttribute('width', '24');
-                svgEl.setAttribute('height', '24');
+                svgEl.setAttribute('width', '30');
+                svgEl.setAttribute('height', '30');
                 svgEl.style.cssText = `fill:${cat.iconColor||'#ffffff'}; display:block; flex-shrink:0; pointer-events:none;`;
                 svgEl.innerHTML = cat.svgData.svg;
                 iconBox.appendChild(svgEl);
@@ -3857,7 +3859,7 @@
                         row.innerHTML = `
                             <div style="display:flex;align-items:center;gap:12px;width:100%;">
                                 <div class="op-item-icon" style="background:${cat?.iconoImagen?'transparent':catColor};flex-shrink:0;overflow:hidden;">
-                                    ${cat?.iconoImagen ? _catIconHTML(cat,'100%') : (cat?.svgData ? _catIconHTML(cat,20) : `<span class="material-symbols-rounded" style="font-size:20px;color:${cat?.iconColor||'#fff'};">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`)}
+                                    ${cat?.iconoImagen ? _catIconHTML(cat,'100%') : (cat?.svgData ? _catIconHTML(cat,26) : `<span class="material-symbols-rounded" style="font-size:20px;color:${cat?.iconColor||'#fff'};">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`)}
                                 </div>
                                 <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;">
                                     <span style="color:#f1f5f9;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_catName}</span>
@@ -3876,7 +3878,7 @@
                     } else {
                         row.innerHTML = `
                             <div class="op-item-icon" style="background:${cat?.iconoImagen?'transparent':catColor};flex-shrink:0;overflow:hidden;">
-                                ${cat?.iconoImagen ? _catIconHTML(cat,'100%') : (cat?.svgData ? _catIconHTML(cat,20) : `<span class="material-symbols-rounded" style="font-size:20px;color:${cat?.iconColor||'#fff'};">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`)}
+                                ${cat?.iconoImagen ? _catIconHTML(cat,'100%') : (cat?.svgData ? _catIconHTML(cat,26) : `<span class="material-symbols-rounded" style="font-size:20px;color:${cat?.iconColor||'#fff'};">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`)}
                             </div>
                             <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;">
                                 <div style="display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;">
@@ -4024,10 +4026,10 @@
                 const totalOfType = entries.reduce((s,x)=>s+x.amount,0);
                 const pctOfType = totalOfType > 0 ? (e.amount/totalOfType*100).toFixed(0) : 0;
                 
-                const iconBackground = e.cat.iconoImagen ? 'transparent' : color;
+                const iconBackground = e.cat.iconoImagen ? 'transparent !important' : color;
                 const iconContent = e.cat.iconoImagen
-                    ? `<img src="${e.cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;">`
-                    : (e.cat?.svgData ? `<svg viewBox="${e.cat.svgData.vb}" width="20" height="20" style="fill:${e.cat.iconColor||'#fff'};" xmlns="http://www.w3.org/2000/svg">${e.cat.svgData.svg}</svg>` : `<span class="material-symbols-rounded" style="font-size:20px;color:${e.cat.iconColor||'white'};">${e.cat.icon||'category'}</span>`);
+                    ? `<img src="${e.cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;border-radius:inherit;">`
+                    : (e.cat?.svgData ? `<svg viewBox="${e.cat.svgData.vb}" width="26" height="26" style="fill:${e.cat.iconColor||'#fff'};" xmlns="http://www.w3.org/2000/svg">${e.cat.svgData.svg}</svg>` : `<span class="material-symbols-rounded" style="font-size:20px;color:${e.cat.iconColor||'white'};">${e.cat.icon||'category'}</span>`);
                 const catOps = ops.filter(o => o.categoryId === e.cat.id && o.type === e.type)
                     .sort((a,b) => new Date(b.date)-new Date(a.date));
                 const etiquetas = [...new Set(catOps.flatMap(o => o.etiquetas||[]))];
