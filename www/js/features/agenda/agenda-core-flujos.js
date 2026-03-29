@@ -23,6 +23,7 @@ function seleccionarTipoActividad(tipo) {
         subtipo: null,
         paso: 0,
         datos: {
+            vecesGoalType: 'exact',
             categoria: { icono: catIcono, color: catColor, nombre: catNombre },
             categoriaId: null
         }
@@ -63,7 +64,11 @@ function _abrirActividadDirecta(tipo) {
         tipo,
         subtipo: null,
         paso: 0,
-        datos: { categoria: { icono: tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':'task_alt', color: tipo==='habito'?'#10b981':tipo==='tareaRecurrente'?'#60a5fa':'#f59e0b', nombre: '' }, categoriaId: null }
+        datos: { 
+            vecesGoalType: 'exact',
+            categoria: { icono: tipo==='habito'?'repeat':tipo==='tareaRecurrente'?'event_repeat':'task_alt', color: tipo==='habito'?'#10b981':tipo==='tareaRecurrente'?'#60a5fa':'#f59e0b', nombre: '' }, 
+            categoriaId: null 
+        }
     };
     if (tipo === 'habito' || tipo === 'tareaRecurrente') {
         window._actState.pasos = ['evaluacion', 'definicion', 'frecuencia', 'cuando'];
@@ -703,7 +708,22 @@ function _actRenderFrecDetalle(v) {
     } else if (v === 'cada_x_dias') {
         detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:13px;">Cada</span><input type="number" id="actCadaXDias" min="2" max="365" value="${d.cadaXDias||2}" oninput="window._actState.datos.cadaXDias=+this.value" style="width:70px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">días</span></div>`;
     } else if (v === 'veces_periodo') {
-        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input type="number" id="actVecesPeriodo" min="1" max="30" value="${d.vecesPeriodo||3}" oninput="window._actState.datos.vecesPeriodo=+this.value" style="width:60px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">veces por</span><div class="agenda-period-chip-row">${['semana','mes','anio'].map(per => `<button type="button" onclick="actSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(d.vecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per}</button>`).join('')}</div></div>`;
+        detalle.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <input type="number" id="actVecesPeriodo" min="1" max="31" value="${d.vecesPeriodo||3}" oninput="window._actState.datos.vecesPeriodo=+this.value" style="width:60px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;">
+                    <span style="color:#94a3b8;font-size:13px;">veces por</span>
+                    <div class="agenda-period-chip-row">
+                        ${['dia','semana','mes','anio'].map(per => `<button type="button" onclick="actSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(d.vecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per === 'dia' ? 'día' : per}</button>`).join('')}
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <p style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin:0;">Objetivo:</p>
+                    <div class="agenda-period-chip-row">
+                        ${[{v:'exact',l:'Exacto'}, {v:'at_least',l:'Mínimo'}, {v:'at_most',l:'Máximo'}].map(g => `<button type="button" onclick="actSetVecesGoalType('${g.v}')" class="agenda-period-chip ${(d.vecesGoalType||'exact')===g.v?'is-active':''}">${g.l}</button>`).join('')}
+                    </div>
+                </div>
+            </div>`;
     } else if (v === 'dias_mes') {
         const sel = d.diasMes || [];
         const nums = Array.from({length:31},(_,i)=>i+1);
@@ -713,6 +733,10 @@ function _actRenderFrecDetalle(v) {
 
 function actSetVecesPeriodoPer(v) {
     window._actState.datos.vecesPeriodoPer = v;
+    _actRenderFrecDetalle('veces_periodo');
+}
+function actSetVecesGoalType(v) {
+    window._actState.datos.vecesGoalType = v;
     _actRenderFrecDetalle('veces_periodo');
 }
 
@@ -960,6 +984,7 @@ function actFinalizar() {
         cadaXDias: datos.cadaXDias || null,
         vecesPeriodo: datos.vecesPeriodo || null,
         vecesPeriodoPer: datos.vecesPeriodoPer || 'semana',
+        vecesGoalType: datos.vecesGoalType || 'exact',
         flexible: datos.flexible || false,
         fechaInicio: datos.fechaInicio || new Date().toISOString().split('T')[0],
         fechaFin: datos.tieneFechaFin ? (datos.fechaFin || '') : null,
@@ -991,15 +1016,23 @@ function actFinalizar() {
     const labels = { habito: 'Hábito creado', tareaRecurrente: 'Tarea recurrente creada' };
     _mostrarToast && _mostrarToast(icons[tipo]||'check_circle', colors[tipo]||'#3b82f6', labels[tipo]||'Actividad creada');
 }
+function _getCompletadosMap(registros) {
+    const map = {};
+    (registros || []).filter(r => r.completado).forEach(r => {
+        map[r.fecha] = (map[r.fecha] || 0) + 1;
+    });
+    return map;
+}
+
 function _calcRachaHabito(habito) {
     const registros = habito.registros || [];
-    const completados = new Set(registros.filter(r => r.completado).map(r => r.fecha));
+    const completados = _getCompletadosMap(registros);
     let racha = 0;
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     let offsetInicio = 0;
     for (let i = 0; i < 2; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
-        if (_actAplicaHoy(habito, d)) {
+        if (_actAplicaHoy(habito, d, completados)) {
             if (!completados.has(_localDateStr(d))) {
                 offsetInicio = i + 1; // empezar desde el día siguiente hacia atrás
             }
@@ -1009,9 +1042,10 @@ function _calcRachaHabito(habito) {
 
     for (let i = offsetInicio; i < 365; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
-        if (!_actAplicaHoy(habito, d)) continue; // ese día no tocaba
+        if (!_actAplicaHoy(habito, d, completados)) continue; // ese día no tocaba
         const fStr = _localDateStr(d);
-        if (completados.has(fStr)) racha++;
+        const goal = habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia' ? (habito.vecesPeriodo || 1) : 1;
+        if ((completados[fStr] || 0) >= goal) racha++;
         else break;
     }
     return racha;
@@ -1019,14 +1053,16 @@ function _calcRachaHabito(habito) {
 
 function _calcPorcentajeHabito(habito) {
     const registros = habito.registros || [];
-    const completados = new Set(registros.filter(r => r.completado).map(r => r.fecha));
+    const completados = _getCompletadosMap(registros);
     let total = 0, hecho = 0;
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     for (let i = 0; i < 30; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
-        if (_actAplicaHoy(habito, d)) {
+        if (_actAplicaHoy(habito, d, completados)) {
             total++;
-            if (completados.has(_localDateStr(d))) hecho++;
+            const fStr = _localDateStr(d);
+            const goal = habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia' ? (habito.vecesPeriodo || 1) : 1;
+            if ((completados[fStr] || 0) >= goal) hecho++;
         }
     }
     return total === 0 ? 0 : Math.round((hecho / total) * 100);
@@ -1042,7 +1078,11 @@ function _getFrecuenciaLabel(habito) {
     }
     if (f === 'cada_x_dias') return `Cada ${habito.cadaXDias||2} días`;
     if (f === 'dias_mes') return `${(habito.diasMes||[]).length}x mes`;
-    if (f === 'veces_periodo') return `${habito.vecesPeriodo||1}x ${habito.vecesPeriodoPer||'semana'}`;
+    if (f === 'veces_periodo') {
+        const per = habito.vecesPeriodoPer || 'semana';
+        const perLabel = per === 'dia' ? 'día' : per === 'anio' ? 'año' : per;
+        return `${habito.vecesPeriodo||1}x ${perLabel}`;
+    }
     return f;
 }
 
@@ -1051,7 +1091,7 @@ function _renderHabitoCard(habito) {
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     const hoyStr = _toLocalDateStr(hoy);
     const registros = habito.registros || [];
-    const completadosSet = new Set(registros.filter(r => r.completado).map(r => r.fecha));
+    const completadosMap = _getCompletadosMap(registros);
     const fallidosSet = new Set(registros.filter(r => r.completado === false && r.explicit).map(r => r.fecha));
     const diasSemana = [];
     const lunes = new Date(hoy);
@@ -1080,12 +1120,23 @@ function _renderHabitoCard(habito) {
             ? `<svg viewBox="${_catSvg.vb}" width="17" height="17" style="fill:white;display:block;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">${_catSvg.svg}</svg>`
             : `<span class="material-symbols-rounded" style="color:white;font-size:17px;">${catIcono}</span>`);
 
+    const isVecesPeriodo = habito.frecuencia === 'veces_periodo';
+    const goal = habito.vecesPeriodo || 1;
+    let doneInPer = 0;
+    if (isVecesPeriodo) {
+        const { start, end } = _getPeriodRange(hoy, habito.vecesPeriodoPer || 'semana');
+        doneInPer = _getCompletionsInRange(habito, start, end, completadosMap);
+    }
+    const isExtraAllowed = !isVecesPeriodo || (habito.vecesGoalType === 'at_least');
+
     const diasHTML = diasSemana.map((d, i) => {
         const dStr = _toLocalDateStr(d);
         const esHoy = dStr === hoyStr;
-        const aplica = _actAplicaHoy(habito, d);
+        const aplica = _actAplicaHoy(habito, d, completadosMap);
         const esFuturo = dStr > hoyStr;
-        const completado = completadosSet.has(dStr);
+        const doneCount = completadosMap[dStr] || 0;
+        const dailyGoal = (isVecesPeriodo && habito.vecesPeriodoPer === 'dia') ? goal : 1;
+        const completado = doneCount >= dailyGoal;
         const fallido = fallidosSet.has(dStr);
         const pasadoSinHacer = !esFuturo && !esHoy && aplica && !completado && !fallido; // solo días pasados (no hoy)
 
@@ -1103,10 +1154,22 @@ function _renderHabitoCard(habito) {
             txtColor = '#1e293b'; border = '1.5px solid rgba(255,255,255,0.03)';
         }
 
-        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-            <span style="color:#475569;font-size:10px;font-weight:600;">${nombresDias[i]}</span>
-            <button onclick="habitoToggleDia('${habito.id}','${dStr}')" style="width:30px;height:30px;border-radius:50%;background:${bg};border:${border};color:${txtColor};font-size:11px;font-weight:${fw};cursor:${esFuturo||!aplica?'default':'pointer'};display:flex;align-items:center;justify-content:center;transition:all 0.15s;" ${esFuturo||!aplica?'disabled':''}>
-                ${inner}
+        let canClick = !esFuturo;
+        if (isVecesPeriodo) {
+            // Permitimos desmarcar siempre. 
+            // Para marcar nuevo, comprobamos si el objetivo ya se cumplió y no se permiten extras.
+            if (!completado && doneInPer >= goal && !isExtraAllowed) {
+                canClick = false;
+            }
+        } else {
+            canClick = canClick && (aplica || completado);
+        }
+
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+            <span style="color:#475569;font-size:10px;font-weight:600;pointer-events:none;">${nombresDias[i]}</span>
+            <button onclick="habitoToggleDia('${habito.id}','${dStr}')" style="width:30px;height:30px;border-radius:50%;background:${bg};border:${border};color:${txtColor};font-size:11px;font-weight:${fw};cursor:${!canClick?'default':'pointer'};display:flex;align-items:center;justify-content:center;transition:all 0.15s;position:relative;" ${!canClick?'disabled':''}>
+                <span style="pointer-events:none;">${inner}</span>
+                ${(isVecesPeriodo && habito.vecesPeriodoPer === 'dia' && goal > 1) ? `<div style="position:absolute;bottom:-4px;right:-4px;background:#1e293b;border:1px solid rgba(255,255,255,0.2);color:white;font-size:8px;padding:1px 3px;border-radius:4px;font-weight:800;pointer-events:none;">${doneCount}/${goal}</div>` : ''}
             </button>
         </div>`;
     }).join('');
@@ -1509,15 +1572,49 @@ function habitoToggleDia(id, fechaStr) {
 
     const idx = habito.registros.findIndex(r => r.fecha === fechaStr);
     const marcandoCompletadoHabito = (idx < 0);
+
+    if (marcandoCompletadoHabito) {
+        if (habito.frecuencia === 'veces_periodo') {
+            const goal = habito.vecesPeriodo || 1;
+            const isExtraAllowed = (habito.vecesGoalType === 'at_least');
+            if (!isExtraAllowed) {
+                const { start, end } = _getPeriodRange(new Date(fechaStr + 'T00:00:00'), habito.vecesPeriodoPer || 'semana');
+                const doneInPer = (habito.registros || []).filter(r => r.completado && r.fecha >= _localDateStr(start) && r.fecha <= _localDateStr(end)).length;
+                if (doneInPer >= goal) {
+                    if (typeof _mostrarToast === 'function') _mostrarToast('warning', '#ef4444', 'Objetivo cumplido para este periodo');
+                    return;
+                }
+            }
+        }
+    }
+
     if (idx < 0) {
         // Sin registro → verde
         habito.registros.push({ fecha: fechaStr, completado: true });
     } else {
         const reg = habito.registros[idx];
         if (reg.completado === true) {
-            // Verde → rojo
-            reg.completado = false;
-            reg.explicit = true;
+            // Verde → rojo (solo si NO es veces_periodo)
+            if (habito.frecuencia !== 'veces_periodo') {
+                reg.completado = false;
+                reg.explicit = true;
+            } else {
+                // En veces_periodo...
+                if (habito.vecesPeriodoPer === 'dia') {
+                    const doneCount = (habito.registros || []).filter(r => r.fecha === fechaStr && r.completado).length;
+                    const goal = habito.vecesPeriodo || 1;
+                    if (doneCount < goal) {
+                        // Sigue incrementando
+                        habito.registros.push({ fecha: fechaStr, completado: true });
+                    } else {
+                        // Ya llegó, resetear el día
+                        habito.registros = (habito.registros || []).filter(r => r.fecha !== fechaStr);
+                    }
+                } else {
+                    // Otros periodos: toggle normal (quitar si existe)
+                    habito.registros.splice(idx, 1);
+                }
+            }
         } else if (reg.completado === false && reg.explicit) {
             // Rojo → sin registro (naranja en pasado, nada en hoy)
             habito.registros.splice(idx, 1);
@@ -2005,7 +2102,42 @@ function renderDiario() {
     }, 0);
 }
 
-function _actAplicaHoy(item, hoyDate) {
+function _getPeriodRange(d, periodType) {
+    const date = new Date(d); date.setHours(0,0,0,0);
+    let start, end;
+    if (periodType === 'semana') {
+        const day = (date.getDay() + 6) % 7; // 0=lun
+        start = new Date(date); start.setDate(date.getDate() - day);
+        end = new Date(start); end.setDate(start.getDate() + 6);
+    } else if (periodType === 'mes') {
+        start = new Date(date.getFullYear(), date.getMonth(), 1);
+        end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    } else if (periodType === 'dia') {
+        start = new Date(date);
+        end = new Date(date);
+    } else { // anio
+        start = new Date(date.getFullYear(), 0, 1);
+        end = new Date(date.getFullYear(), 11, 31);
+    }
+    return { start, end };
+}
+
+function _getCompletionsInRange(item, start, end, completadosMap = null) {
+    const sStr = _localDateStr(start);
+    const eStr = _localDateStr(end);
+    if (completadosMap) {
+        let count = 0;
+        const cur = new Date(start);
+        while (cur <= end) {
+            count += (completadosMap[_localDateStr(cur)] || 0);
+            cur.setDate(cur.getDate() + 1);
+        }
+        return count;
+    }
+    return (item.registros || []).filter(r => r.completado && r.fecha >= sStr && r.fecha <= eStr).length;
+}
+
+function _actAplicaHoy(item, hoyDate, completadosMap = null) {
     const partes = (item.fechaInicio||'').split('-').map(Number);
     const inicio = (partes[0] && partes[1] && partes[2]) ? new Date(partes[0], partes[1]-1, partes[2]) : new Date(0);
     inicio.setHours(0,0,0,0);
@@ -2022,6 +2154,34 @@ function _actAplicaHoy(item, hoyDate) {
     if (frec === 'cada_x_dias') {
         const diff = Math.floor((hoyDate - inicio) / 86400000);
         return diff % (item.cadaXDias || 1) === 0;
+    }
+    if (frec === 'veces_periodo') {
+        const dStr = _localDateStr(hoyDate);
+        const hoyStr = _localDateStr(new Date());
+
+        const goal = item.vecesPeriodo || 1;
+        const per = item.vecesPeriodoPer || 'semana';
+        const isPerDia = per === 'dia';
+
+        const doneCountToday = completadosMap ? (completadosMap[dStr] || 0) : (item.registros || []).filter(r => r.fecha === dStr && r.completado === true).length;
+        const completadoToday = isPerDia ? (doneCountToday >= goal) : (doneCountToday > 0);
+        
+        if (completadoToday) return true; // Si se cumplió el objetivo del día/periodo, cuenta siempre
+
+        const { start, end } = _getPeriodRange(hoyDate, per);
+        const doneInPer = _getCompletionsInRange(item, start, end, completadosMap);
+
+        if (doneInPer >= goal) return false; // Objetivo cumplido para el periodo
+        if (dStr >= hoyStr) return true; // Hoy o futuro y no se ha cumplido el objetivo: toca
+
+        // Pasado: solo cuenta como "aplica" (naranja si no se hizo) si es obligatorio por falta de tiempo
+        const mStart = new Date(start); mStart.setHours(0,0,0,0);
+        const mEnd = new Date(end); mEnd.setHours(0,0,0,0);
+        const mTarget = new Date(hoyDate); mTarget.setHours(0,0,0,0);
+        const daysLeft = Math.round((mEnd - mTarget) / 86400000) + 1;
+        const completionsBefore = _getCompletionsInRange(item, mStart, new Date(mTarget.getTime() - 86400000), completadosMap);
+        const needed = goal - completionsBefore;
+        return daysLeft <= needed;
     }
     return true;
 }
@@ -2547,12 +2707,31 @@ function abrirEstadisticasHabito(id) {
     const _catFullEst = habito.categoriaId ? _allCatsEst.find(c => c.id === habito.categoriaId)
         : _allCatsEst.find(c => c.icon === icono && c.color === color);
     const _catSvgEst = habito.categoria?.svgData || _catFullEst?.svgData || null;
-    document.getElementById('estHabitoIconoBg').style.background = color;
+    const _catImgEst = _catFullEst?.iconoImagen || habito.categoria?.iconoImagen || null;
+    const iconoBg = document.getElementById('estHabitoIconoBg');
     const iconoEl = document.getElementById('estHabitoIcono');
-    if (_catSvgEst?.vb && _catSvgEst?.svg) {
+    
+    // Limpieza de estados previos
+    const prevSvg = iconoBg.querySelector('.__svg_icon_est');
+    if (prevSvg) prevSvg.remove();
+    const prevImg = iconoBg.querySelector('.__img_icon_est');
+    if (prevImg) prevImg.remove();
+
+    if (_catImgEst) {
+        iconoBg.style.setProperty('background', 'transparent', 'important');
+        iconoBg.style.setProperty('border', 'none', 'important');
+        iconoBg.style.overflow = 'hidden';
         iconoEl.style.display = 'none';
-        const prevSvg = iconoEl.parentElement.querySelector('.__svg_icon_est');
-        if (prevSvg) prevSvg.remove();
+        const imgEl = document.createElement('img');
+        imgEl.src = _catImgEst;
+        imgEl.classList.add('__img_icon_est');
+        imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;';
+        iconoBg.appendChild(imgEl);
+    } else if (_catSvgEst?.vb && _catSvgEst?.svg) {
+        iconoBg.style.background = color;
+        iconoBg.style.border = `1.5px solid ${color}`;
+        iconoBg.style.overflow = 'visible';
+        iconoEl.style.display = 'none';
         const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svgEl.setAttribute('viewBox', _catSvgEst.vb);
         svgEl.setAttribute('width', '20');
@@ -2560,11 +2739,12 @@ function abrirEstadisticasHabito(id) {
         svgEl.style.cssText = 'fill:white;display:block;flex-shrink:0;';
         svgEl.classList.add('__svg_icon_est');
         svgEl.innerHTML = _catSvgEst.svg;
-        iconoEl.parentElement.appendChild(svgEl);
+        iconoBg.appendChild(svgEl);
     } else {
+        iconoBg.style.background = color;
+        iconoBg.style.border = `1.5px solid ${color}`;
+        iconoBg.style.overflow = 'visible';
         iconoEl.style.display = '';
-        const prevSvg = iconoEl.parentElement.querySelector('.__svg_icon_est');
-        if (prevSvg) prevSvg.remove();
         iconoEl.textContent = icono;
     }
     document.getElementById('estHabitoNombre').textContent = habito.nombre;
@@ -2584,10 +2764,11 @@ function cerrarEstadisticasHabito() {
 function _renderEstadisticasContenido(habito) {
     const color = '#3b82f6';
     const registros = habito.registros || [];
-    const completadosSet = new Set(registros.filter(r => r.completado).map(r => r.fecha));
+    const completadosMap = _getCompletadosMap(registros);
     const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const hoyStr = hoy.toISOString().split('T')[0];
-    const puntaje = completadosSet.size;
+    const hoyStr = _localDateStr(hoy);
+    let puntaje = 0;
+    Object.values(completadosMap).forEach(v => puntaje += v);
     const _fiStr = habito.fechaInicio || habito.creadoEn || '';
     const _fiParts = _fiStr.split('-');
     const inicio = _fiParts.length === 3 ? new Date(+_fiParts[0], +_fiParts[1]-1, +_fiParts[2]) : new Date(_fiStr);
@@ -2603,8 +2784,9 @@ function _renderEstadisticasContenido(habito) {
     let mejorRacha = 0, rachaTemp = 0;
     for (let i = 0; i < 730; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
-        if (!_actAplicaHoy(habito, d)) continue;
-        if (completadosSet.has(d.toISOString().split('T')[0])) { rachaTemp++; mejorRacha = Math.max(mejorRacha, rachaTemp); }
+        if (!_actAplicaHoy(habito, d, completadosMap)) continue;
+        const goal = habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia' ? (habito.vecesPeriodo || 1) : 1;
+        if ((completadosMap[_localDateStr(d)] || 0) >= goal) { rachaTemp++; mejorRacha = Math.max(mejorRacha, rachaTemp); }
         else rachaTemp = 0;
     }
     const rachaActualSem = Math.floor(rachaActual / 7);
@@ -2613,16 +2795,17 @@ function _renderEstadisticasContenido(habito) {
     const lunes = new Date(ahora); lunes.setDate(ahora.getDate() - ((ahora.getDay()+6)%7)); lunes.setHours(0,0,0,0);
     const primMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
     const primAnio = new Date(ahora.getFullYear(), 0, 1);
-    let vecSemana=0, vecMes=0, vecAnio=0, vecTotal=completadosSet.size;
-    completadosSet.forEach(f => {
-        const d = new Date(f);
-        if (d >= lunes) vecSemana++;
-        if (d >= primMes) vecMes++;
-        if (d >= primAnio) vecAnio++;
+    let vecSemana=0, vecMes=0, vecAnio=0, vecTotal=puntaje;
+    Object.keys(completadosMap).forEach(f => {
+        const count = completadosMap[f];
+        const d = new Date(f + 'T00:00:00');
+        if (d >= lunes) vecSemana += count;
+        if (d >= primMes) vecMes += count;
+        if (d >= primAnio) vecAnio += count;
     });
-    const calHtml = _renderCalendarioEst(habito, completadosSet, color);
-    const grafHtml = _renderGraficoEst(habito, completadosSet, color);
-    const donutHtml = _renderDonutEst(habito, completadosSet, color);
+    const calHtml = _renderCalendarioEst(habito, completadosMap, color);
+    const grafHtml = _renderGraficoEst(habito, completadosMap, color);
+    const donutHtml = _renderDonutEst(habito, completadosMap, color);
     const desafiosHtml = _renderDesafiosRacha(rachaActual, color);
     const arcR = 54, arcCirc = 2 * Math.PI * arcR;
     const arcPct = Math.min(1, puntaje / Math.max(1, puntaje + 10));
@@ -2793,10 +2976,11 @@ function _renderEstadisticasContenido(habito) {
     setTimeout(_medalScrollCheck, 50);
 }
 
-function _renderCalendarioEst(habito, completadosSet, color) {
+function _renderCalendarioEst(habito, completadosMap, color) {
     const mes = window._estHabitoCalMes;
     const anio = window._estHabitoCalAnio;
     const id = habito.id;
+    const goal = (habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia') ? (habito.vecesPeriodo || 1) : 1;
     const nombresMeses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     const primerDia = new Date(anio, mes, 1);
@@ -2818,10 +3002,11 @@ function _renderCalendarioEst(habito, completadosSet, color) {
             ${Array.from({length:diasMes},(_,i)=>{
                 const dia = i+1;
                 const d = new Date(anio, mes, dia); d.setHours(0,0,0,0);
-                const dStr = d.toISOString().split('T')[0];
+                const dStr = _localDateStr(d);
                 const esHoy = d.getTime()===hoy.getTime();
-                const aplica = _actAplicaHoy(habito, d);
-                const completado = completadosSet.has(dStr);
+                const aplica = _actAplicaHoy(habito, d, completadosMap);
+                const doneCount = completadosMap[dStr] || 0;
+                const completado = doneCount >= goal;
                 const futuro = d > hoy;
                 let bg = 'transparent', col = '#334155', border = 'none', fw = '500';
                 if (completado) { bg='#10b981'; col='white'; fw='700'; border='1px solid #10b981'; }
@@ -2844,7 +3029,7 @@ function estHabitoCalNav(dir, id) {
     if (habito) _renderEstadisticasContenido(habito);
 }
 
-function _renderGraficoEst(habito, completadosSet, color) {
+function _renderGraficoEst(habito, completadosMap, color) {
     const vista = window._estHabitoGraficoVista;
     const id = habito.id;
     const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -2856,7 +3041,10 @@ function _renderGraficoEst(habito, completadosSet, color) {
         labels = meses;
         valores = meses.map((_, m) => {
             let cnt = 0;
-            completadosSet.forEach(f => { const d = new Date(f); if (d.getFullYear()===hoy.getFullYear() && d.getMonth()===m) cnt++; });
+            Object.keys(completadosMap).forEach(f => { 
+                const d = new Date(f + 'T00:00:00'); 
+                if (d.getFullYear()===hoy.getFullYear() && d.getMonth()===m) cnt += completadosMap[f]; 
+            });
             return cnt;
         });
     } else if (vista === 'semana') {
@@ -2866,7 +3054,10 @@ function _renderGraficoEst(habito, completadosSet, color) {
             const fin = new Date(ini); fin.setDate(ini.getDate() + 6);
             labels.push(`S${8-w}`);
             let cnt = 0;
-            completadosSet.forEach(f => { const d = new Date(f); if (d>=ini && d<=fin) cnt++; });
+            Object.keys(completadosMap).forEach(f => {
+                const d = new Date(f + 'T00:00:00');
+                if (d>=ini && d<=fin) cnt += completadosMap[f];
+            });
             valores.push(cnt);
         }
     } else {
@@ -2875,7 +3066,7 @@ function _renderGraficoEst(habito, completadosSet, color) {
         for (let y = anioAct-4; y <= anioAct; y++) {
             labels.push(String(y));
             let cnt = 0;
-            completadosSet.forEach(f => { if (new Date(f).getFullYear()===y) cnt++; });
+            Object.keys(completadosMap).forEach(f => { if (new Date(f + 'T00:00:00').getFullYear()===y) cnt += completadosMap[f]; });
             valores.push(cnt);
         }
     }
@@ -2911,13 +3102,14 @@ function estHabitoGraficoVista(vista, id) {
     if (habito) _renderEstadisticasContenido(habito);
 }
 
-function _renderDonutEst(habito, completadosSet, color) {
+function _renderDonutEst(habito, completadosMap, color) {
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     let logrados = 0, fallidos = 0;
     for (let i = 0; i < 30; i++) {
         const d = new Date(hoy); d.setDate(d.getDate() - i);
-        if (!_actAplicaHoy(habito, d)) continue;
-        if (completadosSet.has(d.toISOString().split('T')[0])) logrados++;
+        if (!_actAplicaHoy(habito, d, completadosMap)) continue;
+        const goal = habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia' ? (habito.vecesPeriodo || 1) : 1;
+        if ((completadosMap[_localDateStr(d)] || 0) >= goal) logrados++;
         else fallidos++;
     }
     const total = logrados + fallidos || 1;

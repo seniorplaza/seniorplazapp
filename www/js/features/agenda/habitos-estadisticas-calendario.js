@@ -1,4 +1,4 @@
-﻿
+
 window._calHistoricoHabitoId = null;
 window._calHistoricoAnio = new Date().getFullYear();
 
@@ -132,8 +132,8 @@ window._editHabitoId = null;
 window._editHabitoFrecSel = 'todos_dias';
 window._editHabitoDiasSel = [];
 window._editHabitoCadaXDias = 2;
-window._editHabitoVecesPeriodo = 3;
 window._editHabitoVecesPeriodoPer = 'semana';
+window._editHabitoVecesGoalType = 'exact';
 
 function abrirEditarHabito(id) {
     const habito = (window.agendaData.habitos||[]).find(h=>h.id===id);
@@ -144,6 +144,7 @@ function abrirEditarHabito(id) {
     window._editHabitoCadaXDias = habito.cadaXDias || 2;
     window._editHabitoVecesPeriodo = habito.vecesPeriodo || 3;
     window._editHabitoVecesPeriodoPer = habito.vecesPeriodoPer || 'semana';
+    window._editHabitoVecesGoalType = habito.vecesGoalType || 'exact';
     window._editHabitoCatObj = habito.categoria || null;
     window._editHabitoCatId = habito.categoriaId || _editResolveCatId(habito.categoria) || null;
     window._editHabitoEtiqueta = habito.etiqueta || null;
@@ -207,7 +208,22 @@ function _renderEditHabitoFrecDetalle() {
         detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:13px;">Cada</span><input type="number" id="editHabitoCadaXDias" min="2" max="365" value="${window._editHabitoCadaXDias || 2}" oninput="window._editHabitoCadaXDias=Math.max(2, +this.value || 2)" style="width:72px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">días</span></div>`;
     } else if (frec === 'veces_periodo') {
         wrap.style.display = 'block';
-        detalle.innerHTML = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><input type="number" id="editHabitoVecesPeriodo" min="1" max="30" value="${window._editHabitoVecesPeriodo || 3}" oninput="window._editHabitoVecesPeriodo=Math.max(1, +this.value || 1)" style="width:64px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;"><span style="color:#94a3b8;font-size:13px;">veces por</span><div class="agenda-period-chip-row">${['semana','mes','anio'].map(per => `<button type="button" onclick="editHabitoSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(window._editHabitoVecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per}</button>`).join('')}</div></div>`;
+        detalle.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <input type="number" id="editHabitoVecesPeriodo" min="1" max="31" value="${window._editHabitoVecesPeriodo || 3}" oninput="window._editHabitoVecesPeriodo=Math.max(1, +this.value || 1)" style="width:64px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;">
+                    <span style="color:#94a3b8;font-size:13px;">veces por</span>
+                    <div class="agenda-period-chip-row">
+                        ${['semana','mes','anio'].map(per => `<button type="button" onclick="editHabitoSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(window._editHabitoVecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per}</button>`).join('')}
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">Objetivo:</span>
+                    <div class="agenda-period-chip-row">
+                        ${[{v:'exact',l:'Exacto'}, {v:'at_least',l:'Como mínimo'}, {v:'at_most',l:'Como máximo'}].map(g => `<button type="button" onclick="editHabitoSetVecesGoalType('${g.v}')" class="agenda-period-chip ${(window._editHabitoVecesGoalType||'exact')===g.v?'is-active':''}">${g.l}</button>`).join('')}
+                    </div>
+                </div>
+            </div>`;
     } else {
         wrap.style.display = 'none';
         detalle.innerHTML = '';
@@ -216,6 +232,11 @@ function _renderEditHabitoFrecDetalle() {
 
 function editHabitoSetVecesPeriodoPer(v) {
     window._editHabitoVecesPeriodoPer = v;
+    _renderEditHabitoFrecDetalle();
+}
+
+function editHabitoSetVecesGoalType(v) {
+    window._editHabitoVecesGoalType = v;
     _renderEditHabitoFrecDetalle();
 }
 
@@ -248,6 +269,7 @@ function guardarEditarHabito() {
     habito.cadaXDias = window._editHabitoFrecSel === 'cada_x_dias' ? Math.max(2, Number(window._editHabitoCadaXDias) || 2) : null;
     habito.vecesPeriodo = window._editHabitoFrecSel === 'veces_periodo' ? Math.max(1, Number(window._editHabitoVecesPeriodo) || 1) : null;
     habito.vecesPeriodoPer = window._editHabitoFrecSel === 'veces_periodo' ? (window._editHabitoVecesPeriodoPer || 'semana') : null;
+    habito.vecesGoalType = window._editHabitoFrecSel === 'veces_periodo' ? (window._editHabitoVecesGoalType || 'exact') : null;
     habito.fechaInicio = document.getElementById('editHabitoFechaInicio').value || habito.fechaInicio;
     habito.fechaFin = document.getElementById('editHabitoFechaFin').value || null;
     if (window._editHabitoCatId) {
