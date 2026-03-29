@@ -418,17 +418,16 @@ function _actCatDropdownHTML() {
             ? '<svg viewBox="' + selCat.svgData.vb + '" width="20" height="20" style="fill:white;display:block;" xmlns="http://www.w3.org/2000/svg">' + selCat.svgData.svg + '</svg>'
             : '<span class="material-symbols-rounded" style="color:white;font-size:20px;">' + icon + '</span>');
 
-    var items = cats.map(function(c) {
+    // Grid de categorías: mismo estilo que finanzas
+    var gridItems = cats.map(function(c) {
         var isSelected = c.id === selId;
-        var iconHTML = c.iconoImagen
-            ? '<img src="' + c.iconoImagen + '" style="width:100%;height:100%;object-fit:cover;display:block;">'
-            : (c.svgData && c.svgData.vb && c.svgData.svg
-                ? '<svg viewBox="' + c.svgData.vb + '" width="18" height="18" style="fill:white;display:block;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">' + c.svgData.svg + '</svg>'
-                : '<span class="material-symbols-rounded" style="color:white;font-size:18px;">' + c.icon + '</span>');
-        return '<button onclick="actSelCat(\'' + c.id + '\')" style="display:flex;align-items:center;gap:10px;width:100%;background:' + (isSelected ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.03)') + ';border:1px solid ' + (isSelected ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.06)') + ';border-radius:12px;padding:10px 12px;cursor:pointer;margin-bottom:4px;box-sizing:border-box;">'
-            + '<div style="width:36px;height:36px;border-radius:10px;background:' + (c.iconoImagen ? 'transparent' : c.color) + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">' + iconHTML + '</div>'
-            + '<span style="color:' + (isSelected ? 'white' : '#cbd5e1') + ';font-size:14px;font-weight:' + (isSelected ? '700' : '600') + ';flex:1;text-align:left;">' + c.name + '</span>'
-            + (isSelected ? '<span class="material-symbols-rounded" style="color:#3b82f6;font-size:18px;">check_circle</span>' : '')
+        var iconHtml = (typeof _catIconHTML === 'function') ? _catIconHTML(c, 22) :
+            (c.iconoImagen
+                ? '<img src="' + c.iconoImagen + '" style="width:100%;height:100%;object-fit:cover;display:block;">'
+                : '<span class="material-symbols-rounded" style="color:white;font-size:22px;">' + c.icon + '</span>');
+        return '<button onclick="actSelCat(\'' + c.id + '\')" class="modal-cat-btn-item' + (isSelected ? ' selected' : '') + '">'
+            + '<div class="modal-cat-icon-sq" style="background:' + (c.iconoImagen ? 'transparent' : c.color) + ';border:none;">' + iconHtml + '</div>'
+            + '<div class="modal-cat-label">' + c.name + '</div>'
             + '</button>';
     }).join('');
 
@@ -451,7 +450,9 @@ function _actCatDropdownHTML() {
         + '<div style="flex:1;text-align:left;"><div style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">CATEGORÍA</div><div style="color:' + (selCat ? selCat.color : '#94a3b8') + ';font-size:14px;font-weight:800;text-transform:uppercase;">' + nombre + '</div></div>'
         + '<span id="actCatChevron" class="material-symbols-rounded" style="color:#64748b;font-size:20px;transition:transform 0.2s;">expand_more</span>'
         + '</button>'
-        + '<div id="actCatList" style="display:none;margin-top:6px;background:rgba(15,23,42,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(59,130,246,0.4) transparent;">' + items + '</div>'
+        + '<div id="actCatList" style="display:none;margin-top:6px;background:rgba(10,18,35,0.98);border:1px solid rgba(59,130,246,0.2);border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-height:280px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(59,130,246,0.4) transparent;">'
+        + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;">' + gridItems + '</div>'
+        + '</div>'
         + '</div>'
         + etiquetasHTML;
 }
