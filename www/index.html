@@ -7435,13 +7435,58 @@
                         style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                         <span class="material-symbols-rounded" style="font-size:18px;">badge</span>
                     </button>
-                    <button onclick="cerrarCalendarioLaboral()"
+                    <button onclick="window.open('https://personal.panelais.com/', '_system')" title="Portal Panelais"
+                        style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                        <span class="material-symbols-rounded" style="font-size:18px;">open_in_new</span>
+                    </button>
+                    <button onclick="cerrarCalendarioLaboral()" title="Cerrar"
                         style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                         <span class="material-symbols-rounded" style="font-size:18px;">close</span>
                     </button>
                 </div>
             </div>
-            <div id="calLaboralContenido" style="overflow-y:auto;overflow-x:hidden;padding:16px 20px;flex:none;max-height:70vh;"></div>
+            <div id="calLaboralContenido" style="overflow-y:auto;overflow-x:hidden;padding:16px 20px 4px;flex:none;max-height:55vh;"></div>
+            
+            <div style="padding:16px 20px 20px; display:flex; flex-direction:column; gap:8px; border-top:1px solid rgba(255,255,255,0.07); flex:none;">
+                
+                <!-- Vacaciones -->
+                <div style="background:rgba(234,179,8,0.06); border:1px solid rgba(234,179,8,0.2); border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div style="color:#fde047;font-size:12px;font-weight:800;text-transform:uppercase;flex:1;letter-spacing:0.04em;">Vacaciones</div>
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <input type="number" id="labVacaciones" placeholder="0" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:white;font-size:22px;font-weight:900;width:56px;text-align:right;outline:none;padding:0;margin:0;">
+                        <div style="font-size:11px;color:rgba(234,179,8,0.6);font-weight:700;text-transform:uppercase;">días</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:4px 0; width:60px;">
+                        <input type="number" id="labVacacionesAnio" placeholder="YYYY" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:#fde047;font-size:12px;font-weight:800;width:100%;outline:none;padding:0;text-align:center;">
+                    </div>
+                </div>
+
+                <!-- Asuntos Propios -->
+                <div style="background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.2); border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div style="color:#d8b4fe;font-size:12px;font-weight:800;text-transform:uppercase;flex:1;letter-spacing:0.04em;">Propios</div>
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <input type="number" id="labAsuntosPropios" placeholder="0" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:white;font-size:22px;font-weight:900;width:56px;text-align:right;outline:none;padding:0;margin:0;">
+                        <div style="font-size:11px;color:rgba(168,85,247,0.6);font-weight:700;text-transform:uppercase;">días</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:4px 0; width:60px;">
+                        <input type="number" id="labAsuntosPropiosAnio" placeholder="YYYY" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:#d8b4fe;font-size:12px;font-weight:800;width:100%;outline:none;padding:0;text-align:center;">
+                    </div>
+                </div>
+
+                <!-- Convenio -->
+                <div style="background:rgba(59,130,246,0.06); border:1px solid rgba(59,130,246,0.2); border-radius:16px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div style="color:#93c5fd;font-size:12px;font-weight:800;text-transform:uppercase;flex:1;letter-spacing:0.04em;">Convenio</div>
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <input type="number" id="labHorasConvenio" placeholder="0" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:white;font-size:22px;font-weight:900;width:66px;text-align:right;outline:none;padding:0;margin:0;">
+                        <div style="font-size:11px;color:rgba(59,130,246,0.6);font-weight:700;text-transform:uppercase;">hrs</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:4px 0; width:60px;">
+                        <input type="number" id="labHorasConvenioAnio" placeholder="YYYY" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:#93c5fd;font-size:12px;font-weight:800;width:100%;outline:none;padding:0;text-align:center;">
+                    </div>
+                </div>
+
+            </div>
+
         </div>
     </div>
 
