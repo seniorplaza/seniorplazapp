@@ -38,6 +38,30 @@ function abrirCalendarioLaboral() {
     window._calLaboral.turnoSeleccionado = null;
     _renderCalendarioLaboral();
     document.getElementById('modalCalendarioLaboral').style.display = 'flex';
+    _poblarHorarioLaboralExtra();
+}
+
+function _poblarHorarioLaboralExtra() {
+    var ext = window._horarioLaboral._extra || {};
+    var e_vac = document.getElementById('labVacaciones');
+    if (e_vac) {
+        e_vac.value = ext.vac?.v || '';
+        document.getElementById('labVacacionesAnio').value = ext.vac?.a || window._calLaboral.anio;
+        document.getElementById('labHorasConvenio').value = ext.hc?.v || '';
+        document.getElementById('labHorasConvenioAnio').value = ext.hc?.a || window._calLaboral.anio;
+        document.getElementById('labAsuntosPropios').value = ext.ap?.v || '';
+        document.getElementById('labAsuntosPropiosAnio').value = ext.ap?.a || window._calLaboral.anio;
+    }
+}
+
+function _guardarHorarioLaboralExtra() {
+    if (!window._horarioLaboral) window._horarioLaboral = {};
+    window._horarioLaboral._extra = {
+        vac: { v: document.getElementById('labVacaciones').value, a: document.getElementById('labVacacionesAnio').value },
+        hc:  { v: document.getElementById('labHorasConvenio').value, a: document.getElementById('labHorasConvenioAnio').value },
+        ap:  { v: document.getElementById('labAsuntosPropios').value, a: document.getElementById('labAsuntosPropiosAnio').value }
+    };
+    _guardarHorarioLaboral();
 }
 
 function cerrarCalendarioLaboral() {
@@ -134,11 +158,31 @@ function _renderCalendarioLaboral() {
             var turno = horario[dateKey];
             var col = turno ? _turnoColor(turno) : null;
 
+            var festivos = {
+                '01-01': 'Año Nuevo',
+                '01-06': 'Epifanía del Señor',
+                '04-02': 'Jueves Santo',
+                '04-03': 'Viernes Santo',
+                '04-23': 'Fiesta de la Comunidad Autónoma',
+                '05-01': 'Fiesta del Trabajo',
+                '08-15': 'Asunción de la Virgen',
+                '10-12': 'Fiesta Nacional de España',
+                '11-02': 'Todos los Santos (se traslada al lunes)',
+                '12-07': 'Día de la Constitución Española (se traslada al lunes)',
+                '12-08': 'Inmaculada Concepción',
+                '12-25': 'Natividad del Señor'
+            };
+            var md = String(cell.date.getMonth() + 1).padStart(2,'0') + '-' + String(cell.date.getDate()).padStart(2,'0');
+            var descFestivo = festivos[md];
+
             if (!col) {
-                var dayBg = esHoy ? 'rgba(255,255,255,0.08)' : 'transparent';
-                var txtC = !cell.esDelMes ? '#1e293b' : esHoy ? '#f1f5f9' : '#94a3b8';
-                return '<div style="flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;">'
-                    + '<button onclick="event.stopPropagation();toggleDiaLaboral(\''+dateKey+'\')" style="width:100%;height:100%;border-radius:50%;background:'+dayBg+';border:none;color:'+txtC+';font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;">'
+                var dayBg = esHoy ? 'rgba(255,255,255,0.08)' : (descFestivo ? 'rgba(168,85,247,0.12)' : 'transparent');
+                var txtC = !cell.esDelMes ? '#1e293b' : (esHoy ? '#f1f5f9' : (descFestivo ? '#c084fc' : '#94a3b8'));
+                var fontWeight = descFestivo ? '800' : '500';
+                var borderStyle = descFestivo ? 'border:1.5px solid rgba(168,85,247,0.5);' : 'border:none;';
+                
+                return '<div style="flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;" '+(descFestivo?'title="Festivo: '+descFestivo+'"':'')+'>'
+                    + '<button onclick="event.stopPropagation();toggleDiaLaboral(\''+dateKey+'\')" style="width:100%;height:100%;border-radius:50%;background:'+dayBg+';'+borderStyle+'color:'+txtC+';font-size:13px;font-weight:'+fontWeight+';cursor:pointer;display:flex;align-items:center;justify-content:center;">'
                     + cell.dia + '</button></div>';
             }
 
@@ -159,9 +203,11 @@ function _renderCalendarioLaboral() {
                 + (conectaIzq ? 'border-left:none;' : '')
                 + (conectaDer ? 'border-right:none;' : '');
 
-            return '<div style="flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;overflow:visible;">'
+            return '<div style="flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;overflow:visible;" '+(descFestivo?'title="Festivo: '+descFestivo+'"':'')+'>'
                 + '<button onclick="event.stopPropagation();toggleDiaLaboral(\''+dateKey+'\')" style="width:'+w+';height:100%;margin-left:'+ml+';margin-right:'+mr+';border-radius:'+borderRadius+';background:'+col.bg+';'+borderStyle+'color:'+col.txt+';font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">'
-                + cell.dia + '</button></div>';
+                + cell.dia 
+                + (descFestivo ? '<div style="position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:#c084fc;"></div>' : '') 
+                + '</button></div>';
         }).join('');
 
         rowsHTML += '<div style="display:flex;align-items:center;margin-bottom:3px;padding:0 4px;">'
@@ -195,6 +241,7 @@ function _renderCalendarioLaboral() {
             + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #10b981;background:rgba(16,185,129,0.15);"></div><span style="color:#64748b;font-size:11px;font-weight:600;">Mañana</span></div>'
             + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #3b82f6;background:rgba(59,130,246,0.15);"></div><span style="color:#64748b;font-size:11px;font-weight:600;">Tarde</span></div>'
             + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:50%;border:1.5px solid #eab308;background:rgba(234,179,8,0.15);"></div><span style="color:#64748b;font-size:11px;font-weight:600;">Vacaciones</span></div>'
+            + '<div style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(168,85,247,0.5);background:rgba(168,85,247,0.12);"></div><span style="color:#64748b;font-size:11px;font-weight:600;">Festivo</span></div>'
         + '</div>'
     + '</div>';
 
