@@ -1815,7 +1815,7 @@
             const _icbAlpha = '1.00';
             iconBox.style.cssText = `background:rgba(${_icbRgb},${_icbAlpha});border:1.5px solid rgba(${_icbRgb},0.6);`;
             if (cat.iconoImagen) {
-                iconBox.style.overflow = 'hidden';
+                iconBox.style.cssText = `background:transparent;border:none;overflow:hidden;`;
                 const imgEl = document.createElement('img');
                 imgEl.src = cat.iconoImagen;
                 imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none;';
@@ -1823,16 +1823,17 @@
             } else if (cat.svgData) {
                 const svgEl = document.createElementNS('http://www.w3.org/2000/svg','svg');
                 svgEl.setAttribute('viewBox', cat.svgData.vb);
-                svgEl.setAttribute('width','30'); svgEl.setAttribute('height','30');
-                svgEl.style.cssText = 'color:'+(cat.iconColor||'#ffffff')+';fill:currentColor;pointer-events:none;';
+                svgEl.setAttribute('width', '24');
+                svgEl.setAttribute('height', '24');
+                svgEl.style.cssText = `fill:${cat.iconColor||'#ffffff'}; display:block; flex-shrink:0; pointer-events:none;`;
                 svgEl.innerHTML = cat.svgData.svg;
                 iconBox.appendChild(svgEl);
             } else {
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'material-symbols-rounded';
-                iconSpan.style.cssText = 'font-size:30px;color:' + (cat.iconColor || '#ffffff') + ';font-variation-settings:\'FILL\' 0,\'wght\' 300,\'GRAD\' 0,\'opsz\' 24;';
-                iconSpan.textContent = cat.icon;
-                iconBox.appendChild(iconSpan);
+                const innerIcon = document.createElement('span');
+                innerIcon.className = 'material-symbols-rounded';
+                innerIcon.style.cssText = `font-size:24px;color:${cat.iconColor||'#ffffff'};pointer-events:none;`;
+                innerIcon.textContent = cat.icon || 'category';
+                iconBox.appendChild(innerIcon);
             }
             const nameDiv = document.createElement('div');
             nameDiv.className = 'categoria-nombre';
@@ -3853,8 +3854,8 @@
                     if (_isMobile) {
                         row.innerHTML = `
                             <div style="display:flex;align-items:center;gap:12px;width:100%;">
-                                <div class="op-item-icon" style="background:${catColor};flex-shrink:0;">
-                                    ${cat?.svgData ? _catIconHTML(cat,20) : `<span class="material-symbols-rounded" style="font-size:20px;color:#fff;">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`}
+                                <div class="op-item-icon" style="background:${cat?.iconoImagen?'transparent':catColor};flex-shrink:0;overflow:hidden;">
+                                    ${cat?.iconoImagen ? _catIconHTML(cat,'100%') : (cat?.svgData ? _catIconHTML(cat,20) : `<span class="material-symbols-rounded" style="font-size:20px;color:${cat?.iconColor||'#fff'};">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`)}
                                 </div>
                                 <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;">
                                     <span style="color:#f1f5f9;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${_catName}</span>
@@ -3872,8 +3873,8 @@
                         `;
                     } else {
                         row.innerHTML = `
-                            <div class="op-item-icon" style="background:${catColor};flex-shrink:0;">
-                                ${cat?.svgData ? _catIconHTML(cat,20) : `<span class="material-symbols-rounded" style="font-size:20px;color:#fff;">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`}
+                            <div class="op-item-icon" style="background:${cat?.iconoImagen?'transparent':catColor};flex-shrink:0;overflow:hidden;">
+                                ${cat?.iconoImagen ? _catIconHTML(cat,'100%') : (cat?.svgData ? _catIconHTML(cat,20) : `<span class="material-symbols-rounded" style="font-size:20px;color:${cat?.iconColor||'#fff'};">${cat?.icon||(isIncome?'add_circle':'remove_circle')}</span>`)}
                             </div>
                             <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;">
                                 <div style="display:flex;align-items:center;gap:5px;min-width:0;overflow:hidden;">
@@ -4020,9 +4021,11 @@
                 const pct = (e.amount / maxAmt * 100).toFixed(1);
                 const totalOfType = entries.reduce((s,x)=>s+x.amount,0);
                 const pctOfType = totalOfType > 0 ? (e.amount/totalOfType*100).toFixed(0) : 0;
+                
+                const iconBackground = e.cat.iconoImagen ? 'transparent' : color;
                 const iconContent = e.cat.iconoImagen
                     ? `<img src="${e.cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;">`
-                    : (e.cat?.svgData ? `<svg viewBox="${e.cat.svgData.vb}" width="20" height="20" style="fill:${e.cat.iconColor||'#fff'};" xmlns="http://www.w3.org/2000/svg">${e.cat.svgData.svg}</svg>` : `<span class="material-symbols-rounded" style="font-size:20px;color:white;">${e.cat.icon||'category'}</span>`);
+                    : (e.cat?.svgData ? `<svg viewBox="${e.cat.svgData.vb}" width="20" height="20" style="fill:${e.cat.iconColor||'#fff'};" xmlns="http://www.w3.org/2000/svg">${e.cat.svgData.svg}</svg>` : `<span class="material-symbols-rounded" style="font-size:20px;color:${e.cat.iconColor||'white'};">${e.cat.icon||'category'}</span>`);
                 const catOps = ops.filter(o => o.categoryId === e.cat.id && o.type === e.type)
                     .sort((a,b) => new Date(b.date)-new Date(a.date));
                 const etiquetas = [...new Set(catOps.flatMap(o => o.etiquetas||[]))];
@@ -4052,7 +4055,7 @@
                 row.style.cssText = `background:rgba(15,23,42,0.6);border:1px solid ${color}33;border-radius:14px;overflow:hidden;cursor:pointer;`;
                 row.innerHTML = `
                     <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;">
-                        <div style="width:40px;height:40px;border-radius:12px;background:${e.cat.iconoImagen?'transparent':color};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+                        <div style="width:40px;height:40px;border-radius:12px;background:${iconBackground};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
                             ${iconContent}
                         </div>
                         <div style="flex:1;min-width:0;">
