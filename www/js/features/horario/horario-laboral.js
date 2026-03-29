@@ -97,7 +97,7 @@ function cancelarTurnoLaboral() {
 
 function toggleDiaLaboral(dateKey) {
     var turno = window._calLaboral.turnoSeleccionado;
-    if (!turno) { abrirSelectorTurno(); return; }
+    if (!turno) return;
     if (window._horarioLaboral[dateKey] === turno) {
         delete window._horarioLaboral[dateKey];
     } else {
@@ -105,6 +105,166 @@ function toggleDiaLaboral(dateKey) {
     }
     _guardarHorarioLaboral();
     _renderCalendarioLaboral();
+}
+
+function _getNota(dateKey) {
+    if (!window._horarioLaboral) return null;
+    var notas = window._horarioLaboral._notas || {};
+    var saved = notas[dateKey];
+    if (saved === "") return null; // Eliminado explícitamente
+    if (saved) return saved;
+
+    var parts = dateKey.split('-');
+    if (parts.length === 3) {
+        var md = parts[1] + '-' + parts[2];
+        var festivos = {
+            '01-01': 'Año Nuevo',
+            '01-06': 'Epifanía del Señor',
+            '04-02': 'Jueves Santo',
+            '04-03': 'Viernes Santo',
+            '04-23': 'Fiesta de la Comunidad Autónoma',
+            '05-01': 'Fiesta del Trabajo',
+            '08-15': 'Asunción de la Virgen',
+            '10-12': 'Fiesta Nacional de España',
+            '11-02': 'Todos los Santos (se traslada al lunes)',
+            '12-07': 'Día de la Constitución Española (se traslada al lunes)',
+            '12-08': 'Inmaculada Concepción',
+            '12-25': 'Natividad del Señor'
+        };
+        if (festivos[md]) return 'Festivo: ' + festivos[md];
+    }
+    return null;
+}
+
+function clikDiaLaboral(dateKey) {
+    if (window._calLaboral.turnoSeleccionado) {
+        toggleDiaLaboral(dateKey);
+        return;
+    }
+    var nota = _getNota(dateKey);
+    if (nota) {
+        mostrarBocadilloNota(dateKey, nota);
+    } else {
+        abrirModalNotaLaboral(dateKey);
+    }
+}
+
+function longPressDiaLaboral(dateKey) {
+    if (window._calLaboral.turnoSeleccionado) return;
+    var nota = _getNota(dateKey);
+    if (nota) {
+        abrirModalNotaLaboral(dateKey);
+    }
+}
+
+var _labLongTimer = null;
+var _labDidLong = false;
+window.labTouchStart = function(dateKey) {
+    _labDidLong = false;
+    if (_labLongTimer) clearTimeout(_labLongTimer);
+    _labLongTimer = setTimeout(function() {
+        _labDidLong = true;
+        if (navigator.vibrate) navigator.vibrate(40);
+        longPressDiaLaboral(dateKey);
+    }, 500);
+};
+window.labTouchEnd = function() {
+    if (_labLongTimer) clearTimeout(_labLongTimer);
+};
+window.labClick = function(e, dateKey) {
+    e.stopPropagation();
+    if (_labDidLong) return; // Se ignorará el click si ya saltó el long press
+    clikDiaLaboral(dateKey);
+};
+window.labContextMenu = function(e) {
+    e.preventDefault();
+};
+
+var _diaActivoNota = null;
+function abrirModalNotaLaboral(dateKey) {
+    _diaActivoNota = dateKey;
+    var nota = _getNota(dateKey) || '';
+    var ta = document.getElementById('textoNotaLaboral');
+    if (ta) ta.value = nota;
+    var tit = document.getElementById('tituloNotaLaboral');
+    if (tit) tit.textContent = nota ? 'Editar nota' : 'Añadir nota';
+    var btnDel = document.getElementById('btnEliminarNotaLaboral');
+    if (btnDel) btnDel.style.display = nota ? 'block' : 'none';
+    var mod = document.getElementById('modalNotaLaboral');
+    if (mod) mod.style.display = 'flex';
+}
+
+function cerrarModalNotaLaboral() {
+    var mod = document.getElementById('modalNotaLaboral');
+    if (mod) mod.style.display = 'none';
+    _diaActivoNota = null;
+}
+
+function guardarNotaLaboral() {
+    if (!_diaActivoNota) return;
+    var ta = document.getElementById('textoNotaLaboral');
+    var txt = ta ? ta.value.trim() : '';
+    if (!window._horarioLaboral._notas) window._horarioLaboral._notas = {};
+    if (txt) {
+        window._horarioLaboral._notas[_diaActivoNota] = txt;
+    } else {
+        window._horarioLaboral._notas[_diaActivoNota] = "";
+    }
+    _guardarHorarioLaboral();
+    cerrarModalNotaLaboral();
+    _renderCalendarioLaboral();
+}
+
+function eliminarNotaLaboral() {
+    if (!_diaActivoNota) return;
+    if (!window._horarioLaboral._notas) window._horarioLaboral._notas = {};
+    window._horarioLaboral._notas[_diaActivoNota] = "";
+    _guardarHorarioLaboral();
+    cerrarModalNotaLaboral();
+    _renderCalendarioLaboral();
+}
+
+var _bocadilloTimer = null;
+window.ocultarBocadillo = function() {
+    var b = document.getElementById('bocadilloNotaLaboral');
+    if (!b || b.style.opacity === '0') return;
+    b.style.transition = 'opacity 0.2s ease, margin-top 0.2s ease';
+    b.style.opacity = '0';
+    b.style.marginTop = '20px';
+    setTimeout(function() { b.style.display = 'none'; }, 200);
+};
+
+var _bStartX = 0, _bStartY = 0;
+window.bocadilloTouchStart = function(e) {
+    if(e.touches) {
+        _bStartX = e.touches[0].clientX;
+        _bStartY = e.touches[0].clientY;
+    }
+};
+window.bocadilloTouchMove = function(e) {
+    if(!e.touches) return;
+    var dx = e.touches[0].clientX - _bStartX;
+    var dy = e.touches[0].clientY - _bStartY;
+    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+        window.ocultarBocadillo();
+    }
+};
+
+function mostrarBocadilloNota(dateKey, nota) {
+    var b = document.getElementById('bocadilloNotaLaboral');
+    var tb = document.getElementById('textoBocadilloLaboral');
+    if (tb) tb.textContent = nota;
+    if (b) {
+        b.style.display = 'block';
+        b.style.marginTop = '0px';
+        setTimeout(function(){
+            b.style.opacity = '1';
+        }, 10);
+        if (_bocadilloTimer) clearTimeout(_bocadilloTimer);
+        _bocadilloTimer = setTimeout(function() {
+            window.ocultarBocadillo();
+        }, 3500);
+    }
 }
 
 function _renderCalendarioLaboral() {
@@ -158,6 +318,7 @@ function _renderCalendarioLaboral() {
             var turno = horario[dateKey];
             var col = turno ? _turnoColor(turno) : null;
 
+            var esFestivo = false;
             var festivos = {
                 '01-01': 'Año Nuevo',
                 '01-06': 'Epifanía del Señor',
@@ -174,6 +335,13 @@ function _renderCalendarioLaboral() {
             };
             var md = String(cell.date.getMonth() + 1).padStart(2,'0') + '-' + String(cell.date.getDate()).padStart(2,'0');
             var descFestivo = festivos[md];
+            
+            var notaStr = _getNota(dateKey);
+            var tieneNota = notaStr ? true : false;
+            var notaDot = tieneNota ? '<div style="position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 4px rgba(239,68,68,0.5);"></div>' : '';
+
+            var pEvents = 'onclick="labClick(event, \''+dateKey+'\')" ontouchstart="labTouchStart(\''+dateKey+'\')" ontouchend="labTouchEnd()" ontouchcancel="labTouchEnd()" onmousedown="labTouchStart(\''+dateKey+'\')" onmouseup="labTouchEnd()" onmouseleave="labTouchEnd()" oncontextmenu="labContextMenu(event)"';
+            var btnStyle = 'user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;width:100%;height:100%;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;';
 
             if (!col) {
                 var dayBg = esHoy ? 'rgba(255,255,255,0.08)' : (descFestivo ? 'rgba(168,85,247,0.12)' : 'transparent');
@@ -182,8 +350,8 @@ function _renderCalendarioLaboral() {
                 var borderStyle = descFestivo ? 'border:1.5px solid rgba(168,85,247,0.5);' : 'border:none;';
                 
                 return '<div style="flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;" '+(descFestivo?'title="Festivo: '+descFestivo+'"':'')+'>'
-                    + '<button onclick="event.stopPropagation();toggleDiaLaboral(\''+dateKey+'\')" style="width:100%;height:100%;border-radius:50%;background:'+dayBg+';'+borderStyle+'color:'+txtC+';font-size:13px;font-weight:'+fontWeight+';cursor:pointer;display:flex;align-items:center;justify-content:center;">'
-                    + cell.dia + '</button></div>';
+                    + '<button '+pEvents+' style="'+btnStyle+'background:'+dayBg+';'+borderStyle+'color:'+txtC+';font-size:13px;font-weight:'+fontWeight+';">'
+                    + cell.dia + notaDot + '</button></div>';
             }
 
             var prevTurno = i > 0 ? horario[_toDateKey(rowDays[i-1].date)] : null;
@@ -196,17 +364,21 @@ function _renderCalendarioLaboral() {
             var rTR = conectaDer ? '0' : '10px';
             var rBR = conectaDer ? '0' : '10px';
             var borderRadius = rTL+' '+rTR+' '+rBR+' '+rBL;
+            var w = (conectaIzq && conectaDer) ? 'calc(100% + 4px)' : (conectaIzq || conectaDer) ? 'calc(100% + 2px)' : '100%';
             var ml = conectaIzq ? '-2px' : '0';
             var mr = conectaDer ? '-2px' : '0';
-            var w = (conectaIzq && conectaDer) ? 'calc(100% + 4px)' : (conectaIzq || conectaDer) ? 'calc(100% + 2px)' : '100%';
             var borderStyle = 'border:1.5px solid '+col.border+';'
                 + (conectaIzq ? 'border-left:none;' : '')
                 + (conectaDer ? 'border-right:none;' : '');
+                
+            var styleRect = btnStyle.replace('width:100%', 'width:'+w).replace('border-radius:50%', 'border-radius:'+borderRadius) 
+                          + 'margin-left:'+ml+';margin-right:'+mr+';background:'+col.bg+';'+borderStyle+'color:'+col.txt+';font-size:13px;font-weight:800;';
 
             return '<div style="flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;overflow:visible;" '+(descFestivo?'title="Festivo: '+descFestivo+'"':'')+'>'
-                + '<button onclick="event.stopPropagation();toggleDiaLaboral(\''+dateKey+'\')" style="width:'+w+';height:100%;margin-left:'+ml+';margin-right:'+mr+';border-radius:'+borderRadius+';background:'+col.bg+';'+borderStyle+'color:'+col.txt+';font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;">'
+                + '<button '+pEvents+' style="'+styleRect+'">'
                 + cell.dia 
-                + (descFestivo ? '<div style="position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:#c084fc;"></div>' : '') 
+                + (descFestivo ? '<div style="position:absolute;bottom:3px;bottom:2px;width:4px;height:4px;border-radius:50%;background:#c084fc;"></div>' : '') 
+                + notaDot
                 + '</button></div>';
         }).join('');
 
