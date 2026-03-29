@@ -36,8 +36,9 @@ function _renderCalHistoricoContenido(id) {
     if (!habito) return;
     const color = habito.categoria?.color || '#10b981';
     const registros = habito.registros || [];
-    const completadosSet = new Set(registros.filter(r=>r.completado===true).map(r=>r.fecha));
+    const completadosMap = _getCompletadosMap(registros);
     const fallidosSet    = new Set(registros.filter(r=>r.completado===false && r.explicit).map(r=>r.fecha));
+    const goal = (habito.frecuencia === 'veces_periodo' && habito.vecesPeriodoPer === 'dia') ? (habito.vecesPeriodo || 1) : 1;
     const mes  = window._calHistoricoMes  ?? new Date().getMonth();
     const anio = window._calHistoricoAnio ?? new Date().getFullYear();
     const hoy  = new Date(); hoy.setHours(0,0,0,0);
@@ -60,23 +61,25 @@ function _renderCalHistoricoContenido(id) {
         const d = new Date(anio, mes, dia); d.setHours(0,0,0,0);
         const dStr = _toLocalStr(d);
         const esFuturo  = d > hoy;
-        const aplica    = _actAplicaHoy(habito, d);
+        const aplica    = _actAplicaHoy(habito, d, completadosMap);
         const esHoy     = dStr === hoyStr;
-        const completado = completadosSet.has(dStr);
+        const doneCount = completadosMap[dStr] || 0;
+        const completado = doneCount >= goal;
         const fallido    = fallidosSet.has(dStr);
         const pendiente  = !esFuturo && !esHoy && aplica && !completado && !fallido; // naranja: solo días pasados, nunca hoy
 
         let bg = 'transparent', border = 'none', txtC = '#94a3b8', fw = '500', extraStyle = '';
-        if (!aplica || esFuturo) {
-            txtC = esFuturo ? '#334155' : '#475569'; fw = '400';
-        } else if (completado) {
+        
+        if (completado) {
             bg = 'rgba(16,185,129,0.18)'; txtC = '#10b981'; fw = '700'; border = `2px solid #10b981`;
-            extraStyle = ``;
         } else if (fallido) {
             bg = 'rgba(239,68,68,0.12)'; txtC = '#ef4444'; fw = '700'; border = '2px solid #ef4444';
         } else if (pendiente) {
             bg = 'rgba(249,115,22,0.12)'; txtC = '#f97316'; fw = '700'; border = '2px solid #f97316';
+        } else if (!aplica || esFuturo) {
+            txtC = esFuturo ? '#334155' : '#475569'; fw = '400';
         }
+
         if (esHoy && !completado && !fallido) {
             border = '2px solid rgba(148,163,184,0.5)'; txtC = '#94a3b8'; fw = '800';
         }
@@ -214,7 +217,7 @@ function _renderEditHabitoFrecDetalle() {
                     <input type="number" id="editHabitoVecesPeriodo" min="1" max="31" value="${window._editHabitoVecesPeriodo || 3}" oninput="window._editHabitoVecesPeriodo=Math.max(1, +this.value || 1)" style="width:64px;background:#1e293b;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#f1f5f9;font-size:15px;font-weight:700;padding:10px;outline:none;text-align:center;">
                     <span style="color:#94a3b8;font-size:13px;">veces por</span>
                     <div class="agenda-period-chip-row">
-                        ${['semana','mes','anio'].map(per => `<button type="button" onclick="editHabitoSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(window._editHabitoVecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per}</button>`).join('')}
+                        ${['dia','semana','mes','anio'].map(per => `<button type="button" onclick="editHabitoSetVecesPeriodoPer('${per}')" class="agenda-period-chip ${(window._editHabitoVecesPeriodoPer||'semana')===per?'is-active':''}">${per === 'anio' ? 'año' : per === 'dia' ? 'día' : per}</button>`).join('')}
                     </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
