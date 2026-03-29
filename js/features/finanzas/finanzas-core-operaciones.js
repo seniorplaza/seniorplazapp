@@ -1821,6 +1821,7 @@
                 imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;pointer-events:none;';
                 iconBox.appendChild(imgEl);
             } else if (cat.svgData) {
+                iconBox.style.cssText = `background:rgba(${_icbRgb},${_icbAlpha});border:1.5px solid rgba(${_icbRgb},0.6);`;
                 const svgEl = document.createElementNS('http://www.w3.org/2000/svg','svg');
                 svgEl.setAttribute('viewBox', cat.svgData.vb);
                 svgEl.setAttribute('width', '24');
@@ -1829,6 +1830,7 @@
                 svgEl.innerHTML = cat.svgData.svg;
                 iconBox.appendChild(svgEl);
             } else {
+                iconBox.style.cssText = `background:rgba(${_icbRgb},${_icbAlpha});border:1.5px solid rgba(${_icbRgb},0.6);`;
                 const innerIcon = document.createElement('span');
                 innerIcon.className = 'material-symbols-rounded';
                 innerIcon.style.cssText = `font-size:24px;color:${cat.iconColor||'#ffffff'};pointer-events:none;`;
