@@ -1733,7 +1733,7 @@
     function _catIconHTML(cat, size) {
         if (!cat) return '';
         size = size || 20;
-        if (cat.iconoImagen) return `<img src="${cat.iconoImagen}" style="width:100%;height:100%;object-fit:cover;border-radius:${Math.round(size*0.4)}px;">`;
+        if (cat.iconoImagen) return `<img src="${cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;border-radius:inherit;">`;
         if (cat.svgData) return `<svg viewBox="${cat.svgData.vb}" width="${size}" height="${size}" style="fill:${cat.iconColor||'#ffffff'};flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">${cat.svgData.svg}</svg>`;
         return `<span class="material-symbols-rounded" style="font-size:${size}px;color:${cat.iconColor||'#ffffff'};font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 24;">${cat.icon||'category'}</span>`;
     }
@@ -1787,7 +1787,7 @@
         grid.classList.remove('cat-grid-animate');
         void grid.offsetWidth;
         grid.classList.add('cat-grid-animate');
-        const categorias = window.finanzasData.categorias.filter(cat => tipo === 'ALL' || cat.type === tipo);
+        const categorias = window.finanzasData.categorias.filter(cat => tipo === 'ALL' || !cat.type || cat.type === tipo);
         const totalEl = document.getElementById('totalCategorias');
         if (totalEl) { const total = window.finanzasData.categorias.length; totalEl.textContent = total; }
         const gastoEl = document.getElementById('totalCategoriasGastos');
@@ -2036,6 +2036,27 @@
                 }
                 window._editarCatTags[idx] = newTag;
                 _renderTagChips(window._editarCatTags);
+                // Sincronizar operaciones y programados existentes
+                var catId = window._editandoCategoriaModal;
+                if (catId && window.finanzasData) {
+                    var nActualizadas = 0;
+                    (window.finanzasData.operaciones || []).forEach(function(op) {
+                        if (op.categoryId === catId && op.subtag === oldTag) {
+                            op.subtag = newTag;
+                            nActualizadas++;
+                        }
+                    });
+                    (window.finanzasData.programados || []).forEach(function(prog) {
+                        if (prog.categoryId === catId && prog.subtag === oldTag) {
+                            prog.subtag = newTag;
+                            nActualizadas++;
+                        }
+                    });
+                    if (nActualizadas > 0) {
+                        if (typeof guardarFinanzasData === 'function') guardarFinanzasData();
+                        if (typeof _mostrarToast === 'function') _mostrarToast('check_circle', '#10b981', nActualizadas + ' operación' + (nActualizadas > 1 ? 'es actualizadas' : ' actualizada'));
+                    }
+                }
             }
             _cerrar();
         };
@@ -2335,8 +2356,8 @@
         
         grid.innerHTML = '';
         
-        const tipo = window.finanzasData.tipoOperacionActual;
-        const categorias = window.finanzasData.categorias.filter(cat => cat.type === tipo);
+        const _vt = ['EXPENSE','INCOME'];
+        const categorias = window.finanzasData.categorias.filter(cat => !_vt.includes(cat.type) || cat.type === window.finanzasData.tipoOperacionActual);
         
         categorias.forEach(cat => {
             const btn = document.createElement('button');
@@ -2349,7 +2370,7 @@
             }
             
             btn.innerHTML = `
-                <div style="width:52px;height:52px;border-radius:14px;background:${cat.color};display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.3);">
+                <div style="width:52px;height:52px;border-radius:14px;background:${cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.3);">
                     ${_catIconHTML(cat,24)}
                 </div>
                 <div style="color:#cbd5e1;font-weight:700;font-size:11px;">${cat.name}</div>
@@ -2996,15 +3017,10 @@
         if (!grid) return;
         grid.innerHTML = '';
         if (!window._modalGastoCatSeleccionada) _resetModalSubtags();
-        const cats = (window.finanzasData && window.finanzasData.categorias)
-            ? window.finanzasData.categorias.filter(c => esBook ? true : c.type === tipo)
+        const _validTypes = ['EXPENSE','INCOME'];
+        const lista = (window.finanzasData && window.finanzasData.categorias)
+            ? (esBook ? window.finanzasData.categorias : window.finanzasData.categorias.filter(c => !_validTypes.includes(c.type) || c.type === tipo))
             : [];
-        let lista;
-        if (esBook) {
-            lista = (window.finanzasData && window.finanzasData.categorias) ? window.finanzasData.categorias : [];
-        } else {
-            lista = cats;
-        }
         lista.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'modal-cat-btn-item' + (window._modalGastoCatSeleccionada === cat.id ? ' selected' : '');
@@ -3994,7 +4010,7 @@
                 const totalOfType = entries.reduce((s,x)=>s+x.amount,0);
                 const pctOfType = totalOfType > 0 ? (e.amount/totalOfType*100).toFixed(0) : 0;
                 const iconContent = e.cat.iconoImagen
-                    ? `<img src="${e.cat.iconoImagen}" style="width:24px;height:24px;border-radius:6px;object-fit:cover;">`
+                    ? `<img src="${e.cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;">`
                     : (e.cat?.svgData ? `<svg viewBox="${e.cat.svgData.vb}" width="20" height="20" style="fill:${e.cat.iconColor||'#fff'};" xmlns="http://www.w3.org/2000/svg">${e.cat.svgData.svg}</svg>` : `<span class="material-symbols-rounded" style="font-size:20px;color:white;">${e.cat.icon||'category'}</span>`);
                 const catOps = ops.filter(o => o.categoryId === e.cat.id && o.type === e.type)
                     .sort((a,b) => new Date(b.date)-new Date(a.date));
@@ -4025,7 +4041,7 @@
                 row.style.cssText = `background:rgba(15,23,42,0.6);border:1px solid ${color}33;border-radius:14px;overflow:hidden;cursor:pointer;`;
                 row.innerHTML = `
                     <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;">
-                        <div style="width:40px;height:40px;border-radius:12px;background:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <div style="width:40px;height:40px;border-radius:12px;background:${e.cat.iconoImagen?'transparent':color};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
                             ${iconContent}
                         </div>
                         <div style="flex:1;min-width:0;">
@@ -4269,9 +4285,9 @@
         if (isIncome) {
             if (cat) {
                 const catIconHtml = cat.iconoImagen
-                    ? `<img src="${cat.iconoImagen}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+                    ? `<img src="${cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;">`
                     : `${_catIconHTML(cat,22)}`;
-                if (origenWrap) { origenWrap.style.background = cat.color; origenWrap.style.border = 'none'; origenWrap.innerHTML = catIconHtml; }
+                if (origenWrap) { origenWrap.style.background = cat.iconoImagen ? 'transparent' : cat.color; origenWrap.style.overflow = 'hidden'; origenWrap.style.border = 'none'; origenWrap.innerHTML = catIconHtml; }
                 if (origenNombreEl) { origenNombreEl.textContent = cat.name; origenNombreEl.style.color = '#e2e8f0'; }
             } else {
                 if (origenWrap) { origenWrap.style.background = 'rgba(30,41,59,0.7)'; origenWrap.style.border = '1px solid rgba(255,255,255,0.07)'; origenWrap.innerHTML = '<span class="material-symbols-rounded" id="eop-cuenta-origen-icon" style="font-size:22px;color:#475569;">category</span>'; }
@@ -4317,9 +4333,9 @@
         } else {
             if (cat) {
                 const catIconHtml = cat.iconoImagen
-                    ? `<img src="${cat.iconoImagen}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`
+                    ? `<img src="${cat.iconoImagen}" style="display:block;width:100%;height:100%;object-fit:cover;align-self:stretch;">`
                     : `${_catIconHTML(cat,22)}`;
-                if (destinoWrap) { destinoWrap.style.background = cat.color; destinoWrap.style.border = 'none'; destinoWrap.innerHTML = catIconHtml; }
+                if (destinoWrap) { destinoWrap.style.background = cat.iconoImagen ? 'transparent' : cat.color; destinoWrap.style.overflow = 'hidden'; destinoWrap.style.border = 'none'; destinoWrap.innerHTML = catIconHtml; }
                 if (destinoNombreEl) { destinoNombreEl.textContent = cat.name; destinoNombreEl.style.color = cat.color; }
             } else {
                 if (destinoWrap) { destinoWrap.style.background = 'rgba(30,41,59,0.7)'; destinoWrap.style.border = '1px solid rgba(255,255,255,0.07)'; destinoWrap.innerHTML = '<span class="material-symbols-rounded" id="eop-destino-icon" style="font-size:22px;color:#475569;">category</span>'; }
@@ -4497,7 +4513,7 @@
         const grid = document.getElementById('eop-cat-grid');
         if (!grid) return;
         grid.innerHTML = '';
-        const cats = window.finanzasData.categorias.filter(c => c.type === tipo);
+        const cats = window.finanzasData.categorias.filter(c => !['EXPENSE','INCOME'].includes(c.type) || c.type === tipo);
         cats.forEach(cat => {
             const btn = document.createElement('button');
             const sel = cat.id === selectedId;
@@ -4801,7 +4817,7 @@
         const grid = document.getElementById(gridId);
         if (!grid) return;
         grid.innerHTML = '';
-        const cats = (window.finanzasData && window.finanzasData.categorias) ? window.finanzasData.categorias.filter(c => c.type === tipo) : [];
+        const cats = (window.finanzasData && window.finanzasData.categorias) ? window.finanzasData.categorias.filter(c => !['EXPENSE','INCOME'].includes(c.type) || c.type === tipo) : [];
         cats.forEach(cat => {
             const btn = document.createElement('button');
             const sel = cat.id === selectedId;
@@ -4912,7 +4928,7 @@
         const grid = document.getElementById('eprog-cat-grid');
         if (!grid) return;
         grid.innerHTML = '';
-        const cats = (window.finanzasData && window.finanzasData.categorias) ? window.finanzasData.categorias.filter(c => c.type === tipo) : [];
+        const cats = (window.finanzasData && window.finanzasData.categorias) ? window.finanzasData.categorias.filter(c => !['EXPENSE','INCOME'].includes(c.type) || c.type === tipo) : [];
         cats.forEach(cat => {
             const btn = document.createElement('button');
             const sel = cat.id === selectedId;

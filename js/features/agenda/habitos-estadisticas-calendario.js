@@ -81,7 +81,7 @@ function _renderCalHistoricoContenido(id) {
             border = '2px solid rgba(148,163,184,0.5)'; txtC = '#94a3b8'; fw = '800';
         }
         celdas += `<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:2px;">
-            <button onclick="${aplica && !esFuturo ? `habitoToggleDia('${id}','${dStr}')` : ''}" style="width:100%;height:100%;border-radius:50%;background:${bg};border:${border};color:${txtC};font-size:15px;font-weight:${fw};cursor:${esFuturo||!aplica?'default':'pointer'};display:flex;align-items:center;justify-content:center;transition:all 0.2s;${extraStyle}" ${esFuturo||!aplica?'disabled':''}>
+            <button onclick="${!esFuturo ? `habitoToggleDia('${id}','${dStr}')` : ''}" style="width:100%;height:100%;border-radius:50%;background:${bg};border:${border};color:${txtC};font-size:15px;font-weight:${fw};cursor:${esFuturo?'default':'pointer'};display:flex;align-items:center;justify-content:center;transition:all 0.2s;${extraStyle}" ${esFuturo?'disabled':''}>
                 ${dia}
             </button>
         </div>`;

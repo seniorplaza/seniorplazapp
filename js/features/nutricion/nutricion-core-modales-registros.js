@@ -1249,8 +1249,16 @@ function _nutriIntervaloLPEnd() {
 function _nutriDrawDonut(canvasId, val, max, color, bgColor) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.offsetWidth || parseInt(canvas.style.width) || canvas.width;
+    const cssH = canvas.offsetHeight || parseInt(canvas.style.height) || canvas.height;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
     const ctx = canvas.getContext('2d');
-    const w = canvas.width, h = canvas.height;
+    ctx.scale(dpr, dpr);
+    const w = cssW, h = cssH;
     const cx = w/2, cy = h/2, r = w/2 - 6;
     const pct = max > 0 ? Math.min(val / max, 1) : 0;
     ctx.clearRect(0, 0, w, h);

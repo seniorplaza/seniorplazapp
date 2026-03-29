@@ -4836,6 +4836,7 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            overflow: hidden;
         }
         @media (min-width: 640px) {
             .btn-add-cat-text { display: inline !important; padding: 10px 20px; font-size: 14px; font-weight: 700; }
