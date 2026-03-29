@@ -1739,10 +1739,10 @@ function renderTareasSection() {
         tareasListFlat = recurrentes;
     }
     if (mostrarTareas && tareas.length > 0) {
-        const ordenadas = [...tareas].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+        const ordenadas = [...tareas].sort((a,b) => (a.fecha||'').localeCompare(b.fecha||''));
         const grupos = {};
         ordenadas.forEach(t => { const f = t.fecha || hoyIso; if (!grupos[f]) grupos[f] = []; grupos[f].push(t); });
-        const fechasOrden = Object.keys(grupos).sort((a,b) => b.localeCompare(a));
+        const fechasOrden = Object.keys(grupos).sort((a,b) => a.localeCompare(b));
         fechasOrden.forEach((fecha, fi) => {
             const headerLabel = _formatFechaTareaHeader(fecha);
             const isPast = fecha < hoyIso;
@@ -1753,7 +1753,7 @@ function renderTareasSection() {
         tareasListFlat = tareas;
     }
     if (mostrarRecordatorios && recordatorios.length > 0) {
-        const ordenados = [...recordatorios].sort((a,b) => (b.creadoEn||'').localeCompare(a.creadoEn||''));
+        const ordenados = [...recordatorios].sort((a,b) => (a.creadoEn||'').localeCompare(b.creadoEn||''));
         const grupoTotal = ordenados.length;
         html += ordenados.map((t, idxGrupo) => _renderDiarioItem(t, 'tarea', null, idxGrupo, grupoTotal)).join('');
         tareasListFlat = recordatorios;
@@ -2081,8 +2081,9 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
     const label       = labels[tipo] || tipo;
     const labelMobile = labelsMobile[tipo] || tipo;
     const hoy = _localDateStr(new Date());
-    const esFechaFutura = viewDate ? _localDateStr(viewDate) > hoy : false;
-    const viewDateStr = viewDate ? _localDateStr(viewDate) : hoy;
+    const targetDateStr = viewDate ? _localDateStr(viewDate) : (item.fecha || hoy);
+    const esFechaFutura = targetDateStr > hoy;
+    const viewDateStr = targetDateStr;
     const registroHoy = (item.registros || []).find(r => r.fecha === viewDateStr);
     let estadoTarea = null;
     if (tipo === 'tarea' && !esRecordatorio) {
@@ -2122,11 +2123,15 @@ function _renderDiarioItem(item, tipo, viewDate, prioridad, totalItems) {
         let bg, border;
         if (esFechaFutura) {
             bg='#1e3a5f'; border='rgba(96,165,250,0.4)';
+        } else if (completado) {
+            bg='rgba(100,116,139,0.3)'; border='rgba(100,116,139,0.4)';
+        } else if (targetDateStr < hoy) {
+            bg='#ef4444'; border='rgba(255,255,255,0.4)';
         } else {
             const ahora = new Date();
             const minutos = hh*60+mm - (ahora.getHours()*60+ahora.getMinutes());
-            if (!completado && minutos < 0) { bg='#ef4444'; border='rgba(255,255,255,0.4)'; }
-            else if (!completado && minutos <= 30) { bg='#f97316'; border='rgba(255,255,255,0.4)'; }
+            if (minutos < 0) { bg='#ef4444'; border='rgba(255,255,255,0.4)'; }
+            else if (minutos <= 30) { bg='#f97316'; border='rgba(255,255,255,0.4)'; }
             else { bg='#1e3a5f'; border='rgba(96,165,250,0.4)'; }
         }
         return `<span style="color:white;font-size:10px;font-weight:700;background:${bg};border:1.5px solid ${border};border-radius:6px;padding:2px 7px;white-space:nowrap;flex-shrink:0;">${r}</span>`;

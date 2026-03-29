@@ -116,9 +116,6 @@ function prompt(query) {
         for (let i = 0; i < orphansList.length; i += 100) {
             const chunk = orphansList.slice(i, i + 100).map(r => r.public_id);
             const urlDel = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/resources/${resourceType}/upload`;
-            
-            const params = new URLSearchParams();
-            chunk.forEach(id => Object.defineProperty(params, 'public_ids[]', { value: id, enumerable: true }));
             // Manual URLEncoding para arrays public_ids[]
             let rawBody = chunk.map(id => `public_ids[]=${encodeURIComponent(id)}`).join('&') + `&type=upload`;
             
