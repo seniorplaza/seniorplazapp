@@ -413,7 +413,7 @@ function _actCatDropdownHTML() {
     const icon = selCat ? selCat.icon : 'category';
     const nombre = selCat ? selCat.name : 'Sin categoría';
     const selIconHTML = selCat && selCat.iconoImagen
-        ? '<img src="' + selCat.iconoImagen + '" style="width:20px;height:20px;object-fit:cover;border-radius:5px;">'
+        ? '<img src="' + selCat.iconoImagen + '" style="width:100%;height:100%;object-fit:cover;border-radius:12px;display:block;">'
         : ((selCat && selCat.svgData && selCat.svgData.vb && selCat.svgData.svg)
             ? '<svg viewBox="' + selCat.svgData.vb + '" width="20" height="20" style="fill:white;display:block;" xmlns="http://www.w3.org/2000/svg">' + selCat.svgData.svg + '</svg>'
             : '<span class="material-symbols-rounded" style="color:white;font-size:20px;">' + icon + '</span>');
@@ -421,12 +421,12 @@ function _actCatDropdownHTML() {
     var items = cats.map(function(c) {
         var isSelected = c.id === selId;
         var iconHTML = c.iconoImagen
-            ? '<img src="' + c.iconoImagen + '" style="width:18px;height:18px;object-fit:cover;border-radius:4px;flex-shrink:0;">'
+            ? '<img src="' + c.iconoImagen + '" style="width:100%;height:100%;object-fit:cover;display:block;">'
             : (c.svgData && c.svgData.vb && c.svgData.svg
                 ? '<svg viewBox="' + c.svgData.vb + '" width="18" height="18" style="fill:white;display:block;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">' + c.svgData.svg + '</svg>'
                 : '<span class="material-symbols-rounded" style="color:white;font-size:18px;">' + c.icon + '</span>');
         return '<button onclick="actSelCat(\'' + c.id + '\')" style="display:flex;align-items:center;gap:10px;width:100%;background:' + (isSelected ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.03)') + ';border:1px solid ' + (isSelected ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.06)') + ';border-radius:12px;padding:10px 12px;cursor:pointer;margin-bottom:4px;box-sizing:border-box;">'
-            + '<div style="width:36px;height:36px;border-radius:10px;background:' + c.color + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + iconHTML + '</div>'
+            + '<div style="width:36px;height:36px;border-radius:10px;background:' + (c.iconoImagen ? 'transparent' : c.color) + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">' + iconHTML + '</div>'
             + '<span style="color:' + (isSelected ? 'white' : '#cbd5e1') + ';font-size:14px;font-weight:' + (isSelected ? '700' : '600') + ';flex:1;text-align:left;">' + c.name + '</span>'
             + (isSelected ? '<span class="material-symbols-rounded" style="color:#3b82f6;font-size:18px;">check_circle</span>' : '')
             + '</button>';
@@ -447,7 +447,7 @@ function _actCatDropdownHTML() {
 
     return '<div id="actCatDropdownWrap" style="position:relative;">'
         + '<button onclick="actToggleCatDropdown()" style="display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 14px;cursor:pointer;box-sizing:border-box;">'
-        + '<div style="width:40px;height:40px;border-radius:12px;background:' + bgColor + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + selIconHTML + '</div>'
+        + '<div style="width:40px;height:40px;border-radius:12px;background:' + (selCat && selCat.iconoImagen ? 'transparent' : bgColor) + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">' + selIconHTML + '</div>'
         + '<div style="flex:1;text-align:left;"><div style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">CATEGORÍA</div><div style="color:' + (selCat ? selCat.color : '#94a3b8') + ';font-size:14px;font-weight:800;text-transform:uppercase;">' + nombre + '</div></div>'
         + '<span id="actCatChevron" class="material-symbols-rounded" style="color:#64748b;font-size:20px;transition:transform 0.2s;">expand_more</span>'
         + '</button>'
@@ -1142,12 +1142,14 @@ function _renderHabitoCard(habito) {
         const fallido = fallidosSet.has(dStr);
         const pasadoSinHacer = !esFuturo && !esHoy && aplica && !completado && !fallido; // solo días pasados (no hoy)
 
-        if (completado) {
+        let bg = 'transparent', border = '1.5px solid rgba(255,255,255,0.08)', txtColor = '#334155', fw = '600', inner = d.getDate();
+
+        if (completado && aplica) {
             bg = 'rgba(16,185,129,0.18)'; border = '1.5px solid #10b981'; txtColor = '#10b981'; fw = '800';
-        } else if (fallido) {
+        } else if (fallido && aplica) {
             bg = 'rgba(239,68,68,0.12)'; border = '1.5px solid #ef4444'; txtColor = '#ef4444'; fw = '700';
         } else if (pasadoSinHacer) {
-            bg = 'rgba(249,115,22,0.12)'; border = '1.5px solid #f59e0b'; txtColor = '#f59e0b'; fw = '600';
+            bg = 'rgba(245,158,11,0.12)'; border = '1.5px solid #f59e0b'; txtColor = '#f59e0b'; fw = '600';
         } else if (esHoy && aplica) {
             border = '1.5px solid rgba(148,163,184,0.5)'; txtColor = '#94a3b8'; fw = '800';
         } else if (!aplica || esFuturo) {
