@@ -1,4 +1,4 @@
-﻿
+
 window._mceCategoryId = null;
 window._mceCategoryIsIncome = false;
 
@@ -59,8 +59,12 @@ function _abrirModalCatEst(data) {
     const pctTotal = data.totalOfType > 0 ? Math.round(data.amount / data.totalOfType * 100) : 0;
     const fmt = n => n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
 
-    document.getElementById('mce-icon').style.background = color;
-    document.getElementById('mce-icon').innerHTML = data.iconContent;
+    const isImageOnly = data.iconContent.includes('<img');
+    const iconEl = document.getElementById('mce-icon');
+    iconEl.style.background = isImageOnly ? 'transparent' : color;
+    iconEl.style.border = isImageOnly ? 'none' : `1.5px solid ${color}88`;
+    iconEl.style.overflow = 'hidden';
+    iconEl.innerHTML = data.iconContent;
     document.getElementById('mce-name').textContent = data.name;
     document.getElementById('mce-count').textContent = data.catOps.length + ' operacion' + (data.catOps.length !== 1 ? 'es' : '');
 

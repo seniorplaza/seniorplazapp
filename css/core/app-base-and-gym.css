@@ -4983,6 +4983,7 @@
         .op-item-icon {
             width: 42px; height: 42px; border-radius: 12px; display: flex;
             align-items: center; justify-content: center; flex-shrink: 0; align-self: center;
+            overflow: hidden;
         }
         .op-date-header {
             color: #f1f5f9; font-size: 13px; font-weight: 700;
