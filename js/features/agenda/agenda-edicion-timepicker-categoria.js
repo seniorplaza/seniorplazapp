@@ -78,10 +78,11 @@ function _editRenderCatDropdown(target) {
     };
     let items = cats.map(c => {
         const isSel = c.id === selId;
-        return `<button onclick="_editSelCat('${target}','${c.id}')" style="display:flex;align-items:center;gap:10px;width:100%;background:${isSel?'rgba(59,130,246,0.12)':'rgba(255,255,255,0.03)'};border:1px solid ${isSel?'rgba(59,130,246,0.4)':'rgba(255,255,255,0.06)'};border-radius:12px;padding:10px 12px;cursor:pointer;margin-bottom:4px;box-sizing:border-box;">
-            <div style="width:36px;height:36px;border-radius:10px;background:${c.iconoImagen ? 'transparent' : c.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">${_iconHtml(c, 18)}</div>
-            <span style="color:${isSel?'white':'#cbd5e1'};font-size:14px;font-weight:${isSel?'700':'600'};flex:1;text-align:left;">${c.name}</span>
-            ${isSel ? '<span class="material-symbols-rounded" style="color:#3b82f6;font-size:18px;">check_circle</span>' : ''}
+        const iconH = (typeof _catIconHTML === 'function') ? _catIconHTML(c, 22)
+            : `<span class="material-symbols-rounded" style="color:${c.iconColor||'white'};font-size:22px;">${c.icon||'category'}</span>`;
+        return `<button onclick="_editSelCat('${target}','${c.id}')" class="modal-cat-btn-item${isSel ? ' selected' : ''}">
+            <div class="modal-cat-icon-sq" style="background:${c.iconoImagen ? 'transparent' : c.color};border:none;">${iconH}</div>
+            <div class="modal-cat-label">${c.name}</div>
         </button>`;
     }).join('');
 
@@ -103,7 +104,7 @@ function _editRenderCatDropdown(target) {
                 <div style="flex:1;text-align:left;"><div style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">CATEGORÍA</div><div style="color:${selCat?selCat.color:'#94a3b8'};font-size:14px;font-weight:800;">${nombre}</div></div>
                 <span id="${chevId}" class="material-symbols-rounded" style="color:#64748b;font-size:20px;transition:transform 0.2s;">expand_more</span>
             </button>
-            <div id="${listId}" style="display:none;margin-top:6px;background:rgba(15,23,42,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:8px;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(59,130,246,0.4) transparent;">${items}</div>
+            <div id="${listId}" style="display:none;margin-top:6px;background:rgba(10,18,35,0.98);border:1px solid rgba(59,130,246,0.2);border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);max-height:280px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(59,130,246,0.4) transparent;"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;">${items}</div></div>
         </div>
         ${etqHtml}`;
 }

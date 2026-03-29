@@ -3037,7 +3037,7 @@
                 _setModalAddGastoHeader(cat);
                 const catThumb = document.getElementById('modalGastoCatThumb');
                 const catNombre = document.getElementById('modalGastoCatNombre');
-                if (catThumb) catThumb.innerHTML = `<div style="width:38px;height:38px;border-radius:10px;background:${cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">${_catIconHTML(cat,20)}</div>`;
+                if (catThumb) catThumb.innerHTML = `<div style="width:38px;height:38px;border-radius:10px;background:${cat.iconoImagen ? 'transparent' : cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">${_catIconHTML(cat,20)}</div>`;
                 if (catNombre) { catNombre.textContent = cat.name; catNombre.style.color = cat.color; }
                 const dd = document.getElementById('modalGastoCatDropdown');
                 const chev = document.getElementById('modalGastoCatChevron');
@@ -3046,7 +3046,7 @@
                 _renderModalSubtags(cat);
             };
             btn.innerHTML = `
-                <div class="modal-cat-icon-sq" style="background:${cat.color};border:none;">
+                <div class="modal-cat-icon-sq" style="background:${cat.iconoImagen ? 'transparent' : cat.color};border:none;">
                     ${_catIconHTML(cat,22)}
                 </div>
                 <div class="modal-cat-label">${cat.name}</div>
@@ -4853,14 +4853,14 @@
                 window._progSubtag = null;
                 document.querySelectorAll('#' + gridId + ' .modal-cat-btn-item').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
-                document.getElementById('prog-cat-thumb').innerHTML = `<div style="width:38px;height:38px;border-radius:10px;background:${cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">${_catIconHTML(cat,20)}</div>`;
+                document.getElementById('prog-cat-thumb').innerHTML = `<div style="width:38px;height:38px;border-radius:10px;background:${cat.iconoImagen ? 'transparent' : cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">${_catIconHTML(cat,20)}</div>`;
                 const nEl = document.getElementById('prog-cat-nombre');
                 if (nEl) { nEl.textContent = cat.name; nEl.style.color = cat.color; }
                 document.getElementById('prog-cat-dropdown').style.display = 'none';
                 document.getElementById('prog-cat-chevron').style.transform = '';
                 _renderProgSubtags(cat, 'prog-subtag-section', 'prog-subtag-grid', '_progSubtag');
             };
-            btn.innerHTML = `<div class="modal-cat-icon-sq" style="background:${cat.color};border:none;">${_catIconHTML(cat,22)}</div><div class="modal-cat-label">${cat.name}</div>`;
+            btn.innerHTML = `<div class="modal-cat-icon-sq" style="background:${cat.iconoImagen ? 'transparent' : cat.color};border:none;">${_catIconHTML(cat,22)}</div><div class="modal-cat-label">${cat.name}</div>`;
             grid.appendChild(btn);
         });
     }
@@ -4965,13 +4965,13 @@
                 btn.classList.add('selected');
                 const eThumb = document.getElementById('eprog-cat-thumb');
                 const eNombre = document.getElementById('eprog-cat-nombre');
-                if (eThumb) eThumb.innerHTML = `<div style="width:38px;height:38px;border-radius:10px;background:${cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">${_catIconHTML(cat,20)}</div>`;
+                if (eThumb) eThumb.innerHTML = `<div style="width:38px;height:38px;border-radius:10px;background:${cat.iconoImagen ? 'transparent' : cat.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">${_catIconHTML(cat,20)}</div>`;
                 if (eNombre) { eNombre.textContent = cat.name; eNombre.style.color = cat.color; }
                 document.getElementById('eprog-cat-dropdown').style.display = 'none';
                 document.getElementById('eprog-cat-chevron').style.transform = '';
                 _renderProgSubtags(cat, 'eprog-subtag-section', 'eprog-subtag-grid', '_editProgSubtag');
             };
-            btn.innerHTML = `<div class="modal-cat-icon-sq" style="background:${cat.color};border:none;">${_catIconHTML(cat,22)}</div><div class="modal-cat-label">${cat.name}</div>`;
+            btn.innerHTML = `<div class="modal-cat-icon-sq" style="background:${cat.iconoImagen ? 'transparent' : cat.color};border:none;">${_catIconHTML(cat,22)}</div><div class="modal-cat-label">${cat.name}</div>`;
             grid.appendChild(btn);
         });
     }
