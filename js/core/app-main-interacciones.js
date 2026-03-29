@@ -5918,7 +5918,8 @@
                 return el ? parseFloat(el.value || 0) : 0;
             })(),
             gymSesionesHistorial: window._gymSesionesHistorial || {},
-            gymArchivados: (window._gymArchivados && !Array.isArray(window._gymArchivados)) ? window._gymArchivados : {}
+            gymArchivados: (window._gymArchivados && !Array.isArray(window._gymArchivados)) ? window._gymArchivados : {},
+            horarioLaboral: window._horarioLaboral || (function(){ try { var s = localStorage.getItem('horarioLaboral'); return s ? JSON.parse(s) : {}; } catch(e){ return {}; } })()
         };
         console.log('Guardando icono principal:', {
             icono: datos.iconoPrincipal,
@@ -6603,6 +6604,11 @@
                         try { if (typeof renderHabitosSection === 'function') renderHabitosSection(); } catch(e) {}
                         try { if (typeof renderTareasSection === 'function') renderTareasSection(); } catch(e) {}
                     }, 150);
+                }
+                if (datos.horarioLaboral) {
+                    window._horarioLaboral = datos.horarioLaboral;
+                    try { localStorage.setItem('horarioLaboral', JSON.stringify(window._horarioLaboral)); } catch(e) {}
+                    if (typeof _renderCalendarioLaboral === 'function') _renderCalendarioLaboral();
                 }
                 if (datos.gymSesionesHistorial) {
                     window._gymSesionesHistorial = datos.gymSesionesHistorial;
