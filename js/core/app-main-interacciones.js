@@ -9738,7 +9738,7 @@
         function _crearGymCardHTML(e) {
             var imgHTML = '';
             if (e.imgSrc && e.imgSrc.length > 0) {
-                imgHTML = '<img src="' + e.imgSrc + '" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">';
+                imgHTML = '<img src="' + e.imgSrc + '" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:12px;pointer-events:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;">';
             } else if (e.imgHTML && e.imgHTML.length > 0 && e.imgHTML.length < 500000) {
                 imgHTML = e.imgHTML; // legacy compat
             }
@@ -10118,19 +10118,55 @@
             if (prev) { clearTimeout(prev._timer); prev.remove(); }
             var snack = document.createElement('div');
             snack.id = '_gymUndoSnack';
-            snack.style.cssText = 'position:fixed;bottom:' + Math.max(24, _toastBottomOffsetPx()) + 'px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(234,179,8,0.35);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;z-index:10060;box-shadow:0 8px 32px rgba(0,0,0,0.5);white-space:nowrap;max-width:min(calc(100vw - 32px), 420px);';
-            snack.innerHTML = `<span style="color:#f1f5f9;font-size:13px;font-weight:600;">${mensaje}</span>
+            snack.style.cssText = 'position:fixed;bottom:' + Math.max(24, _toastBottomOffsetPx()) + 'px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;border:1px solid rgba(234,179,8,0.35);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px;z-index:10060;box-shadow:0 8px 32px rgba(0,0,0,0.5);white-space:nowrap;max-width:min(calc(100vw - 32px), 420px);opacity:0;transition:opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);touch-action:none;user-select:none;';
+            snack.innerHTML = `<span style="color:#f1f5f9;font-size:13px;font-weight:600;pointer-events:none;">${mensaje}</span>
                 <button id="_gymUndoBtn" style="background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:9px;color:#eab308;font-size:12px;font-weight:800;padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;">
-                    <span class="material-symbols-rounded" style="font-size:15px;">undo</span>Deshacer
+                    <span class="material-symbols-rounded" style="font-size:15px;pointer-events:none;">undo</span>Deshacer
                 </button>`;
             document.body.appendChild(snack);
-            snack.querySelector('#_gymUndoBtn').onclick = function() {
+            
+            function _cerrarSnack(swipeDir = 0) {
+                if (snack._closed) return; snack._closed = true;
                 clearTimeout(snack._timer);
-                snack.remove();
+                snack.style.transition = 'all 0.3s ease';
+                snack.style.opacity = '0';
+                if (swipeDir !== 0) snack.style.transform = `translateX(${-50 + (swipeDir * 100)}%) translateY(0)`;
+                else snack.style.transform = 'translateX(-50%) translateY(20px)';
+                setTimeout(() => { if (snack.parentNode) snack.remove(); }, 300);
+            }
+            
+            snack.querySelector('#_gymUndoBtn').onclick = function() {
+                _cerrarSnack();
                 if (typeof window._undoPopSnapshot === 'function') window._undoPopSnapshot();
                 onUndo();
             };
-            snack._timer = setTimeout(function(){ if(snack.parentNode) snack.remove(); }, 5000);
+            
+            let startX = 0, currentX = 0, isDragging = false;
+            snack.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX; isDragging = true;
+                snack.style.transition = 'none'; e.stopPropagation();
+            }, { passive: false });
+            snack.addEventListener('touchmove', (e) => {
+                if (!isDragging) return; e.preventDefault(); e.stopPropagation();
+                currentX = e.touches[0].clientX - startX;
+                snack.style.transform = `translateX(calc(-50% + ${currentX}px)) translateY(0) rotate(${currentX*0.1}deg)`;
+                snack.style.opacity = 1 - Math.abs(currentX)/240;
+            }, { passive: false });
+            snack.addEventListener('touchend', () => {
+                if (!isDragging) return; isDragging = false;
+                if (Math.abs(currentX) > 60) _cerrarSnack(currentX > 0 ? 1 : -1);
+                else {
+                    snack.style.transition = 'all 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+                    snack.style.transform = 'translateX(-50%) translateY(0) rotate(0deg)';
+                    snack.style.opacity = '1';
+                }
+                currentX = 0;
+            });
+            snack._timer = setTimeout(() => _cerrarSnack(), 5000);
+            
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                snack.style.opacity = '1'; snack.style.transform = 'translateX(-50%) translateY(0)';
+            }));
         }
 
         function eliminarTodasGymCards() {
@@ -10333,7 +10369,7 @@
                 inp.onchange = async function() {
                     var file = inp.files[0]; if (!file) return;
                     var setSrc = function(src) {
-                        pendingImgHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">';
+                        pendingImgHTML = '<img src="' + src + '" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:10px;pointer-events:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none;">';
                         var firstChild = preview.firstElementChild;
                         if (firstChild && firstChild.tagName !== 'DIV') firstChild.remove();
                         var img = document.createElement('img');
@@ -10410,6 +10446,20 @@
     if (typeof _gymAplicarModoCardioEnCard === 'function') _gymAplicarModoCardioEnCard(card);
     if (esCardioEdit) { var _newPaceInp = card.querySelector('input.gym-card-pace'); if (_newPaceInp) _newPaceInp.value = newPace; }
     if (typeof _initGymCardDrag === 'function') _initGymCardDrag(card);
+    card.dataset.swipeInit = '';
+    if (typeof _initGymSwipeCells === 'function') _initGymSwipeCells(card);
+    card.dataset.cardioKmInputInit = '';
+    var newKmInp = card.querySelector('.gym-card-kg');
+    if (newKmInp) {
+        newKmInp.addEventListener('input', function() {
+            if (!_gymEsCardioCard(card)) return;
+            var ctx2 = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
+            if (!ctx2 || !ctx2.esDia) return;
+            if (typeof _gymActualizarStatCardioKm === 'function') _gymActualizarStatCardioKm(ctx2.fechaKey);
+            if (typeof gymGuardarSesionHoy === 'function') gymGuardarSesionHoy();
+        });
+        card.dataset.cardioKmInputInit = '1';
+    }
     var _ctxEdit = (typeof _gymContextoActivo === 'function') ? _gymContextoActivo() : null;
     if (_ctxEdit && _ctxEdit.esDia && typeof _gymActualizarStatCardioKm === 'function') {
         _gymActualizarStatCardioKm(_ctxEdit.fechaKey);
@@ -10658,7 +10708,7 @@
             overlay.id = '_gymImgVisor';
             overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;transition:opacity 0.2s;';
             overlay.innerHTML =
-                '<button onclick="this.parentNode._closeVisor()" style="position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;"><span class="material-symbols-rounded" style="font-size:22px;">close</span></button>'
+                '<button onclick="this.parentNode._closeVisor()" style="position:absolute;top:50px;right:20px;width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;"><span class="material-symbols-rounded" style="font-size:24px;">close</span></button>'
               + '<img src="' + src + '" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.8);transition:transform 0.2s;user-select:none;touch-action:none;">';
             overlay._closeVisor = function() {
                 overlay.style.opacity = '0';
