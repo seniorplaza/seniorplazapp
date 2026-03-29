@@ -1,4 +1,4 @@
-﻿
+
 window._editTimePickerTarget = null; // 'habito' | 'tarea'
 
 function _editAbrirTimePicker(target) {
@@ -79,7 +79,7 @@ function _editRenderCatDropdown(target) {
     let items = cats.map(c => {
         const isSel = c.id === selId;
         return `<button onclick="_editSelCat('${target}','${c.id}')" style="display:flex;align-items:center;gap:10px;width:100%;background:${isSel?'rgba(59,130,246,0.12)':'rgba(255,255,255,0.03)'};border:1px solid ${isSel?'rgba(59,130,246,0.4)':'rgba(255,255,255,0.06)'};border-radius:12px;padding:10px 12px;cursor:pointer;margin-bottom:4px;box-sizing:border-box;">
-            <div style="width:36px;height:36px;border-radius:10px;background:${c.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${_iconHtml(c, 18)}</div>
+            <div style="width:36px;height:36px;border-radius:10px;background:${c.iconoImagen ? 'transparent' : c.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">${_iconHtml(c, 18)}</div>
             <span style="color:${isSel?'white':'#cbd5e1'};font-size:14px;font-weight:${isSel?'700':'600'};flex:1;text-align:left;">${c.name}</span>
             ${isSel ? '<span class="material-symbols-rounded" style="color:#3b82f6;font-size:18px;">check_circle</span>' : ''}
         </button>`;
@@ -99,7 +99,7 @@ function _editRenderCatDropdown(target) {
     cont.innerHTML = labelHTML + `
         <div style="position:relative;">
             <button onclick="_editToggleCatList('${target}')" style="display:flex;align-items:center;gap:10px;width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 14px;cursor:pointer;box-sizing:border-box;">
-                <div style="width:40px;height:40px;border-radius:12px;background:${bgColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${_iconHtml(selCatForBtn, 20)}</div>
+                <div style="width:40px;height:40px;border-radius:12px;background:${selCat && selCat.iconoImagen ? 'transparent' : bgColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">${_iconHtml(selCatForBtn, 20)}</div>
                 <div style="flex:1;text-align:left;"><div style="color:#64748b;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">CATEGORÍA</div><div style="color:${selCat?selCat.color:'#94a3b8'};font-size:14px;font-weight:800;">${nombre}</div></div>
                 <span id="${chevId}" class="material-symbols-rounded" style="color:#64748b;font-size:20px;transition:transform 0.2s;">expand_more</span>
             </button>

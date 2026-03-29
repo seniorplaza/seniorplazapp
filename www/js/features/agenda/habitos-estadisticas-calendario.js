@@ -69,17 +69,16 @@ function _renderCalHistoricoContenido(id) {
         const pendiente  = !esFuturo && !esHoy && aplica && !completado && !fallido; // naranja: solo días pasados, nunca hoy
 
         let bg = 'transparent', border = 'none', txtC = '#94a3b8', fw = '500', extraStyle = '';
-        
-        if (completado) {
+        if (!aplica || esFuturo) {
+            txtC = esFuturo ? '#334155' : '#475569'; fw = '400';
+        } else if (completado) {
             bg = 'rgba(16,185,129,0.18)'; txtC = '#10b981'; fw = '700'; border = `2px solid #10b981`;
+            extraStyle = ``;
         } else if (fallido) {
             bg = 'rgba(239,68,68,0.12)'; txtC = '#ef4444'; fw = '700'; border = '2px solid #ef4444';
         } else if (pendiente) {
             bg = 'rgba(249,115,22,0.12)'; txtC = '#f97316'; fw = '700'; border = '2px solid #f97316';
-        } else if (!aplica || esFuturo) {
-            txtC = esFuturo ? '#334155' : '#475569'; fw = '400';
         }
-
         if (esHoy && !completado && !fallido) {
             border = '2px solid rgba(148,163,184,0.5)'; txtC = '#94a3b8'; fw = '800';
         }
