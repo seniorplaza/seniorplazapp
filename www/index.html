@@ -422,9 +422,8 @@
                             </div>
 
                             <!-- Tooltip detallado -->
-                            <div id="storageTooltip"
-                                class="absolute top-full right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-opacity duration-200 z-50"
-                                style="">
+                                <div id="storageTooltip"
+                                class="absolute top-full right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl opacity-0 pointer-events-none transition-opacity duration-200 z-50">
                                 <div class="p-4">
                                     <div class="flex items-center justify-between mb-3 pb-3 border-b border-slate-700">
                                         <h4 class="text-sm font-bold text-white">Uso de Almacenamiento</h4>
@@ -7454,7 +7453,7 @@
                     <div style="color:#fde047;font-size:12px;font-weight:800;text-transform:uppercase;flex:1;letter-spacing:0.04em;">Vacaciones</div>
                     <div style="display:flex; align-items:center; gap:4px;">
                         <input type="number" id="labVacaciones" placeholder="0" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:white;font-size:22px;font-weight:900;width:56px;text-align:right;outline:none;padding:0;margin:0;">
-                        <div style="font-size:11px;color:rgba(234,179,8,0.6);font-weight:700;text-transform:uppercase;">días</div>
+                        <div id="lblVacaciones" style="font-size:11px;color:rgba(234,179,8,0.6);font-weight:700;text-transform:uppercase;">días</div>
                     </div>
                     <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:4px 0; width:60px;">
                         <input type="number" id="labVacacionesAnio" placeholder="YYYY" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:#fde047;font-size:12px;font-weight:800;width:100%;outline:none;padding:0;text-align:center;">
@@ -7466,7 +7465,7 @@
                     <div style="color:#d8b4fe;font-size:12px;font-weight:800;text-transform:uppercase;flex:1;letter-spacing:0.04em;">Propios</div>
                     <div style="display:flex; align-items:center; gap:4px;">
                         <input type="number" id="labAsuntosPropios" placeholder="0" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:white;font-size:22px;font-weight:900;width:56px;text-align:right;outline:none;padding:0;margin:0;">
-                        <div style="font-size:11px;color:rgba(168,85,247,0.6);font-weight:700;text-transform:uppercase;">días</div>
+                        <div id="lblAsuntosPropios" style="font-size:11px;color:rgba(168,85,247,0.6);font-weight:700;text-transform:uppercase;">días</div>
                     </div>
                     <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:4px 0; width:60px;">
                         <input type="number" id="labAsuntosPropiosAnio" placeholder="YYYY" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:#d8b4fe;font-size:12px;font-weight:800;width:100%;outline:none;padding:0;text-align:center;">
@@ -7478,7 +7477,7 @@
                     <div style="color:#93c5fd;font-size:12px;font-weight:800;text-transform:uppercase;flex:1;letter-spacing:0.04em;">Convenio</div>
                     <div style="display:flex; align-items:center; gap:4px;">
                         <input type="number" id="labHorasConvenio" placeholder="0" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:white;font-size:22px;font-weight:900;width:66px;text-align:right;outline:none;padding:0;margin:0;">
-                        <div style="font-size:11px;color:rgba(59,130,246,0.6);font-weight:700;text-transform:uppercase;">hrs</div>
+                        <div id="lblHorasConvenio" style="font-size:11px;color:rgba(59,130,246,0.6);font-weight:700;text-transform:uppercase;">hrs</div>
                     </div>
                     <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:4px 0; width:60px;">
                         <input type="number" id="labHorasConvenioAnio" placeholder="YYYY" oninput="_guardarHorarioLaboralExtra()" style="background:transparent;border:none;color:#93c5fd;font-size:12px;font-weight:800;width:100%;outline:none;padding:0;text-align:center;">

@@ -3905,8 +3905,19 @@
         if (!op) return;
         const nueva = { ...op, id: 'op_' + Date.now(), date: new Date().toISOString(), createdAt: new Date().toISOString() };
         window.finanzasData.operaciones.push(nueva);
+        
+        if (nueva.type === 'TRANSFER') {
+            _aplicarMovimientoEnCuenta(nueva.accountId, nueva.amount, 'EXPENSE');
+            var dId = nueva.destAccountId !== undefined ? nueva.destAccountId : nueva.toAccountId;
+            if (dId !== undefined && dId !== null) _aplicarMovimientoEnCuenta(dId, nueva.amount, 'INCOME');
+        } else {
+            _aplicarMovimientoEnCuenta(nueva.accountId, nueva.amount, nueva.type);
+        }
+        
         guardarFinanzasData();
+        if (typeof guardarDatos === 'function') guardarDatos();
         renderHistorialOperaciones();
+        renderEstadisticas();
     }
 
     function eliminarOp(id) {
@@ -4686,10 +4697,17 @@
         if (!op) return;
         const nueva = { ...op, id: 'op_' + Date.now(), date: new Date().toISOString(), createdAt: new Date().toISOString() };
         window.finanzasData.operaciones.push(nueva);
-        _aplicarMovimientoEnCuenta(nueva.accountId, nueva.amount, nueva.type);
+        
+        if (nueva.type === 'TRANSFER') {
+            _aplicarMovimientoEnCuenta(nueva.accountId, nueva.amount, 'EXPENSE');
+            var dId = nueva.destAccountId !== undefined ? nueva.destAccountId : nueva.toAccountId;
+            if (dId !== undefined && dId !== null) _aplicarMovimientoEnCuenta(dId, nueva.amount, 'INCOME');
+        } else {
+            _aplicarMovimientoEnCuenta(nueva.accountId, nueva.amount, nueva.type);
+        }
 
         guardarFinanzasData();
-        guardarDatos && guardarDatos();
+        if (typeof guardarDatos === 'function') guardarDatos();
         cerrarModalEditarOp();
         renderHistorialOperaciones();
         renderEstadisticas();

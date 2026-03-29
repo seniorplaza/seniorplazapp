@@ -644,6 +644,13 @@ function confirmarPeso() {
     if (idx >= 0) { window.nutricionData.registrosPeso[idx].peso = val; if (nota) window.nutricionData.registrosPeso[idx].nota = nota; }
     else window.nutricionData.registrosPeso.push({ fecha, peso: val, nota });
     window.nutricionData.registrosPeso.sort((a,b) => a.fecha.localeCompare(b.fecha));
+    
+    const gymPesoUsuario = document.getElementById('gym-peso-usuario');
+    if (gymPesoUsuario) {
+        gymPesoUsuario.value = val;
+        if (typeof gymRecalcularCalorias === 'function') gymRecalcularCalorias();
+    }
+    
     if (typeof guardarDatos === 'function') guardarDatos();
     cerrarModalPeso();
     renderNutricion();
