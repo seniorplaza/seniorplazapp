@@ -144,17 +144,12 @@ function clikDiaLaboral(dateKey) {
     var nota = _getNota(dateKey);
     if (nota) {
         mostrarBocadilloNota(dateKey, nota);
-    } else {
-        abrirModalNotaLaboral(dateKey);
     }
 }
 
 function longPressDiaLaboral(dateKey) {
     if (window._calLaboral.turnoSeleccionado) return;
-    var nota = _getNota(dateKey);
-    if (nota) {
-        abrirModalNotaLaboral(dateKey);
-    }
+    abrirModalNotaLaboral(dateKey);
 }
 
 var _labLongTimer = null;
