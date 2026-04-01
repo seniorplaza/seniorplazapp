@@ -359,6 +359,12 @@
                             <span class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">calendar_month</span>
                         </button>
 
+                        <!-- Sockets Tuya (Desktop) -->
+                        <button onclick="abrirModalSockets()" title="Enchufes"
+                            style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
+                            <span class="material-symbols-rounded text-white" style="font-size: 20px; line-height: 1; display: flex;">electrical_services</span>
+                        </button>
+
                         <!-- Pantalla Completa -->
                         <button onclick="toggleFullscreen()" title="Pantalla completa"
                             style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(29, 78, 216, 0.3) 50%, rgba(37, 99, 235, 0.4) 100%);  border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);">
@@ -503,6 +509,13 @@
                         style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.2);"
                         title="Horario laboral">
                         <span class="material-symbols-rounded text-blue-400" style="font-size: 20px;">calendar_month</span>
+                    </button>
+                    <!-- Sockets Tuya (Mobile) -->
+                    <button onclick="abrirModalSockets()"
+                        class="mobile-menu-button-inline p-2 rounded-lg transition-all"
+                        style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.2);"
+                        title="Enchufes">
+                        <span class="material-symbols-rounded text-blue-400" style="font-size: 20px;">electrical_services</span>
                     </button>
                     <button onclick="toggleMobileMenu(event)"
                         class="mobile-menu-button-inline p-2 rounded-lg transition-all"
@@ -7555,6 +7568,59 @@
     </div>
 
     <script src="js/features/horario/horario-laboral.js"></script>
+
+    <!-- MODAL SOCKETS TUYA -->
+    <div id="modalSockets" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:10060;align-items:center;justify-content:center;">
+        <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);border:1px solid rgba(59,130,246,0.2);border-radius:24px;width:320px;padding:24px;display:flex;flex-direction:column;gap:16px;box-shadow:0 24px 64px rgba(0,0,0,0.8);">
+            <!-- Header -->
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="material-symbols-rounded" style="color:#3b82f6;font-size:24px;">electrical_services</span>
+                    <span style="color:white;font-size:16px;font-weight:800;">Enchufes</span>
+                </div>
+                <button onclick="cerrarModalSockets()" style="background:rgba(255,255,255,0.05);border:none;border-radius:10px;color:#94a3b8;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <span class="material-symbols-rounded" style="font-size:18px;">close</span>
+                </button>
+            </div>
+
+            <!-- Socket FILTRO -->
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span class="material-symbols-rounded" id="iconFiltro" style="color:#64748b;font-size:22px;transition:color 0.3s;">power</span>
+                    <div>
+                        <div style="color:white;font-size:14px;font-weight:700;">FILTRO</div>
+                        <div id="estadoFiltro" style="color:#64748b;font-size:11px;margin-top:2px;">Cargando...</div>
+                    </div>
+                </div>
+                <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
+                    <input type="checkbox" id="switchFiltro" onchange="toggleSocket('bfa224ba6f56531d50u10e','FILTRO',this.checked)" style="opacity:0;width:0;height:0;">
+                    <span id="trackFiltro" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:26px;transition:background 0.3s;"></span>
+                    <span id="thumbFiltro" style="position:absolute;top:3px;left:3px;width:20px;height:20px;background:white;border-radius:50%;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.4);"></span>
+                </label>
+            </div>
+
+            <!-- Socket ESCRITORIO -->
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span class="material-symbols-rounded" id="iconEscritorio" style="color:#64748b;font-size:22px;transition:color 0.3s;">power</span>
+                    <div>
+                        <div style="color:white;font-size:14px;font-weight:700;">ESCRITORIO</div>
+                        <div id="estadoEscritorio" style="color:#64748b;font-size:11px;margin-top:2px;">Cargando...</div>
+                    </div>
+                </div>
+                <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
+                    <input type="checkbox" id="switchEscritorio" onchange="toggleSocket('bf646439a304e0cb3banap','ESCRITORIO',this.checked)" style="opacity:0;width:0;height:0;">
+                    <span id="trackEscritorio" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:26px;transition:background 0.3s;"></span>
+                    <span id="thumbEscritorio" style="position:absolute;top:3px;left:3px;width:20px;height:20px;background:white;border-radius:50%;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.4);"></span>
+                </label>
+            </div>
+
+            <!-- Error mensaje -->
+            <div id="socketError" style="display:none;color:#f87171;font-size:12px;text-align:center;padding:8px;background:rgba(239,68,68,0.1);border-radius:10px;border:1px solid rgba(239,68,68,0.2);"></div>
+        </div>
+    </div>
+
+    <script src="js/features/sockets/tuya-sockets.js"></script>
 </body>
 
 </html>

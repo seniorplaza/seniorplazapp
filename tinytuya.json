@@ -1,0 +1,22 @@
+{
+    "apiKey": "q8qytffvh3edp7axkraw",
+    "apiSecret": "529b2fbca9c94a8ca8d7421474fd5dff",
+    "apiRegion": "eu",
+    "apiDeviceID": "bfa224ba6f56531d50u10e",
+    "devices": [
+        {
+            "name": "FILTRO",
+            "id": "bfa224ba6f56531d50u10e",
+            "ip": "192.168.1.134",
+            "key": "_Cj#@5aiQ@{!B&-P",
+            "ver": "3.3"
+        },
+        {
+            "name": "ESCRITORIO",
+            "id": "bf646439a304e0cb3banap",
+            "ip": "192.168.1.133",
+            "key": "|D(dYL<Ne=8?(Q|I",
+            "ver": "3.3"
+        }
+    ]
+}

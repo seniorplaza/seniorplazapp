@@ -5,7 +5,13 @@
   "android": {
     "path": "../seniorplazapk"
   },
+  "server": {
+    "androidScheme": "https"
+  },
   "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
     "StatusBar": {
       "overlaysWebView": true,
       "style": "LIGHT",
