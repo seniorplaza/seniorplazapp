@@ -26,10 +26,9 @@ async function _hmacSha256Upper(secret, message) {
     return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
 }
 
-async function _buildHeaders(token, method, path, body) {
+async function _buildHeaders(token, method, path, bodyStr) {
     const t        = Date.now();
-    const bodyStr  = (typeof body === 'string') ? body : (body ? JSON.stringify(body) : '');
-    const bodyHash = await _sha256Hex(bodyStr);
+    const bodyHash = await _sha256Hex(bodyStr || '');
     const strToSign = [method, bodyHash, '', path].join('\n');
     const signStr   = TUYA_API_KEY + (token || '') + t + strToSign;
     const sign      = await _hmacSha256Upper(TUYA_API_SECRET, signStr);
@@ -48,9 +47,9 @@ async function _buildHeaders(token, method, path, body) {
 // --- HTTP helper (usa CapacitorHttp nativo para evitar CORS) ---
 
 async function _http(method, path, body, token) {
-    // Serializar body a string para que la firma y el envío sean idénticos
-    const bodyStr = body ? JSON.stringify(body) : '';
-    const headers = await _buildHeaders(token || '', method, path, body || null);
+    // body puede ser string o null — nunca re-serializar
+    const bodyStr = (typeof body === 'string') ? body : (body ? JSON.stringify(body) : '');
+    const headers = await _buildHeaders(token || '', method, path, bodyStr);
     const url     = TUYA_BASE_URL + path;
 
     // Capacitor nativo
