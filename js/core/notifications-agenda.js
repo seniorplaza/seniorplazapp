@@ -91,11 +91,13 @@
                 || (cat && cat.svgData)
                 || (typeof window._getSvgDataForIcon === 'function' ? window._getSvgDataForIcon(icono) : null)
                 || null;
+            var iconoImagen = (cat && cat.iconoImagen) || (item.categoria && item.categoria.iconoImagen) || null;
 
             return {
                 color: (cat && cat.color) || (item.categoria && item.categoria.color) || null,
                 icono: icono,
-                svgData: svgData
+                svgData: svgData,
+                iconoImagen: iconoImagen
             };
         } catch (e) {
             return { color: null, icono: 'category', svgData: null };
@@ -144,6 +146,22 @@
         return true;
     }
 
+    function _resizarFotoBase64(dataUrl, size) {
+        try {
+            var img = new Image();
+            img.src = dataUrl;
+            if (!img.naturalWidth) return '';
+            var canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            var ctx = canvas.getContext('2d');
+            var s = Math.min(img.naturalWidth, img.naturalHeight);
+            var sx = (img.naturalWidth - s) / 2;
+            var sy = (img.naturalHeight - s) / 2;
+            ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
+            return canvas.toDataURL('image/jpeg', 0.75).split(',')[1] || '';
+        } catch (e) { return ''; }
+    }
+
     function _buildNotifsNative(data) {
         var notifs = [];
         var now    = new Date();
@@ -157,6 +175,9 @@
             var cuerpo = _descripcionTarea(t);
             var svgData = visual.svgData || null;
             var iconBitmapDataUrl = _resolveIconBitmapDataUrl(visual.icono, svgData);
+            var _img = visual.iconoImagen || '';
+            var fotoUrl = (_img && _img.startsWith('http')) ? _img : '';
+            var fotoBase64 = (!fotoUrl && _img && _img.startsWith('data:')) ? _resizarFotoBase64(_img, 192) : '';
 
             if (timerTarget) {
                 if (timerTarget <= now) return;
@@ -171,6 +192,8 @@
                     svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
                     svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
                     iconBitmapDataUrl: iconBitmapDataUrl,
+                    fotoUrl:    fotoUrl,
+                    fotoBase64: fotoBase64,
                     horaOriginal: _padTime(timerTarget.getHours(), timerTarget.getMinutes()),
                     timestamp: timerTarget.getTime()
                 });
@@ -196,6 +219,8 @@
                     svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
                     svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
                     iconBitmapDataUrl: iconBitmapDataUrl,
+                    fotoUrl:    fotoUrl,
+                    fotoBase64: fotoBase64,
                     horaOriginal: _padTime(hm.hour, hm.minute),
                     timestamp: dt.getTime()
                 });
@@ -214,6 +239,9 @@
             var tipo   = item.subtipo || (esHabito ? 'habito' : 'recurrente');
             var svgData = visual.svgData || null;
             var iconBitmapDataUrl = _resolveIconBitmapDataUrl(visual.icono, svgData);
+            var _img2 = visual.iconoImagen || '';
+            var fotoUrl = (_img2 && _img2.startsWith('http')) ? _img2 : '';
+            var fotoBase64 = (!fotoUrl && _img2 && _img2.startsWith('data:')) ? _resizarFotoBase64(_img2, 192) : '';
 
             for (var d = 0; d < DAYS_AHEAD; d++) {
                 var fecha   = new Date(now.getTime() + d * 86400000);
@@ -237,6 +265,8 @@
                         svgVb:     (svgData && svgData.vb) ? String(svgData.vb) : '',
                         svgContent:(svgData && svgData.svg) ? String(svgData.svg) : '',
                         iconBitmapDataUrl: iconBitmapDataUrl,
+                        fotoUrl:    fotoUrl,
+                        fotoBase64: fotoBase64,
                         horaOriginal: _padTime(hm.hour, hm.minute),
                         timestamp: dt.getTime()
                     });
@@ -350,7 +380,33 @@
             var changed = false;
 
             acciones.forEach(function (a) {
-                if (!a || a.accion !== 'posponer') return;
+                if (!a) return;
+
+                // Accion logrado pendiente (app estaba cerrada al pulsar "Logrado")
+                if (a.accion === 'logrado') {
+                    var tipo = a.tipo || '';
+                    var itemId = a.itemId || '';
+                    if (!itemId) return;
+                    var hoy = _hoyStr();
+                    if (tipo === 'tarea') {
+                        var t = (data.tareas || []).find(function (x) { return x.id === itemId; });
+                        if (t) { t.estado = 'completada'; t.completada = true; changed = true; }
+                    } else {
+                        var esHabito = (tipo === 'habito' || tipo === 'sino' || tipo === 'cantidad' || tipo === 'lista');
+                        var arr2 = esHabito ? (data.habitos || []) : (data.tareasRecurrentes || []);
+                        var it2 = arr2.find(function (x) { return x.id === itemId; });
+                        if (it2) {
+                            if (!it2.registros) it2.registros = [];
+                            var idx2 = it2.registros.findIndex(function (r) { return r.fecha === hoy; });
+                            if (idx2 >= 0) it2.registros[idx2].completado = true;
+                            else it2.registros.push({ fecha: hoy, completado: true });
+                            changed = true;
+                        }
+                    }
+                    return;
+                }
+
+                if (a.accion !== 'posponer') return;
                 var tipo = a.tipo || '';
                 var itemId = a.itemId || '';
                 var horaOriginal = a.horaOriginal || '';

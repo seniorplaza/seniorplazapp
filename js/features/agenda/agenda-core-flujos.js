@@ -953,7 +953,7 @@ function actFinalizar() {
         const tarea = {
             id: 'tarea_' + Date.now(),
             nombre: datos.nombre,
-            fecha: datos.fecha || new Date().toISOString().split('T')[0],
+            fecha: datos.fecha || _localDateStr(new Date()),
             hora: datos.hora || '',
             nota: datos.nota || '',
             subitems: (datos.subitems || []).map(s => ({ ...s })),
@@ -989,7 +989,7 @@ function actFinalizar() {
         vecesPeriodoPer: datos.vecesPeriodoPer || 'semana',
         vecesGoalType: datos.vecesGoalType || 'exact',
         flexible: datos.flexible || false,
-        fechaInicio: datos.fechaInicio || new Date().toISOString().split('T')[0],
+        fechaInicio: datos.fechaInicio || _localDateStr(new Date()),
         fechaFin: datos.tieneFechaFin ? (datos.fechaFin || '') : null,
         recordatorios: datos.recordatorios || [],
         objetivo: datos.objetivo || null,

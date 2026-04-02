@@ -510,7 +510,7 @@
                         class="mobile-menu-button-inline p-2 rounded-lg transition-all"
                         style="background: rgba(30, 58, 138, 0.3); border: 1px solid rgba(59, 130, 246, 0.2);"
                         title="Enchufes">
-                        <span class="material-symbols-rounded text-blue-400" style="font-size: 20px;">electrical_services</span>
+                        <span class="material-symbols-rounded text-blue-400" style="font-size: 20px;">mode_off_on</span>
                     </button>
                     <button onclick="toggleMobileMenu(event)"
                         class="mobile-menu-button-inline p-2 rounded-lg transition-all"
@@ -7570,8 +7570,11 @@
             <!-- Header -->
             <div style="display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <span class="material-symbols-rounded" style="color:#3b82f6;font-size:24px;">electrical_services</span>
-                    <span style="color:white;font-size:16px;font-weight:800;">Enchufes</span>
+                    <span class="material-symbols-rounded" style="color:#94a3b8;font-size:24px;">mode_off_on</span>
+                    <div>
+                        <div style="color:white;font-size:16px;font-weight:800;">Smart Home</div>
+                        <div style="color:#64748b;font-size:11px;margin-top:1px;">Controla tus dispositivos</div>
+                    </div>
                 </div>
                 <button onclick="cerrarModalSockets()" style="background:rgba(255,255,255,0.05);border:none;border-radius:10px;color:#94a3b8;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
                     <span class="material-symbols-rounded" style="font-size:18px;">close</span>
@@ -7581,9 +7584,10 @@
             <!-- Socket FILTRO -->
             <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <span class="material-symbols-rounded" id="iconFiltro" style="color:#64748b;font-size:22px;transition:color 0.3s;">power</span>
+                    <span class="material-symbols-rounded" id="iconFiltro" style="color:#ef4444;font-size:22px;transition:color 0.3s;">smart_outlet</span>
                     <div>
                         <div style="color:white;font-size:14px;font-weight:700;">FILTRO</div>
+                        <div style="color:#475569;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Enchufe</div>
                         <div id="estadoFiltro" style="color:#64748b;font-size:11px;margin-top:2px;">Cargando...</div>
                     </div>
                 </div>
@@ -7597,9 +7601,10 @@
             <!-- Socket ESCRITORIO -->
             <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:12px;">
-                    <span class="material-symbols-rounded" id="iconEscritorio" style="color:#64748b;font-size:22px;transition:color 0.3s;">power</span>
+                    <span class="material-symbols-rounded" id="iconEscritorio" style="color:#ef4444;font-size:22px;transition:color 0.3s;">smart_outlet</span>
                     <div>
                         <div style="color:white;font-size:14px;font-weight:700;">ESCRITORIO</div>
+                        <div style="color:#475569;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Enchufe</div>
                         <div id="estadoEscritorio" style="color:#64748b;font-size:11px;margin-top:2px;">Cargando...</div>
                     </div>
                 </div>
@@ -7607,6 +7612,23 @@
                     <input type="checkbox" id="switchEscritorio" onchange="toggleSocket('bf646439a304e0cb3banap','Escritorio',this.checked)" style="opacity:0;width:0;height:0;">
                     <span id="trackEscritorio" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:26px;transition:background 0.3s;"></span>
                     <span id="thumbEscritorio" style="position:absolute;top:3px;left:3px;width:20px;height:20px;background:white;border-radius:50%;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.4);"></span>
+                </label>
+            </div>
+
+            <!-- Luz HABITACIÓN -->
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span class="material-symbols-rounded" id="iconHabitacion" style="color:#ef4444;font-size:22px;transition:color 0.3s;">light</span>
+                    <div>
+                        <div style="color:white;font-size:14px;font-weight:700;">DORMITORIO</div>
+                        <div style="color:#475569;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Lámpara</div>
+                        <div id="estadoHabitacion" style="color:#ef4444;font-size:11px;margin-top:2px;">Apagado</div>
+                    </div>
+                </div>
+                <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
+                    <input type="checkbox" id="switchHabitacion" onchange="toggleLuzHabitacion(this.checked)" style="opacity:0;width:0;height:0;">
+                    <span id="trackHabitacion" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#334155;border-radius:26px;transition:background 0.3s;"></span>
+                    <span id="thumbHabitacion" style="position:absolute;top:3px;left:3px;width:20px;height:20px;background:white;border-radius:50%;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.4);"></span>
                 </label>
             </div>
 

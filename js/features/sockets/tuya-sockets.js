@@ -112,11 +112,11 @@ function _applySocketUI(nombre, on) {
     if (!sw) return;
 
     sw.checked             = on;
-    track.style.background = on ? '#3b82f6' : '#334155';
+    track.style.background = on ? '#22c55e' : '#334155';
     thumb.style.transform  = on ? 'translateX(22px)' : 'translateX(0)';
-    icon.style.color       = on ? '#3b82f6' : '#64748b';
+    icon.style.color       = on ? '#22c55e' : '#ef4444';
     label.textContent      = on ? 'Encendido' : 'Apagado';
-    label.style.color      = on ? '#3b82f6'   : '#64748b';
+    label.style.color      = on ? '#22c55e'  : '#ef4444';
 }
 
 function _mostrarError(msg) {
@@ -164,6 +164,19 @@ async function toggleSocket(deviceId, nombre, on) {
     } catch (e) {
         _mostrarError('Error ' + nombre + ': ' + e.message);
         _applySocketUI(nombre, !on);
+    }
+}
+
+// --- WiZ light via UDP local (native Android) ---
+
+function toggleLuzHabitacion(on) {
+    if (window.AndroidNotificador && typeof window.AndroidNotificador.controlWizBulbs === 'function') {
+        window.AndroidNotificador.controlWizBulbs(on);
+        _applySocketUI('Habitacion', on);
+    } else {
+        _mostrarError('Control de bombilla solo disponible en la app');
+        const sw = document.getElementById('switchHabitacion');
+        if (sw) sw.checked = !on;
     }
 }
 
